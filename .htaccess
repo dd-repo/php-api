@@ -1,0 +1,25 @@
+RewriteEngine On
+
+# =====================================
+# deny access to the libs and to any php
+# =====================================
+
+RewriteRule _LIB - [F,L,NC]
+
+RewriteCond %{REQUEST_URI} !/?index.php
+RewriteRule (\.php|\.inc)$ - [F,L,NC]
+
+# =====================================
+# make url /xxx/yyy into /?__rewrite=xxx/yyy
+# =====================================
+
+RewriteCond %{REQUEST_URI} !(.*/|^)(test|tmp)(/.*$|$) [NC]
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !/?index.php
+RewriteRule ^(.*)$ /index.php?__rewrite=$1 [QSA,NC,L]
+
+RewriteCond %{REQUEST_URI} !(.*/|^)(test|tmp)(/.*$|$) [NC]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_URI} /$
+RewriteCond %{REQUEST_URI} !/?index.php
+RewriteRule ^(.*)$ /index.php?__rewrite=$1 [QSA,NC,L]
