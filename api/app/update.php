@@ -79,7 +79,7 @@ $a->addParam(array(
 $a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
-	'optional'=>false,
+	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>30,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
@@ -104,14 +104,6 @@ $a->setExecute(function() use ($a)
 	$url = $a->getParam('url');
 	$mode = $a->getParam('mode');
 	$user = $a->getParam('user');
-	
-	// =================================
-	// GET USERS
-	// =================================
-	$sql = "SELECT user_ldap, user_cf_token FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
-	$userdata = $GLOBALS['db']->query($sql);
-	if( $userdata == null || $userdata['user_ldap'] == null )
-		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
 
 	// =================================
 	// GET APP DN
@@ -131,17 +123,38 @@ $a->setExecute(function() use ($a)
 	else
 		throw new ApiException("Not found", 404, "Can not find app: {$app}");
 	
-	// =================================
-	// CHECK OWNER
-	// =================================
-	$ownerdn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
+	if( $user !== null )
+	{
+		// =================================
+		// GET USERS
+		// =================================
+		$sql = "SELECT user_ldap, user_cf_token FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$userdata = $GLOBALS['db']->query($sql);
+		if( $userdata == null || $userdata['user_ldap'] == null )
+			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
 	
-	if( is_array($data['owner']) )
-			$data['owner'] = $data['owner'][0];
-			
-	if( $ownerdn != $data['owner'] )
-		throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the app {$app}");
+		// =================================
+		// CHECK OWNER
+		// =================================
+		$ownerdn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
 		
+		if( is_array($data['owner']) )
+			$data['owner'] = $data['owner'][0];
+				
+		if( $ownerdn != $data['owner'] && $user != 'admin' )
+			throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the app {$app}");
+	}
+	else
+	{
+		if( is_array($data['owner']) )
+			$data['owner'] = $data['owner'][0];
+				
+		$ownerdata = $GLOBALS['ldap']->read($data['owner']);
+		
+		$sql = "SELECT user_ldap, user_cf_token FROM users u WHERE u.user_ldap = '{$ownerdata['uidNumber']}'";
+		$userdata = $GLOBALS['db']->query($sql);
+	}
+	
 	// =================================
 	// GET CF INFO
 	// =================================
@@ -193,11 +206,19 @@ $a->setExecute(function() use ($a)
 	
 	if( $url !== null && $mode == 'add' )
 	{
+		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
+		$data['targetDirectory'] = ldap::dirFromDN($dn2);
+		$GLOBALS['system']->update(system::APP, $data, $mode);
+		
 		$params['uris'] = $cf_info['uris'];
 		$params['uris'][] = $url;
 	}
 	elseif( $url !== null && $mode == 'delete' )
 	{
+		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
+		$data['targetDirectory'] = ldap::dirFromDN($dn2);
+		$GLOBALS['system']->update(system::APP, $data, $mode);
+		
 		$params['uris'] = $cf_info['uris'];
 		$key = array_search($url, $params['uris']);
 		
@@ -214,8 +235,10 @@ $a->setExecute(function() use ($a)
 	}
 
 	cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
-	syncQuota('MEMORY', $user);
-
+			
+	if( $user !== null )
+		syncQuota('MEMORY', $user);
+	
 	responder::send("OK");	
 });
 

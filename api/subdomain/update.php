@@ -102,7 +102,7 @@ $a->setExecute(function() use ($a)
 
 		if( is_array($result['owner']) )
 			$result['owner'] = $result['owner'][0];
-			
+		
 		if( $result['owner'] != $user_dn )
 			throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the subdomain {$subdomain}");
 	}

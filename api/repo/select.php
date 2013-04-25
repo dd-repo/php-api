@@ -113,6 +113,8 @@ $a->setExecute(function() use ($a)
 		$re['size'] = $storage['storage_size'];
 		
 		$apps = array();
+		$groups = array();
+		$users = array();
 		if( is_array($r['member']) )
 		{
 			foreach( $r['member'] as $m )
@@ -121,6 +123,16 @@ $a->setExecute(function() use ($a)
 				{
 					$app = $GLOBALS['ldap']->read($m);
 					$apps[] = array('name'=>$app['uid'],'id'=>$app['uidNumber']);
+				}
+				if( strpos($m, 'ou=Groups') !== false )
+				{
+					$group = $GLOBALS['ldap']->read($m);
+					$groups[] = array('name'=>$group['uid'],'id'=>$group['uidNumber']);
+				}
+				if( strpos($m, 'ou=Users') !== false )
+				{
+					$user = $GLOBALS['ldap']->read($m);
+					$users[] = array('name'=>$user['uid'],'id'=>$user['uidNumber']);
 				}
 			}
 		}
@@ -131,9 +143,21 @@ $a->setExecute(function() use ($a)
 				$app = $GLOBALS['ldap']->read($data['member']);
 				$apps[] = array('name'=>$app['uid'],'id'=>$app['uidNumber']);
 			}
+			if( strpos($data['member'], 'ou=Groups') !== false )
+			{
+				$group = $GLOBALS['ldap']->read($data['member']);
+				$groups[] = array('name'=>$group['uid'],'id'=>$group['uidNumber']);
+			}
+			if( strpos($data['member'], 'ou=Users') !== false )
+			{
+				$user = $GLOBALS['ldap']->read($data['member']);
+				$users[] = array('name'=>$user['uid'],'id'=>$user['uidNumber']);
+			}
 		}
 		
+		$re['users'] = $users;
 		$re['apps'] = $apps;
+		$re['groups'] = $groups;
 		
 		$repos[] = $re;
 	}

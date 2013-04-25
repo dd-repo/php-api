@@ -28,7 +28,7 @@ $a->addParam(array(
 	'optional'=>false,
 	'minlength'=>1,
 	'maxlength'=>200,
-	'match'=>request::PHRASE|request::SPECIAL,
+	'match'=>request::LOWER|request::UPPER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
 	'name'=>array('type', 'repo_type'),
