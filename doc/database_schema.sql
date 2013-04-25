@@ -1,0 +1,63 @@
+CREATE TABLE users (
+	user_id			INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+	user_name		VARCHAR(100) CHARSET UTF8 NOT NULL,
+	user_ldap		INT(11) UNSIGNED NOT NULL,
+	PRIMARY KEY (user_id),
+	UNIQUE (user_name)
+) ENGINE=INNODB;
+
+CREATE TABLE tokens (
+	token_id		INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+	token_value		TINYTEXT CHARSET UTF8 NOT NULL,
+	token_lease		INT(11) UNSIGNED NOT NULL,
+	token_name		TINYTEXT CHARSET UTF8 DEFAULT NULL,
+	token_user		INT(11) UNSIGNED NOT NULL,
+	PRIMARY KEY (token_id),
+	FOREIGN KEY (token_user) REFERENCES users (user_id) ON DELETE CASCADE
+) ENGINE=INNODB;
+
+CREATE TABLE groups (
+	group_id		INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+	group_name		VARCHAR(100) CHARSET UTF8 NOT NULL,
+	PRIMARY KEY (group_id),
+	UNIQUE (group_name)
+) ENGINE=INNODB;
+
+CREATE TABLE grants (
+	grant_id		INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+	grant_name		VARCHAR(100) CHARSET UTF8 NOT NULL,
+	PRIMARY KEY (grant_id),
+	UNIQUE (grant_name)
+) ENGINE=INNODB;
+
+CREATE TABLE user_group (
+	user_id			INT(11) UNSIGNED NOT NULL,
+	group_id		INT(11) UNSIGNED NOT NULL,
+	PRIMARY KEY (user_id, group_id),
+	FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+	FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE
+) ENGINE=INNODB;
+
+CREATE TABLE user_grant (
+	user_id			INT(11) UNSIGNED NOT NULL,
+	grant_id		INT(11) UNSIGNED NOT NULL,
+	PRIMARY KEY (user_id, grant_id),
+	FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+	FOREIGN KEY (grant_id) REFERENCES grants (grant_id) ON DELETE CASCADE
+) ENGINE=INNODB;
+
+CREATE TABLE group_grant (
+	group_id		INT(11) UNSIGNED NOT NULL,
+	grant_id		INT(11) UNSIGNED NOT NULL,
+	PRIMARY KEY (group_id, grant_id),
+	FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE,
+	FOREIGN KEY (grant_id) REFERENCES grants (grant_id) ON DELETE CASCADE
+) ENGINE=INNODB;
+
+CREATE TABLE token_grant (
+	token_id		INT(11) UNSIGNED NOT NULL,
+	grant_id		INT(11) UNSIGNED NOT NULL,
+	PRIMARY KEY (token_id, grant_id),
+	FOREIGN KEY (token_id) REFERENCES tokens (token_id) ON DELETE CASCADE,
+	FOREIGN KEY (grant_id) REFERENCES grants (grant_id) ON DELETE CASCADE
+) ENGINE=INNODB;
