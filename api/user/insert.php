@@ -125,7 +125,7 @@ $a->setExecute(function() use ($a)
 	if( $mail !== null )
 		$params['mailForwardingAddress'] = $mail;
 	if( $ip !== null )
-		$params['gecos'] = security::escape($ip);
+		$params['ipHostNumber'] = security::escape($ip);
 	
 	$handler = new user();
 	$data = $handler->build($params);
