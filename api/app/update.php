@@ -216,7 +216,7 @@ $a->setExecute(function() use ($a)
 	if( $url !== null && $mode == 'add' )
 	{
 		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
-		$data['targetDirectory'] = ldap::dirFromDN($dn2);
+		$data['data2'] = $GLOBALS['ldap']->read($dn2);
 		$GLOBALS['system']->update(system::APP, $data, $mode);
 		
 		$params['uris'] = $cf_info['uris'];
@@ -225,7 +225,7 @@ $a->setExecute(function() use ($a)
 	elseif( $url !== null && $mode == 'delete' )
 	{
 		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
-		$data['targetDirectory'] = ldap::dirFromDN($dn2);
+		$data['data2'] = $GLOBALS['ldap']->read($dn2);
 		$GLOBALS['system']->update(system::APP, $data, $mode);
 		
 		$params['uris'] = $cf_info['uris'];
