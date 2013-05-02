@@ -260,10 +260,16 @@ $a->setExecute(function() use ($a)
 		$domain = $GLOBALS['ldap']->read($domain_dn);	
 		$new_params = array('dn' => 'dc=' . $env . ',' . $domain_dn, 'uid' => $env, 'domain' => $env . '.' . $domain['associatedDomain'], 'owner' => $ownerdn);
 	
-		$new_domain = $GLOBALS['ldap']->read($new_params['dn']);	
-		
-		if( !$new_domain )
+		try
 		{
+			$new_domain = $GLOBALS['ldap']->read($new_params['dn']);
+		}
+		catch(Exception $e)
+		{
+			// if this is not the 404 we expect, rethrow it
+			if( !($e instanceof ApiException) || !preg_match("/Entry not found/s", $e.'') )
+				throw $e;
+
 			$handler = new domain();
 			$new_data = $handler->build($new_params);
 	
