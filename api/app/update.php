@@ -70,11 +70,19 @@ $a->addParam(array(
 	));		
 $a->addParam(array(
 	'name'=>array('mode'),
-	'description'=>'Mode for application address and services (can be add/delete).',
+	'description'=>'Mode for application address, services and environment (can be add/delete).',
 	'optional'=>true,
 	'minlength'=>2,
 	'maxlength'=>6,
 	'match'=>"(add|delete)"
+	));
+$a->addParam(array(
+	'name'=>array('env'),
+	'description'=>'Environement to add or delete.',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>20,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));
 $a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
@@ -103,6 +111,7 @@ $a->setExecute(function() use ($a)
 	$service = $a->getParam('service');
 	$url = $a->getParam('url');
 	$mode = $a->getParam('mode');
+	$env = $a->getParam('env');
 	$user = $a->getParam('user');
 
 	// =================================
@@ -232,6 +241,17 @@ $a->setExecute(function() use ($a)
 			}
 			$params['uris'] = $uris;
 		}
+	}
+	
+	if( $env !== null && $mode == 'add' )
+	{
+		$data['env'] = $env;
+		$GLOBALS['system']->update(system::APP, $data, 'add-env');
+	}
+	elseif( $env !== null && $mode == 'delete' )
+	{
+		$data['env'] = $env;
+		$GLOBALS['system']->update(system::APP, $data, 'del-env');
 	}
 
 	cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
