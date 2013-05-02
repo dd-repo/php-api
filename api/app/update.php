@@ -216,6 +216,7 @@ $a->setExecute(function() use ($a)
 	if( $url !== null && $mode == 'add' )
 	{
 		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
+	echo $dn2;
 		$data['data2'] = $GLOBALS['ldap']->read($dn2);
 		$GLOBALS['system']->update(system::APP, $data, $mode);
 		
