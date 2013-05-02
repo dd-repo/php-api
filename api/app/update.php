@@ -260,17 +260,22 @@ $a->setExecute(function() use ($a)
 		$domain = $GLOBALS['ldap']->read($domain_dn);	
 		$new_params = array('dn' => 'dc=' . $env . ',' . $domain_dn, 'uid' => $env, 'domain' => $env . '.' . $domain['associatedDomain'], 'owner' => $ownerdn);
 	
-		$handler = new domain();
-		$new_data = $handler->build($new_params);
+		$new_domain = $GLOBALS['ldap']->read($new_params['dn']);	
+		
+		if( !$new_domain )
+		{
+			$handler = new domain();
+			$new_data = $handler->build($new_params);
 	
-		$GLOBALS['ldap']->create($new_params['dn'], $new_data);
+			$GLOBALS['ldap']->create($new_params['dn'], $new_data);
+		}
 	}
 	elseif( $env !== null && $mode == 'delete' )
 	{
 		$data['env'] = $env;
 		$GLOBALS['system']->update(system::APP, $data, 'del-env');
 		$env_dn = 'dc=' . $env . ',' . str_replace("cn={$data['uid']},ou=Apps,", "", $dn);
-		$GLOBALS['ldap']->delete($env_dn);
+		//$GLOBALS['ldap']->delete($env_dn);
 
 		$new['description'] = json_decode($data['description'], true);
 		$key = array_search($env, $new['description']);
