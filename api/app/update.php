@@ -263,7 +263,7 @@ $a->setExecute(function() use ($a)
 		$handler = new domain();
 		$new_data = $handler->build($new_params);
 	
-		$GLOBALS['ldap']->create($dn, $new_data);
+		$GLOBALS['ldap']->create($new_params['dn'], $new_data);
 	}
 	elseif( $env !== null && $mode == 'delete' )
 	{
