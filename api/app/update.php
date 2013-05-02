@@ -257,7 +257,7 @@ $a->setExecute(function() use ($a)
 			$new['description'][] = $env;
 
 		$domain_dn = str_replace("cn={$data['uid']},ou=Apps,", "", $dn);
-		$domain = $GLOBALS['ldap']->read($ddn);	
+		$domain = $GLOBALS['ldap']->read($domain_dn);	
 		$new_params = array('dn' => 'dc=' . $env . ',' . $domain_dn, 'uid' => $env, 'domain' => $env . '.' . $domain['associatedDomain'], 'owner' => $ownerdn);
 	
 		$handler = new domain();
