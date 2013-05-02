@@ -228,7 +228,7 @@ $a->setExecute(function() use ($a)
 				
 				$users[$i]['firstname'] = $result['givenName'];
 				$users[$i]['lastname'] = $result['sn'];
-				$users[$i]['ip'] = $result['gecos'];
+				$users[$i]['ip'] = $result['ipHostNumber'];
 				$users[$i]['address'] = $result['postalAddress'];
 				$users[$i]['email'] = (isset($result['mailForwardingAddress'])?$result['mailForwardingAddress']:$result['mail']);			
 			}
