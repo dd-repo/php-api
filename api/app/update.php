@@ -243,15 +243,54 @@ $a->setExecute(function() use ($a)
 		}
 	}
 	
+	$new = array();
 	if( $env !== null && $mode == 'add' )
 	{
 		$data['env'] = $env;
 		$GLOBALS['system']->update(system::APP, $data, 'add-env');
+		if( $data['description'] )
+		{
+			$new['description'] = json_decode($data['description'], true);
+			$new['description'][] = $env;
+		}
+		else
+			$new['description'][] = $env;
+
+		$domain_dn = str_replace("cn={$data['uid']},ou=Apps,", "", $dn);
+		$domain = $GLOBALS['ldap']->read($ddn);	
+		$new_params = array('dn' => 'dc=' . $env . ',' . $domain_dn, 'uid' => $env, 'domain' => $env . '.' . $domain['associatedDomain'], 'owner' => $ownerdn);
+	
+		$handler = new domain();
+		$new_data = $handler->build($new_params);
+	
+		$GLOBALS['ldap']->create($dn, $new_data);
 	}
 	elseif( $env !== null && $mode == 'delete' )
 	{
 		$data['env'] = $env;
 		$GLOBALS['system']->update(system::APP, $data, 'del-env');
+		$env_dn = 'dc=' . $env . ',' . str_replace("cn={$data['uid']},ou=Apps,", "", $dn);
+		$GLOBALS['ldap']->delete($env_dn);
+
+		$new['description'] = json_decode($data['description'], true);
+		$key = array_search($env, $new['description']);
+		
+		if( $key !== false )
+		{
+			$envs = array();
+			foreach( $new['description'] as $k => $v )
+			{
+				if( $k != $key )
+					$envs[] = $v;
+			}
+			$new['description'] = $envs;
+		}
+	}
+	
+	if( count($new) > 0 )
+	{
+		$new['description'] = json_encode($new['description']);
+		$GLOBALS['ldap']->replace($dn, $new);
 	}
 
 	cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
