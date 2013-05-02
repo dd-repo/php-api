@@ -230,7 +230,7 @@ $a->setExecute(function() use ($a)
 				$users[$i]['lastname'] = $result['sn'];
 				$users[$i]['ip'] = $result['ipHostNumber'];
 				$users[$i]['address'] = $result['postalAddress'];
-				$users[$i]['sid'] = $result['description'];
+				$users[$i]['description'] = $result['description'];
 				$users[$i]['email'] = (isset($result['mailForwardingAddress'])?$result['mailForwardingAddress']:$result['mail']);			
 			}
 			$i++;
