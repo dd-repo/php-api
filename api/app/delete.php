@@ -81,6 +81,12 @@ $a->setExecute(function() use ($a)
 		$data = $GLOBALS['ldap']->read($dn);	
 	else
 		throw new ApiException("Not found", 404, "Can not find app: {$app}");
+
+	// =================================
+	// GET CF INFO
+	// =================================
+	$cf_info = cf::send('apps/' . $data['uid'], 'GET', array(), $userdata['user_cf_token']);
+	$cf_stats = cf::send('apps/' . $data['uid']. '/stats', 'GET', array(), $userdata['user_cf_token']);
 	
 	// =================================
 	// CHECK OWNER
@@ -93,6 +99,50 @@ $a->setExecute(function() use ($a)
 	if( $ownerdn != $data['owner'] )
 		throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the app {$app}");
 
+	// =================================
+	// DELETE URLS
+	// =================================
+	$env_data = json_decode($data['description'], true);
+	foreach( $cf_info['uris'] as $u )
+	{
+		$homes = array();
+		if( count($env_data) > 0 )
+		{
+			foreach( $env_data as $k => $v )
+			{
+				$domain_dn = ldap::buildDN(ldap::DOMAIN, $v['domain']);
+				$data_domain = $GLOBALS['ldap']->read($domain_dn);
+				$homes[] = $data_domain['homeDirectory'];
+				
+				$parts = explode('.', $u);
+				$subdomain = $parts[0];
+				$dn_subdomain = ldap::buildDN(ldap::SUBDOMAIN, $v['domain'], $subdomain);
+				
+				$GLOBALS['ldap']->delete($dn_subdomain);
+			}
+		}
+	
+		$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
+		$data['data2'] = $GLOBALS['ldap']->read($dn2);
+		$data['homes'] = $homes;
+		$GLOBALS['system']->update(system::APP, $data, $mode);
+	}
+
+	// =================================
+	// DELETE ENVS
+	// =================================	
+	foreach( $env_data as $k => $v )
+	{
+		$domain_dn = ldap::buildDN(ldap::DOMAIN, $v['domain']);
+		$data_domain = $GLOBALS['ldap']->read($domain_dn);
+
+		$data['domain'] = $data_domain;
+		$data['env'] = $k;
+		$data['env_type'] = $v['type'];
+		
+		$GLOBALS['system']->update(system::APP, $data, 'del-env');
+	}
+	
 	// =================================
 	// DELETE REMOTE APP
 	// =================================

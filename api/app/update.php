@@ -248,11 +248,19 @@ $a->setExecute(function() use ($a)
 				$parts = explode('.', $url);
 				$subdomain = $parts[0];
 				$dn_subdomain = ldap::buildDN(ldap::SUBDOMAIN, $v['domain'], $subdomain);
-				$params = array('dn' => $dn_subdomain, 'subdomain' => $subdomain, 'uid' => $subdomain, 'domain' => $v['domain'], 'owner' => $ownerdn);
-				$handler = new subdomain();
-				$data_subdomain = $handler->build($params);
+				// create if not exists
+				try
+				{
+					$GLOBALS['ldap']->read($dn_subdomain);
+				}
+				catch(Exception $e)
+				{
+					$params = array('dn' => $dn_subdomain, 'subdomain' => $subdomain, 'uid' => $subdomain, 'domain' => $v['domain'], 'owner' => $ownerdn);
+					$handler = new subdomain();
+					$data_subdomain = $handler->build($params);
 				
-				$GLOBALS['ldap']->create($dn_subdomain, $data_subdomain);
+					$GLOBALS['ldap']->create($dn_subdomain, $data_subdomain);
+				}
 			}
 		}
 		
