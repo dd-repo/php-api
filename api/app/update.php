@@ -233,6 +233,21 @@ $a->setExecute(function() use ($a)
 	
 	if( $url !== null && $mode == 'add' )
 	{
+		// open env data
+		$env_data = json_decode($data['description'], true);
+		
+		$homes = array();
+		if( count($env_data) > 0 )
+		{
+			foreach( $env_data as $k => $v )
+			{
+				$domain_dn = ldap::buildDN(ldap::DOMAIN, $v['domain']);
+				$data_domain = $GLOBALS['ldap']->read($domain_dn);
+				$homes[] = $data_domain['homeDirectory'];
+			}
+		}
+		
+		// prepare data
 		$data['data2'] = $GLOBALS['ldap']->read($dn2);
 		$data['homes'] = $homes;
 		$GLOBALS['system']->update(system::APP, $data, $mode);
