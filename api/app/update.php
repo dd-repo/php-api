@@ -279,7 +279,8 @@ $a->setExecute(function() use ($a)
 				$data_domain = $GLOBALS['ldap']->read($domain_dn);
 				$homes[] = $data_domain['homeDirectory'];
 				
-				$subdomain = str_replace('.' . $v['domain'], '', $url);
+				$parts = explode('.', $url);
+				$subdomain = $parts[0];
 				$dn_subdomain = ldap::buildDN(ldap::SUBDOMAIN, $v['domain'], $subdomain);
 				
 				$GLOBALS['ldap']->delete($dn_subdomain);
