@@ -248,7 +248,7 @@ $a->setExecute(function() use ($a)
 				$parts = explode('.', $url);
 				$subdomain = $parts[0];
 				$dn_subdomain = ldap::buildDN(ldap::SUBDOMAIN, $v['domain'], $subdomain);
-				$params = array('dn' => $dn_subdomain, 'subdomain' => $subdomain, 'uid' => $subdomain, 'domain' => $v['domain'], 'owner' => $user_dn);
+				$params = array('dn' => $dn_subdomain, 'subdomain' => $subdomain, 'uid' => $subdomain, 'domain' => $v['domain'], 'owner' => $ownerdn);
 				$handler = new subdomain();
 				$data_subdomain = $handler->build($params);
 				
