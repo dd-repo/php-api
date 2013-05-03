@@ -233,8 +233,23 @@ $a->setExecute(function() use ($a)
 	
 	if( $url !== null && $mode == 'add' )
 	{
-		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
+		// open env data
+		$env_data = json_decode($data['description'], true);
+		
+		$homes = array();
+		if( count($env_data) > 0 )
+		{
+			foreach( $env_data as $k => $v )
+			{
+				$domain_dn = ldap::buildDN(ldap::DOMAIN, $v['domain']);
+				$data_domain = $GLOBALS['ldap']->read($domain_dn);
+				$homes[] = $data_domain['homeDirectory'];
+			}
+		}
+		
+		// prepare data
 		$data['data2'] = $GLOBALS['ldap']->read($dn2);
+		$data['homes'] = $homes;
 		$GLOBALS['system']->update(system::APP, $data, $mode);
 		
 		$params['uris'] = $cf_info['uris'];
@@ -242,8 +257,23 @@ $a->setExecute(function() use ($a)
 	}
 	elseif( $url !== null && $mode == 'delete' )
 	{
-		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
+		// open env data
+		$env_data = json_decode($data['description'], true);
+		
+		$homes = array();
+		if( count($env_data) > 0 )
+		{
+			foreach( $env_data as $k => $v )
+			{
+				$domain_dn = ldap::buildDN(ldap::DOMAIN, $v['domain']);
+				$data_domain = $GLOBALS['ldap']->read($domain_dn);
+				$homes[] = $data_domain['homeDirectory'];
+			}
+		}
+		
+		// prepare data
 		$data['data2'] = $GLOBALS['ldap']->read($dn2);
+		$data['homes'] = $homes;
 		$GLOBALS['system']->update(system::APP, $data, $mode);
 		
 		$params['uris'] = $cf_info['uris'];
@@ -316,7 +346,7 @@ $a->setExecute(function() use ($a)
 			$domain_dn = ldap::buildDN(ldap::DOMAIN, $env_data[$env]['domain']);
 			$data_domain = $GLOBALS['ldap']->read($domain_dn);
 
-			$data['domainData'] = $data_domain;
+			$data['domain'] = $data_domain;
 			$data['env'] = $env;
 			$data['env_type'] = $env_data['type'];
 		
