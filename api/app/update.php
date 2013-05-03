@@ -351,6 +351,35 @@ $a->setExecute(function() use ($a)
 		// do the system actions
 		$GLOBALS['system']->update(system::APP, $data, 'add-env');
 		
+		if( count($cf_info['uris']) > 0 )
+		{
+			foreach( $cf_info['uris'] as $u )
+			{
+				$parts = explode('.', $u);
+				$subdomain = $parts[0];
+				$dn_subdomain = ldap::buildDN(ldap::SUBDOMAIN, $env_domain, $subdomain);
+				// create if not exists
+				try
+				{
+					$GLOBALS['ldap']->read($dn_subdomain);
+				}
+				catch(Exception $e)
+				{
+					$params = array('dn' => $dn_subdomain, 'subdomain' => $subdomain, 'uid' => $subdomain, 'domain' => $env_domain, 'owner' => $ownerdn);
+					$handler = new subdomain();
+					$data_subdomain = $handler->build($params);
+				
+					$GLOBALS['ldap']->create($dn_subdomain, $data_subdomain);
+				}
+				
+				// prepare data
+				$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
+				$data['data2'] = $GLOBALS['ldap']->read($dn2);
+				$data['homes'] = $homes;
+				$GLOBALS['system']->update(system::APP, $data, $mode);
+			}
+		}
+		
 		// update ldap
 		if( $data['description'] )
 		{
