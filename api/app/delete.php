@@ -85,8 +85,14 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET CF INFO
 	// =================================
-	$cf_info = cf::send('apps/' . $data['uid'], 'GET', array(), $userdata['user_cf_token']);
-	$cf_stats = cf::send('apps/' . $data['uid']. '/stats', 'GET', array(), $userdata['user_cf_token']);
+	try
+	{
+		$cf_info = cf::send('apps/' . $data['uid'], 'GET', array(), $userdata['user_cf_token']);
+		$cf_stats = cf::send('apps/' . $data['uid']. '/stats', 'GET', array(), $userdata['user_cf_token']);
+	}
+	catch(Exception $e)
+	{
+	}
 	
 	// =================================
 	// CHECK OWNER
