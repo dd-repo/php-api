@@ -376,7 +376,7 @@ $a->setExecute(function() use ($a)
 				
 				$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
 				$data['data2'] = $GLOBALS['ldap']->read($dn2);
-				$data['homes'] = array($data_subdomain['homeDirectory']);
+				$data['homes'] = array($data_domain['homeDirectory']);
 				$GLOBALS['system']->update(system::APP, $data, $mode);
 			}
 		}
