@@ -161,14 +161,14 @@ $a->setExecute(function() use ($a)
 	$GLOBALS['ldap']->delete($dn);
 	
 	// =================================
-	// DELETE CLOUDFOUNDRY APP
-	// =================================
-	cf::send('apps/' . $data['uid'], 'DELETE', null, $userdata['user_cf_token']);
-
-	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
 	$GLOBALS['system']->delete(system::APP, $data);
+	
+	// =================================
+	// DELETE CLOUDFOUNDRY APP
+	// =================================
+	cf::send('apps/' . $data['uid'], 'DELETE', null, $userdata['user_cf_token']);
 
 	// =================================
 	// UPDATE REMOTE USER

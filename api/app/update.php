@@ -361,7 +361,7 @@ $a->setExecute(function() use ($a)
 				// create if not exists
 				try
 				{
-					$GLOBALS['ldap']->read($dn_subdomain);
+					$data_subdomain = $GLOBALS['ldap']->read($dn_subdomain);
 				}
 				catch(Exception $e)
 				{
@@ -373,9 +373,10 @@ $a->setExecute(function() use ($a)
 				}
 				
 				// prepare data
+				
 				$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
 				$data['data2'] = $GLOBALS['ldap']->read($dn2);
-				$data['homes'] = $homes;
+				$data['homes'] = array($data_subdomain['homeDirectory']);
 				$GLOBALS['system']->update(system::APP, $data, $mode);
 			}
 		}
