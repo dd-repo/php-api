@@ -248,6 +248,7 @@ $a->setExecute(function() use ($a)
 		}
 		
 		// prepare data
+		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
 		$data['data2'] = $GLOBALS['ldap']->read($dn2);
 		$data['homes'] = $homes;
 		$GLOBALS['system']->update(system::APP, $data, $mode);
@@ -272,6 +273,7 @@ $a->setExecute(function() use ($a)
 		}
 		
 		// prepare data
+		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
 		$data['data2'] = $GLOBALS['ldap']->read($dn2);
 		$data['homes'] = $homes;
 		$GLOBALS['system']->update(system::APP, $data, $mode);
