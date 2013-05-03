@@ -262,7 +262,7 @@ $a->setExecute(function() use ($a)
 	}
 	
 	$new = array();
-	if( $env !== null && $mode == 'add' )
+	if( $env !== null && $env_domain !==null && $env_type !==null && $mode == 'add' )
 	{
 		// get or create new domain for environment
 		$domain_dn = ldap::buildDN(ldap::DOMAIN, $env_domain);
@@ -277,7 +277,9 @@ $a->setExecute(function() use ($a)
 			if( !($e instanceof ApiException) || !preg_match("/Entry not found/s", $e.'') )
 				throw $e;
 			
-			$new_params = array('dn' => $domain_dn, 'uid' => $env, 'domain' => $env_domain, 'owner' => $ownerdn);
+			$split = explode('.', $env_domain);
+			$name = $split[0];
+			$new_params = array('dn' => $domain_dn, 'uid' => $name, 'domain' => $env_domain, 'owner' => $ownerdn);
 			$handler = new domain();
 			$new_data = $handler->build($new_params);
 	
