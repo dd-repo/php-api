@@ -85,6 +85,22 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));
 $a->addParam(array(
+	'name'=>array('env_domain'),
+	'description'=>'Environement domain to add or delete.',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>100,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	));
+$a->addParam(array(
+	'name'=>array('env_type'),
+	'description'=>'Environement type to add or delete.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>11,
+	'match'=>"(cf|standalone)"
+	));	
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -112,6 +128,8 @@ $a->setExecute(function() use ($a)
 	$url = $a->getParam('url');
 	$mode = $a->getParam('mode');
 	$env = $a->getParam('env');
+	$env_domain = $a->getParam('env_domain');
+	$env_type = $a->getParam('env_type');
 	$user = $a->getParam('user');
 
 	// =================================
@@ -247,55 +265,69 @@ $a->setExecute(function() use ($a)
 	$new = array();
 	if( $env !== null && $mode == 'add' )
 	{
-		$data['env'] = $env;
-		$GLOBALS['system']->update(system::APP, $data, 'add-env');
-		if( $data['description'] )
-		{
-			$new['description'] = json_decode($data['description'], true);
-			$new['description'][] = $env;
-		}
-		else
-			$new['description'][] = $env;
+		// get or create new domain for environment
+		$domain_dn = ldap::buildDN(ldap::DOMAIN, $env_domain);
 
-		$domain_dn = str_replace("cn={$data['uid']},ou=Apps,", "", $dn);
-		$domain = $GLOBALS['ldap']->read($domain_dn);	
-		$new_params = array('dn' => 'dc=' . $env . ',' . $domain_dn, 'uid' => $env, 'domain' => $env . '.' . $domain['associatedDomain'], 'owner' => $ownerdn);
-	
+		// create if not exists
 		try
 		{
-			$new_domain = $GLOBALS['ldap']->read($new_params['dn']);
+			$GLOBALS['ldap']->read($domain_dn);
 		}
 		catch(Exception $e)
 		{
-			// if this is not the 404 we expect, rethrow it
 			if( !($e instanceof ApiException) || !preg_match("/Entry not found/s", $e.'') )
 				throw $e;
-
+			
+			$new_params = array('dn' => $domain_dn, 'uid' => $env, 'domain' => $env_domain, 'owner' => $ownerdn);
 			$handler = new domain();
 			$new_data = $handler->build($new_params);
 	
-			$GLOBALS['ldap']->create($new_params['dn'], $new_data);
+			$GLOBALS['ldap']->create($domain_dn, $new_data);
 		}
+		
+		// read the new domain
+		$data_domain = $GLOBALS['ldap']->read($domain_dn);
+		
+		$data['domain'] = $data_domain;
+		$data['env'] = $env;
+		$data['env_type'] = $env_type;
+		
+		// do the system actions
+		$GLOBALS['system']->update(system::APP, $data, 'add-env');
+		
+		// update ldap
+		if( $data['description'] )
+		{
+			$new['description'] = json_decode($data['description'], true);
+			$new['description'][$env] = array('type'=>$env_type, 'domain'=>$env_domain);
+		}
+		else
+			$new['description'][$env] = array('type'=>$env_type, 'domain'=>$env_domain);
 	}
 	elseif( $env !== null && $mode == 'delete' )
 	{
-		$data['env'] = $env;
-		$GLOBALS['system']->update(system::APP, $data, 'del-env');
-		$env_dn = 'dc=' . $env . ',' . str_replace("cn={$data['uid']},ou=Apps,", "", $dn);
-		//$GLOBALS['ldap']->delete($env_dn);
-
-		$new['description'] = json_decode($data['description'], true);
-		$key = array_search($env, $new['description']);
+		// open env data
+		$env_data = json_decode($data['description'], true);
 		
-		if( $key !== false )
+		if( $env_data[$env] )
 		{
-			$envs = array();
-			foreach( $new['description'] as $k => $v )
+			// domain info
+			$domain_dn = ldap::buildDN(ldap::DOMAIN, $env_data[$env]['domain']);
+			$data_domain = $GLOBALS['ldap']->read($domain_dn);
+
+			$data['domainData'] = $data_domain;
+			$data['env'] = $env;
+			$data['env_type'] = $env_data['type'];
+		
+			$GLOBALS['system']->update(system::APP, $data, 'del-env');
+		
+			// rebuild the env data
+			$new['description'] = array();
+			foreach( $env_data as $k => $v )
 			{
-				if( $k != $key )
-					$envs[] = $v;
+				if( $k != $env )
+					$new['description'][$k] = $v;
 			}
-			$new['description'] = $envs;
 		}
 	}
 	
