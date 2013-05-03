@@ -291,7 +291,7 @@ $a->setExecute(function() use ($a)
 				$subdomain = $parts[0];
 				$dn_subdomain = ldap::buildDN(ldap::SUBDOMAIN, $v['domain'], $subdomain);
 				
-				try { $GLOBALS['ldap']->delete($dn_subdomain); } catch {}
+				try { $GLOBALS['ldap']->delete($dn_subdomain); } catch(Exception $e) {}
 			}
 		}
 		
