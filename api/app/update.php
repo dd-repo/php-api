@@ -233,9 +233,6 @@ $a->setExecute(function() use ($a)
 	
 	if( $url !== null && $mode == 'add' )
 	{
-		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
-		$data['data2'] = $GLOBALS['ldap']->read($dn2);
-		
 		// open env data
 		$env_data = json_decode($data['description'], true);
 		
@@ -248,10 +245,10 @@ $a->setExecute(function() use ($a)
 				$data_domain = $GLOBALS['ldap']->read($domain_dn);
 				$homes[] = $data_domain['homeDirectory'];
 				
-				$subdomain = str_replace('.' . $v['domain'], '', $url);
+				$parts = explode('.', $url);
+				$subdomain = $parts[0];
 				$dn_subdomain = ldap::buildDN(ldap::SUBDOMAIN, $v['domain'], $subdomain);
-				$parts = explode('.', $subdomain);
-				$params = array('dn' => $dn_subdomain, 'subdomain' => $subdomain, 'uid' => $parts[0], 'domain' => $v['domain'], 'owner' => $user_dn);
+				$params = array('dn' => $dn_subdomain, 'subdomain' => $subdomain, 'uid' => $subdomain, 'domain' => $v['domain'], 'owner' => $user_dn);
 				$handler = new subdomain();
 				$data_subdomain = $handler->build($params);
 				
@@ -260,6 +257,8 @@ $a->setExecute(function() use ($a)
 		}
 		
 		// prepare data
+		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
+		$data['data2'] = $GLOBALS['ldap']->read($dn2);
 		$data['homes'] = $homes;
 		$GLOBALS['system']->update(system::APP, $data, $mode);
 		
