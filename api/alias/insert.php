@@ -38,7 +38,7 @@ $a->addParam(array(
 	'optional'=>false,
 	'minlength'=>2,
 	'maxlength'=>15,
-	'match'=>"(transparent|redirect)",
+	'match'=>"(transparent|permanent)",
 	'action'=>true
 	));
 $a->addParam(array(
