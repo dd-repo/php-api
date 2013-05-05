@@ -63,7 +63,7 @@ function checkGrantsFromUserPass($grants = array())
 	// =================================
 	$dn = $GLOBALS['ldap']->getDNfromUID($result['user_ldap']);
 	$data = $GLOBALS['ldap']->read($dn);
-	$data['token'] = $token;
+	$data['token'] = $token['token'];
 	$GLOBALS['system']->update(system::USER, $data);
 	
 	// =================================
