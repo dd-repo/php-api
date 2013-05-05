@@ -112,7 +112,7 @@ $a->setExecute(function() use ($a)
 	$dn = ldap::buildDN(ldap::DOMAIN, $domain);
 	$split = explode('.', $domain);
 	$name = $split[0];
-	$params = array('dn' => $dn, 'uid' => $name, 'domain' => $domain, 'source' => $source, 'owner' => $user_dn);
+	$params = array('dn' => $dn, 'uid' => $name, 'domain' => $domain, 'source' => $source_data['associatedDomain'], 'owner' => $user_dn);
 	
 	$handler = new alias();
 	$data = $handler->build($params);
@@ -139,7 +139,7 @@ $a->setExecute(function() use ($a)
 	$data = $handler->build($params);
 	$GLOBALS['ldap']->create($dn, $data);
 	
-	responder::send(array("domain"=>$domain, "id"=>$result['uidNumber']));
+	responder::send(array("domain"=>$domain, "id"=>$data['uidNumber']));
 });
 
 return $a;
