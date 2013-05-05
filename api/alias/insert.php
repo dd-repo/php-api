@@ -33,6 +33,15 @@ $a->addParam(array(
 	'action'=>true
 	));
 $a->addParam(array(
+	'name'=>array('type'),
+	'description'=>'Type of alias.',
+	'optional'=>false,
+	'minlength'=>2,
+	'maxlength'=>15,
+	'match'=>"(transparent|redirect)"
+	'action'=>true
+	));
+$a->addParam(array(
 	'name'=>array('user_name', 'username', 'login', 'user', 'user_id', 'uid'),
 	'description' => 'The name or id of the target user.',
 	'optional'=>false,
@@ -53,6 +62,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$domain = $a->getParam('domain');
 	$source = $a->getParam('source');
+	$type = $a->getParam('type');
 	$user = $a->getParam('user');
 	
 	if( is_numeric($domain) )
@@ -128,6 +138,7 @@ $a->setExecute(function() use ($a)
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
 	$data['source'] = $source_data;
+	$data['type'] = $type;
 	$GLOBALS['system']->create(system::ALIAS, $data);
 
 	// =================================
