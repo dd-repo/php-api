@@ -8,7 +8,7 @@ if( !defined('PROPER_START') )
 
 $a = new action();
 $a->addAlias(array('list', 'view', 'search'));
-$a->setDescription("Searches for an alias");
+$a->setDescription("Searches for a domain");
 $a->addGrant(array('ACCESS', 'DOMAIN_SELECT'));
 $a->setReturn(array(array(
 	'id'=>'the id of the domain', 
@@ -24,6 +24,15 @@ $a->setReturn(array(array(
 		'name'=>'the username'
 	),
 	)));
+$a->addParam(array(
+	'name'=>array('source', 'source_name', 'source_id', 'id'),
+	'description'=>'The name of the new domain.',
+	'optional'=>false,
+	'minlength'=>2,
+	'maxlength'=>200,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	'action'=>true
+	));
 $a->addParam(array(
 	'name'=>array('domain', 'domain_name', 'domain_id', 'id'),
 	'description'=>'The name or id of the domain to search for.',
@@ -61,6 +70,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET PARAMETERS
 	// =================================
+	$source = $a->getParam('source');
 	$domain = $a->getParam('domain');
 	$user = $a->getParam('user');
 	$count = $a->getParam('count');
@@ -82,23 +92,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT REMOTE ENTRIES
 	// =================================
-	if( $domain !== null )
-	{
-		if( is_numeric($domain) )
-			$dn = $GLOBALS['ldap']->getDNfromUID($domain);
-		else
-			$dn = ldap::buildDN(ldap::DOMAIN, $domain);
-		
-		$result = $GLOBALS['ldap']->read($dn);
-	}
-	else if( $user !== null )
-	{
-		$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
-		$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::DOMAIN, "(owner={$user_dn})"), $count);
-	}
-	else
-		$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::DOMAIN), $count);
-	
+	$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::DOMAIN, "(description={$source})"), $count);
+
 	if( $count === true )
 		responder::send($result);
 	
@@ -144,29 +139,26 @@ $a->setExecute(function() use ($a)
 		
 		foreach( $result as $r )
 		{
-			if( !$r['description'] )
+			$d['hostname'] = $r['associatedDomain'];
+			$d['id'] = $r['uidNumber'];
+			$d['homeDirectory'] = $r['homeDirectory'];
+			$d['aRecord'] = $r['aRecord'];
+			$d['mxRecord'] = $r['mxRecord'];
+			$d['nSRecord'] = $r['nSRecord'];
+			$d['mailHost'] = $r['mailHost'];
+			$d['user'] = array('id'=>'', 'name'=>'');
+			
+			foreach( $info as $i )
 			{
-				$d['hostname'] = $r['associatedDomain'];
-				$d['id'] = $r['uidNumber'];
-				$d['homeDirectory'] = $r['homeDirectory'];
-				$d['aRecord'] = $r['aRecord'];
-				$d['mxRecord'] = $r['mxRecord'];
-				$d['nSRecord'] = $r['nSRecord'];
-				$d['mailHost'] = $r['mailHost'];
-				$d['user'] = array('id'=>'', 'name'=>'');
-				
-				foreach( $info as $i )
+				if( $i['user_ldap'] == $r['gidNumber'] )
 				{
-					if( $i['user_ldap'] == $r['gidNumber'] )
-					{
-						$d['user']['id'] = $i['user_id'];
-						$d['user']['name'] = $i['user_name'];
-						break;
-					}
+					$d['user']['id'] = $i['user_id'];
+					$d['user']['name'] = $i['user_name'];
+					break;
 				}
-				
-				$domains[] = $d;
 			}
+			
+			$domains[] = $d;
 		}
 	}
 
