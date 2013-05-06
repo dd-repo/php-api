@@ -142,6 +142,7 @@ $a->setExecute(function() use ($a)
 	$handler = new subdomain();
 	$data = $handler->build($params);
 	$GLOBALS['ldap']->create($dn, $data);
+	$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, 'stats');
 	$params = array('dn' => $dn, 'subdomain' => 'stats', 'uid' => 'stats', 'domain' => $domain, 'owner' => $user_dn);
 	$handler = new subdomain();
 	$data = $handler->build($params);
