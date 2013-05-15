@@ -45,8 +45,8 @@ $a->setExecute(function() use ($a)
 	$domain = $a->getParam('domain');
 	$user = $a->getParam('user');
 	
-	if( !preg_match("^([a-zA-Z0-9\\-_]+\\.)+[a-zA-Z0-9\\-_]+$", $domain) )
-		throw new ApiException("Eh ho... t'sais pas ce que c'est un nom de domaine ou quoi !? Nana mais sans blague, tu crois vraiment que \"" + $domain + "\" ca va marcher ? Et si tu allais t'acheter un cerveau, et des lunettes pour lire la doc sur ce que c'est un nom de domaine... Et vas aussi lire les <a href=\"http://fr.wikipedia.org/wiki/Darwin_Awards\">Darwin Awards</a>, ca te donnera peut-être des idées... pfff le boulet quoi !");
+	if( !preg_match("/^([a-zA-Z0-9\\-_]+\\.)+[a-zA-Z0-9\\-_]+$/", $domain) )
+		throw new ApiException("Parameter validation failed", 412, "Eh ho... t'sais pas ce que c'est un nom de domaine ou quoi !? Nana mais sans blague, tu crois vraiment que \"" . $domain . "\" ca va marcher ? Et si tu allais t'acheter un cerveau, et des lunettes pour lire la doc sur ce que c'est un nom de domaine... Et vas aussi lire les <a href=\"http://fr.wikipedia.org/wiki/Darwin_Awards\">Darwin Awards</a>, ca te donnera peut-être des idées... pfff le boulet quoi !");
 	if( is_numeric($domain) )
 		throw new ApiException("Parameter validation failed", 412, "Parameter domain may not be numeric : " . $domain);
 
