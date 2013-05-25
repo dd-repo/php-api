@@ -156,6 +156,12 @@ $a->setExecute(function() use ($a)
 	}
 	
 	// =================================
+	// DELETE CLOUDFOUNDRY APP
+	// =================================
+	cf::send('apps/' . $data['uid'], 'DELETE', null, $userdata['user_cf_token']);
+	sleep(5);
+	
+	// =================================
 	// DELETE REMOTE APP
 	// =================================
 	$GLOBALS['ldap']->delete($dn);
@@ -165,11 +171,6 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$GLOBALS['system']->delete(system::APP, $data);
 	
-	// =================================
-	// DELETE CLOUDFOUNDRY APP
-	// =================================
-	cf::send('apps/' . $data['uid'], 'DELETE', null, $userdata['user_cf_token']);
-
 	// =================================
 	// UPDATE REMOTE USER
 	// =================================
