@@ -185,9 +185,15 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET CF INFO
 	// =================================
-	$cf_info = cf::send('apps/' . $data['uid'], 'GET', array(), $userdata['user_cf_token']);
-	$cf_stats = cf::send('apps/' . $data['uid']. '/stats', 'GET', array(), $userdata['user_cf_token']);
-
+	try
+	{
+		$cf_info = cf::send('apps/' . $data['uid'], 'GET', array(), $userdata['user_cf_token']);
+		$cf_stats = cf::send('apps/' . $data['uid']. '/stats', 'GET', array(), $userdata['user_cf_token']);
+	}
+	catch(Exception $e)
+	{
+	}
+	
 	// =================================
 	// INITIATE QUOTAS
 	// =================================
@@ -202,15 +208,23 @@ $a->setExecute(function() use ($a)
 	if( $memory !== null )
 	{
 		checkQuota('MEMORY', $user);
-		$params['resources'] = $cf_info['resources'];
-		$params['resources']['memory'] = $memory;
-		cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
-		$params['state'] = 'STOPPED';
-		cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
-		$params['state'] = 'STARTED';
-		cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
-		syncQuota('MEMORY', $user);
 		
+		try
+		{
+			$params['resources'] = $cf_info['resources'];
+			$params['resources']['memory'] = $memory;
+			cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
+			$params['state'] = 'STOPPED';
+			cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
+			$params['state'] = 'STARTED';
+			cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
+		}
+		catch(Exception $e)
+		{
+		}
+		
+		syncQuota('MEMORY', $user);
+			
 		responder::send("OK");
 	}
 	if( $service !== null && $mode == 'add' )
@@ -423,8 +437,14 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['ldap']->replace($dn, $new);
 	}
 
-	cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
-			
+	try
+	{
+		cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
+	}
+	catch(Exception $e)
+	{
+	}
+	
 	if( $user !== null )
 		syncQuota('MEMORY', $user);
 	
