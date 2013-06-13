@@ -158,8 +158,14 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// DELETE CLOUDFOUNDRY APP
 	// =================================
-	cf::send('apps/' . $data['uid'], 'DELETE', null, $userdata['user_cf_token']);
-	sleep(5);
+	try
+	{
+		cf::send('apps/' . $data['uid'], 'DELETE', null, $userdata['user_cf_token']);
+		sleep(5);
+	}
+	catch(Exception $e)
+	{
+	}
 	
 	// =================================
 	// DELETE REMOTE APP
