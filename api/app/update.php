@@ -103,9 +103,6 @@ $a->setExecute(function() use ($a)
 	$service = $a->getParam('service');
 	$url = $a->getParam('url');
 	$mode = $a->getParam('mode');
-	$env = $a->getParam('env');
-	$env_domain = $a->getParam('env_domain');
-	$env_type = $a->getParam('env_type');
 	$user = $a->getParam('user');
 
 	// =================================
