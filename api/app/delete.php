@@ -81,18 +81,6 @@ $a->setExecute(function() use ($a)
 		$data = $GLOBALS['ldap']->read($dn);	
 	else
 		throw new ApiException("Not found", 404, "Can not find app: {$app}");
-
-	// =================================
-	// GET CF INFO
-	// =================================
-	try
-	{
-		$cf_info = cf::send('apps/' . $data['uid'], 'GET', array(), $userdata['user_cf_token']);
-		$cf_stats = cf::send('apps/' . $data['uid']. '/stats', 'GET', array(), $userdata['user_cf_token']);
-	}
-	catch(Exception $e)
-	{
-	}
 	
 	// =================================
 	// CHECK OWNER
@@ -153,18 +141,6 @@ $a->setExecute(function() use ($a)
 			
 			$GLOBALS['system']->update(system::APP, $data, 'del-env');
 		}
-	}
-	
-	// =================================
-	// DELETE CLOUDFOUNDRY APP
-	// =================================
-	try
-	{
-		cf::send('apps/' . $data['uid'], 'DELETE', null, $userdata['user_cf_token']);
-		sleep(5);
-	}
-	catch(Exception $e)
-	{
 	}
 	
 	// =================================

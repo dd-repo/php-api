@@ -87,7 +87,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $user !== null )
 	{ 
-		$sql = "SELECT user_ldap, user_cf_token FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$sql = "SELECT user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 		$userdata = $GLOBALS['db']->query($sql);
 		if( $userdata == null || $userdata['user_ldap'] == null )
 			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -140,8 +140,7 @@ $a->setExecute(function() use ($a)
 	{
 		try 
 		{
-			$cf_info = cf::send('apps/' . $result['uid'], 'GET', array(), $userdata['user_cf_token']);
-			$cf_stats = cf::send('apps/' . $result['uid'] . '/stats', 'GET', array(), $userdata['user_cf_token']);
+			// todo with docker commands
 		}
 		catch(Exception $e) 
 		{
@@ -182,13 +181,9 @@ $a->setExecute(function() use ($a)
 	{
 		foreach( $result as $r )
 		{
-			$cf_info = false;
-			$cf_stats = false;
-			
 			try 
 			{
-				$cf_info = cf::send('apps/' . $r['uid'], 'GET', array(), $userdata['user_cf_token']);
-				$cf_stats = cf::send('apps/' . $r['uid'] . '/stats', 'GET', array(), $userdata['user_cf_token']);
+				// todo with docker commands
 			}
 			catch(Exception $e) 
 			{

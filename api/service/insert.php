@@ -78,7 +78,7 @@ $a->setExecute(function() use ($a)
 	checkQuota('SERVICES', $user);
 
 	// =================================
-	// INSERT REMOTE SERVICE
+	// GENERATE NAME
 	// =================================
 	while(true)
 	{
@@ -98,9 +98,22 @@ $a->setExecute(function() use ($a)
 		if( $exists == null || $exists['service_name'] == null )
 			break;			
 	}
-	
-	$params = array('name' => $service, 'vendor' => $vendor, 'version' => $version, 'tier' => 'free');
-	cf::send('services', 'POST', $params, $userdata['user_cf_token']);
+
+	// =================================
+	// INSERT REMOTE SERVICE
+	// =================================
+	switch( $vendor )
+	{
+		case 'mysql':
+			$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+			mysql_query("CREATE USER '{$base}'@'%' IDENTIFIED BY '{$pass}'", $link);
+			mysql_query("CREATE DATABASE `{$base}` CHARACTER SET utf8 COLLATE utf8_unicode_ci", $link);
+			mysql_query("GRANT USAGE ON * . * TO '{$base}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0", $link);
+			mysql_query("GRANT ALL PRIVILEGES ON `{$base}` . * TO '{$base}'@'%'", $link);
+			mysql_query("FLUSH PRIVILEGES", $link);
+			mysql_close($link);
+		break;
+	}
 	
 	// =================================
 	// INSERT LOCAL SERVICE

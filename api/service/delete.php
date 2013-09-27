@@ -46,7 +46,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $user !== null )
 	{
-		$sql = "SELECT s.service_name, s.service_user, u.user_cf_token
+		$sql = "SELECT s.service_name, s.service_user, s.service_type
 				FROM users u
 				LEFT JOIN services s ON(s.service_user = u.user_id)
 				WHERE service_name = '".security::escape($service)."'
@@ -58,7 +58,7 @@ $a->setExecute(function() use ($a)
 	}
 	else
 	{
-		$sql = "SELECT s.service_name, s.service_user, u.user_cf_token
+		$sql = "SELECT s.service_name, s.service_user, s.service_type
 				FROM services s
 				LEFT JOIN users u ON(u.user_id = s.service_user)
 				WHERE service_name = '".security::escape($service)."'";
@@ -75,9 +75,17 @@ $a->setExecute(function() use ($a)
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 
 	// =================================
-	// DELETE REMOTE SERVICE
+	// DELETE REMOTE DATABASE
 	// =================================
-	cf::send('services/' . $result['service_name'], 'DELETE', array(), $result['user_cf_token']);
+	switch( $result['service_type'] )
+	{
+		case 'mysql':
+			$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+			mysql_query("DROP USER '{$database}'", $link);
+			mysql_query("DROP DATABASE `{$database}`", $link);
+			mysql_close($link);
+		break;	
+	}
 
 	// =================================
 	// SYNC QUOTA
