@@ -71,7 +71,7 @@ function syncQuota($type, $user)
 			$userdata = $GLOBALS['db']->query($sql);
 			if( $userdata == null || $userdata['user_ldap'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-			// to be replace by docker // test
+			// to be replace by docker
 			$count = $cf_info['usage']['services'];
 		break;
 		case 'DISK':
