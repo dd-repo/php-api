@@ -116,7 +116,7 @@ $a->setExecute(function() use ($a)
 	$app = $runtime . '-' . $app;
 
 	$dn = ldap::buildDN(ldap::APP, $domain, $app);
-	$params = array('dn' => $dn, 'uid' => $app, 'userPassword' => $pass, 'domain' => $domain, 'owner' => $user_dn);
+	$params = array('dn' => $dn, 'uid' => $app, 'userPassword' => $pass, 'domain' => $domain, 'owner' => $user_dn, 'description' => json_encode(array($app . '.' . $GLOBALS['CONFIG']['DEV_DOMAIN'])));
 	
 	$handler = new app();
 	$data = $handler->build($params);
@@ -133,7 +133,6 @@ $a->setExecute(function() use ($a)
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
 	$data['runtime'] = $runtime;
-	$data['url'] = $app . '.' . $GLOBALS['CONFIG']['DEV_DOMAIN'];
 	$data['framework'] = $framework;
 	$data['application'] = $application;
 	$GLOBALS['system']->create(system::APP, $data);
