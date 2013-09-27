@@ -39,6 +39,15 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));	
 $a->addParam(array(
+	'name'=>array('pass', 'password'),
+	'description'=>'The password of the service.',
+	'optional'=>false,
+	'minlength'=>3,
+	'maxlength'=>50,
+	'match'=>request::PHRASE|request::SPECIAL,
+	'action'=>true
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>false,
@@ -68,6 +77,7 @@ $a->setExecute(function() use ($a)
 	$domain = $a->getParam('domain');
 	$runtime = $a->getParam('runtime');
 	$framework = $a->getParam('framework');
+	$pass = $a->getParam('pass');
 	$user = $a->getParam('user');
 	$application = $a->getParam('app');
 	
@@ -106,7 +116,7 @@ $a->setExecute(function() use ($a)
 	$app = $runtime . '-' . $app;
 
 	$dn = ldap::buildDN(ldap::APP, $domain, $app);
-	$params = array('dn' => $dn, 'uid' => $app, 'domain' => $domain, 'owner' => $user_dn);
+	$params = array('dn' => $dn, 'uid' => $app, 'userPassword' => $pass, 'domain' => $domain, 'owner' => $user_dn);
 	
 	$handler = new app();
 	$data = $handler->build($params);
