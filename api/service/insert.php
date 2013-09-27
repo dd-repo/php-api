@@ -116,10 +116,10 @@ $a->setExecute(function() use ($a)
 	{
 		case 'mysql':
 			$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-			mysql_query("CREATE USER '{$base}'@'%' IDENTIFIED BY '{$pass}'", $link);
-			mysql_query("CREATE DATABASE `{$base}` CHARACTER SET utf8 COLLATE utf8_unicode_ci", $link);
-			mysql_query("GRANT USAGE ON * . * TO '{$base}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0", $link);
-			mysql_query("GRANT ALL PRIVILEGES ON `{$base}` . * TO '{$base}'@'%'", $link);
+			mysql_query("CREATE USER '{$service}'@'%' IDENTIFIED BY '{$pass}'", $link);
+			mysql_query("CREATE DATABASE `{$service}` CHARACTER SET utf8 COLLATE utf8_unicode_ci", $link);
+			mysql_query("GRANT USAGE ON * . * TO '{$service}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0", $link);
+			mysql_query("GRANT ALL PRIVILEGES ON `{$service}` . * TO '{$service}'@'%'", $link);
 			mysql_query("FLUSH PRIVILEGES", $link);
 			mysql_close($link);
 		break;

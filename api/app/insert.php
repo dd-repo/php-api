@@ -126,7 +126,6 @@ $a->setExecute(function() use ($a)
 	$data['url'] = $app . '.' . $GLOBALS['CONFIG']['DEV_DOMAIN'];
 	$data['framework'] = $framework;
 	$data['application'] = $application;
-	$data['token'] = $userdata['user_cf_token'];
 	$GLOBALS['system']->create(system::APP, $data);
 	
 	// =================================

@@ -81,8 +81,8 @@ $a->setExecute(function() use ($a)
 	{
 		case 'mysql':
 			$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-			mysql_query("DROP USER '{$database}'", $link);
-			mysql_query("DROP DATABASE `{$database}`", $link);
+			mysql_query("DROP USER '{$service}'", $link);
+			mysql_query("DROP DATABASE `{$service}`", $link);
 			mysql_close($link);
 		break;	
 	}
