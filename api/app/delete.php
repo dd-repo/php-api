@@ -96,50 +96,14 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// DELETE URLS
 	// =================================
-	$env_data = json_decode($data['description'], true);
-	if( count($cf_info['uris']) > 0 )
+	$uris = json_decode($data['description'], true);
+	if( count($uris) > 0 )
 	{
-		foreach( $cf_info['uris'] as $u )
+		foreach( $uris as $u )
 		{
-			$homes = array();
-			if( count($env_data) > 0 )
-			{
-				foreach( $env_data as $k => $v )
-				{
-					$domain_dn = ldap::buildDN(ldap::DOMAIN, $v['domain']);
-					$data_domain = $GLOBALS['ldap']->read($domain_dn);
-					$homes[] = $data_domain['homeDirectory'];
-					
-					$parts = explode('.', $u);
-					$subdomain = $parts[0];
-					$dn_subdomain = ldap::buildDN(ldap::SUBDOMAIN, $v['domain'], $subdomain);
-					
-					try { $GLOBALS['ldap']->delete($dn_subdomain); } catch(Exception $e) {}
-				}
-			}
-			
 			$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
 			$data['data2'] = $GLOBALS['ldap']->read($dn2);
-			$data['homes'] = $homes;
 			$GLOBALS['system']->update(system::APP, $data, $mode);
-		}
-	}
-
-	// =================================
-	// DELETE ENVS
-	// =================================
-	if( count($env_data) > 0 )
-	{
-		foreach( $env_data as $k => $v )
-		{
-			$domain_dn = ldap::buildDN(ldap::DOMAIN, $v['domain']);
-			$data_domain = $GLOBALS['ldap']->read($domain_dn);
-
-			$data['domain'] = $data_domain;
-			$data['env'] = $k;
-			$data['env_type'] = $v['type'];
-			
-			$GLOBALS['system']->update(system::APP, $data, 'del-env');
 		}
 	}
 	
