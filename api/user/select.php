@@ -191,7 +191,7 @@ $a->setExecute(function() use ($a)
 			if( $current != null )
 				$users[] = $current;
 			
-			$current = array('name'=>$r['user_name'], 'id'=>$r['user_id'], 'uid'=>$r['user_ldap'], 'firstname'=>'', 'lastname'=>'', 'email'=>'', 'iban'=>$r['user_iban'], 'bic'=>$r['user_bic'], 'status'=>$r['user_status'], 'date'=>$r['user_date'], 'ip'=>'', 'last'=>$r['user_last'], 'cf_token'=>$r['user_cf_token']);
+			$current = array('name'=>$r['user_name'], 'id'=>$r['user_id'], 'uid'=>$r['user_ldap'], 'firstname'=>'', 'lastname'=>'', 'email'=>'', 'iban'=>$r['user_iban'], 'bic'=>$r['user_bic'], 'status'=>$r['user_status'], 'date'=>$r['user_date'], 'ip'=>'', 'last'=>$r['user_last']]);
 			
 			if( $quota )
 				$current['quotas'] = array();

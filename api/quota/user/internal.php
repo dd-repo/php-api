@@ -59,19 +59,19 @@ function syncQuota($type, $user)
 			$count = count($result);
 			break;
 		case 'MEMORY':
-			$sql = "SELECT user_ldap, user_cf_token FROM users u WHERE {$where}";
+			$sql = "SELECT user_ldap FROM users u WHERE {$where}";
 			$userdata = $GLOBALS['db']->query($sql);
 			if( $userdata == null || $userdata['user_ldap'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-			$cf_info = cf::send('info', 'GET', array(), $userdata['user_cf_token']);
+			// to be replace by docker
 			$count = $cf_info['usage']['memory'];
 		break;
 		case 'SERVICES':
-			$sql = "SELECT user_ldap, user_cf_token FROM users u WHERE {$where}";
+			$sql = "SELECT user_ldap FROM users u WHERE {$where}";
 			$userdata = $GLOBALS['db']->query($sql);
 			if( $userdata == null || $userdata['user_ldap'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-			$cf_info = cf::send('info', 'GET', array(), $userdata['user_cf_token']);
+			// to be replace by docker
 			$count = $cf_info['usage']['services'];
 		break;
 		case 'DISK':
