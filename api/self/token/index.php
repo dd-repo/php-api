@@ -49,22 +49,6 @@ function checkGrantsFromUserPass($grants = array())
 	// =================================
 	$dn = ldap::buildDN(ldap::USER, $GLOBALS['CONFIG']['DOMAIN'], $result['user_name']);
 	$GLOBALS['ldap']->bind($dn, $pass);
-
-	// =================================
-	// UPDATE CF TOKEN
-	// =================================
-	$params = array('password'=>$pass);
-	$token = cf::send('users/' . $result['user_name'] . '@' . $GLOBALS['CONFIG']['DOMAIN'] . '/tokens', 'POST', $params);
-	$sql = "UPDATE users SET user_cf_token = '{$token['token']}' WHERE user_id = {$result['user_id']}";
-	$GLOBALS['db']->query($sql, mysql::NO_ROW);
-	
-	// =================================
-	// UPDATE SYSTEM CF TOKEN
-	// =================================
-	$dn = $GLOBALS['ldap']->getDNfromUID($result['user_ldap']);
-	$data = $GLOBALS['ldap']->read($dn);
-	$data['token'] = $token['token'];
-	$GLOBALS['system']->update(system::USER, $data);
 	
 	// =================================
 	// LOAD LOCAL GRANTS
