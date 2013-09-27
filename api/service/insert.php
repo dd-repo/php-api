@@ -39,6 +39,15 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));
 $a->addParam(array(
+	'name'=>array('pass', 'password'),
+	'description'=>'The password of the service.',
+	'optional'=>false,
+	'minlength'=>3,
+	'maxlength'=>50,
+	'match'=>request::PHRASE|request::SPECIAL,
+	'action'=>true
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>false,
@@ -60,6 +69,7 @@ $a->setExecute(function() use ($a)
 	$desc = $a->getParam('desc');
 	$vendor = $a->getParam('vendor');
 	$version = $a->getParam('version');
+	$pass = $a->getParam('pass');
 	$user = $a->getParam('user');
 	
 	// =================================
