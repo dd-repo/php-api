@@ -152,10 +152,8 @@ $a->setExecute(function() use ($a)
 		$infos['name'] = $result['uid'];
 		$infos['id'] = $result['uidNumber'];
 		$infos['homeDirectory'] = $result['homeDirectory'];
-		$infos['envs'] = json_decode($result['description'], true);
+		$infos['uris'] = json_decode($result['description'], true);
 		$infos['size'] = $storage['storage_size'];
-		$infos['uris'] = $cf_info['uris'];
-		$infos['services'] = $cf_info['services'];
 		$infos['instances'] = array();
 		$i = 0;
 		if( $cf_stats )
@@ -194,10 +192,8 @@ $a->setExecute(function() use ($a)
 			$infos['name'] = $r['uid'];
 			$infos['id'] = $r['uidNumber'];
 			$infos['homeDirectory'] = $r['homeDirectory'];
-			$infos['envs'] = json_decode($r['description'], true);
 			$infos['size'] = $storage['storage_size'];
-			$infos['uris'] = $cf_info['uris'];
-			$infos['services'] = $cf_info['services'];
+			$infos['uris'] = json_decode($r['description'], true);
 			$infos['instances'] = array();
 			$i = 0;
 			if( $cf_stats )
