@@ -104,17 +104,6 @@ $a->setExecute(function() use ($a)
 	@file_get_contents($url);
 
 	// =================================
-	// GET CF TOKEN
-	// =================================
-	$params = array('password' => $GLOBALS['CONFIG']['CF_PASSWORD']);
-	$token = cf::send('users/' . $GLOBALS['CONFIG']['CF_USERNAME'] . '/tokens', 'POST', $params);
-	
-	// =================================
-	// DELETE CLOUDFOUNDRY USER
-	// =================================
-	cf::send('users/' . $data['mail'], 'DELETE', array(), $token['token']);
-
-	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
 	$GLOBALS['system']->delete(system::USER, $data);
