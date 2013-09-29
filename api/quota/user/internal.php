@@ -63,11 +63,9 @@ function syncQuota($type, $user)
 			$userdata = $GLOBALS['db']->query($sql);
 			if( $userdata == null || $userdata['user_ldap'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-			// to be replace by docker
-			$count = $cf_info['usage']['memory'];
 		break;
 		case 'SERVICES':
-			$sql = "SELECT user_ldap FROM users u WHERE {$where}";
+			$sql = "SELECT user_ldap, user_id FROM users u WHERE {$where}";
 			$userdata = $GLOBALS['db']->query($sql);
 			if( $userdata == null || $userdata['user_ldap'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
