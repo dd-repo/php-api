@@ -123,7 +123,7 @@ $a->setExecute(function() use ($a)
 			mysql_query("FLUSH PRIVILEGES", $link);
 			mysql_close($link);
 		break;
-		case 'postgresql'
+		case 'postgresql':
 		
 		break;
 		
