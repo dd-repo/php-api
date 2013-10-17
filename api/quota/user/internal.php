@@ -87,7 +87,7 @@ function syncQuota($type, $user)
 			foreach( $apps as $a )
 			{
 				$u = 0;
-				$u = $GLOBALS['system']->getquota($a['uidNumber']);
+				$u = $GLOBALS['system']->getquota($a['homeDirectory']);
 				$u = round($u/1024);
 				
 				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '{$a['homeDirectory']}'";
@@ -105,7 +105,7 @@ function syncQuota($type, $user)
 			foreach( $users as $user )
 			{
 				$u = 0;
-				$u = $GLOBALS['system']->getquota($user['uidNumber']);
+				$u = $GLOBALS['system']->getquota($user['homeDirectory']);
 				$u = round($u/1024);
 				
 				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '{$user['homeDirectory']}'";
@@ -123,7 +123,7 @@ function syncQuota($type, $user)
 			foreach( $repos as $r )
 			{
 				$u = 0;
-				$u = $GLOBALS['system']->getquota($r['uidNumber']);
+				$u = $GLOBALS['system']->getquota($r['homeDirectory']);
 				$u = round($u/1024);
 				
 				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '{$r['homeDirectory']}'";
