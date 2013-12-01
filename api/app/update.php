@@ -172,8 +172,8 @@ $a->setExecute(function() use ($a)
 		$newinstances = array();
 		if( $data['gecos'] )
 		{
-			$instances = json_decode($data['gecos'], true);
-			foreach( $instances as $i )
+			$inst = json_decode($data['gecos'], true);
+			foreach( $inst as $i )
 				$newinstances[] = array('memory' => $memory, 'cpu' => 1);	
 		}
 		else
@@ -194,9 +194,9 @@ $a->setExecute(function() use ($a)
 		
 		if( $data['gecos'] )
 		{
-			$instances = json_decode($data['gecos'], true);
-			$memory = $instances[0]['memory']; 
-			$cpu = $instances[0]['cpu'];
+			$inst = json_decode($data['gecos'], true);
+			$memory = $inst[0]['memory']; 
+			$cpu = $inst[0]['cpu'];
 		}
 		
 		$newinstances = array();
