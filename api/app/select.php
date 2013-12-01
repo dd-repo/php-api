@@ -157,12 +157,14 @@ $a->setExecute(function() use ($a)
 				$info = $GLOBALS['system']->getdockerstats($result['uid'] . '-' . $j);
 				$info = explode(' ', $info);
 				$infos['instances'][$j]['id'] = $j;
-				$infos['instances'][$j]['state'] = $info[0];
-				$infos['instances'][$j]['uptime'] = $info[1];
+				if( strlen($info[0]) > 2 )
+					$infos['instances'][$j]['state'] = 'RUNNING';
+				else
+					$infos['instances'][$j]['state'] = 'STOPPED';
 				$infos['instances'][$j]['memory']['quota'] = $i['memory'];
-				$infos['instances'][$j]['memory']['usage'] = round($info[2]/1024);
+				$infos['instances'][$j]['memory']['usage'] = round($info[3]/1024);
 				$infos['instances'][$j]['cpu']['quota'] = $i['cpu'];
-				$infos['instances'][$j]['cpu']['usage'] = $info[3]*100;			
+				$infos['instances'][$j]['cpu']['usage'] = $info[2]*100;			
 				$j++;
 			}
 		}
@@ -189,14 +191,16 @@ $a->setExecute(function() use ($a)
 				foreach( $instances as $i )
 				{
 					$info = $GLOBALS['system']->getdockerstats($r['uid'] . '-' . $j);
-					$info = explode('.', $info);
+					$info = explode(' ', $info);
 					$infos['instances'][$j]['id'] = $j;
-					$infos['instances'][$j]['state'] = $info[0];
-					$infos['instances'][$j]['uptime'] = $info[1];
+					if( strlen($info[0]) > 2 )
+						$infos['instances'][$j]['state'] = 'RUNNING';
+					else
+						$infos['instances'][$j]['state'] = 'STOPPED';
 					$infos['instances'][$j]['memory']['quota'] = $i['memory'];
-					$infos['instances'][$j]['memory']['usage'] = round($info[2]/1024);
+					$infos['instances'][$j]['memory']['usage'] = round($info[3]/1024);
 					$infos['instances'][$j]['cpu']['quota'] = $i['cpu'];
-					$infos['instances'][$j]['cpu']['usage'] = $info[3]*100;	
+					$infos['instances'][$j]['cpu']['usage'] = $info[2]*100;		
 					$j++;
 				}
 			}
