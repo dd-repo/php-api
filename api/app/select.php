@@ -137,15 +137,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$apps = array();
 	if( $app !== null )
-	{
-		try 
-		{
-			// todo with docker commands
-		}
-		catch(Exception $e) 
-		{
-		}
-		
+	{		
 		$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$result['homeDirectory']}'";
 		$storage = $GLOBALS['db']->query($sql);			
 					
@@ -155,21 +147,23 @@ $a->setExecute(function() use ($a)
 		$infos['uris'] = json_decode($result['description'], true);
 		$infos['size'] = $storage['storage_size'];
 		$infos['instances'] = array();
-		$i = 0;
-		if( $cf_stats )
+		
+		if( $result['gecos'] )
 		{
-			foreach( $cf_stats as $s )
+			$instances = json_decode($result['gecos'], true);
+			$j = 0;
+			foreach( $instances as $i )
 			{
-				$infos['instances'][$i]['id'] = $i;
-				$infos['instances'][$i]['state'] = $s['state'];
-				$infos['instances'][$i]['uptime'] = $s['stats']['uptime'];
-				$infos['instances'][$i]['disk']['quota'] = $s['stats']['disk_quota'];
-				$infos['instances'][$i]['disk']['usage'] = $s['stats']['usage']['disk'];
-				$infos['instances'][$i]['memory']['quota'] = $s['stats']['mem_quota'];
-				$infos['instances'][$i]['memory']['usage'] = $s['stats']['usage']['mem'];
-				$infos['instances'][$i]['cpu']['quota'] = $s['stats']['cores'];
-				$infos['instances'][$i]['cpu']['usage'] = $s['stats']['usage']['cpu'];			
-				$i++;			
+				$info = $GLOBALS['system']->getdockerstats($result['uid'] . '-' . $j);
+				$info = explode('.', $info);
+				$infos['instances'][$j]['id'] = $j;
+				$infos['instances'][$j]['state'] = $info[0];
+				$infos['instances'][$j]['uptime'] = $info[1];
+				$infos['instances'][$j]['memory']['quota'] = $i['memory'];
+				$infos['instances'][$j]['memory']['usage'] = $info[2];
+				$infos['instances'][$j]['cpu']['quota'] = $i['cpu'];
+				$infos['instances'][$j]['cpu']['usage'] = $info[3];			
+				$j++;
 			}
 		}
 		
@@ -178,15 +172,7 @@ $a->setExecute(function() use ($a)
 	else
 	{
 		foreach( $result as $r )
-		{
-			try 
-			{
-				// todo with docker commands
-			}
-			catch(Exception $e) 
-			{
-			}		
-			
+		{			
 			$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$r['homeDirectory']}'";
 			$storage = $GLOBALS['db']->query($sql);			
 			$infos['name'] = $r['uid'];
@@ -195,21 +181,23 @@ $a->setExecute(function() use ($a)
 			$infos['size'] = $storage['storage_size'];
 			$infos['uris'] = json_decode($r['description'], true);
 			$infos['instances'] = array();
-			$i = 0;
-			if( $cf_stats )
+			
+			if( $r['gecos'] )
 			{
-				foreach( $cf_stats as $s )
+				$instances = json_decode($r['gecos'], true);
+				$j = 0;
+				foreach( $instances as $i )
 				{
-					$infos['instances'][$i]['id'] = $i;
-					$infos['instances'][$i]['state'] = $s['state'];
-					$infos['instances'][$i]['uptime'] = $s['stats']['uptime'];
-					$infos['instances'][$i]['disk']['quota'] = $s['stats']['disk_quota'];
-					$infos['instances'][$i]['disk']['usage'] = $s['stats']['usage']['disk'];
-					$infos['instances'][$i]['memory']['quota'] = $s['stats']['mem_quota'];
-					$infos['instances'][$i]['memory']['usage'] = $s['stats']['usage']['mem'];
-					$infos['instances'][$i]['cpu']['quota'] = $s['stats']['cores'];
-					$infos['instances'][$i]['cpu']['usage'] = $s['stats']['usage']['cpu'];			
-					$i++;	
+					$info = $GLOBALS['system']->getdockerstats($r['uid'] . '-' . $j);
+					$info = explode('.', $info);
+					$infos['instances'][$j]['id'] = $j;
+					$infos['instances'][$j]['state'] = $info[0];
+					$infos['instances'][$j]['uptime'] = $info[1];
+					$infos['instances'][$j]['memory']['quota'] = $i['memory'];
+					$infos['instances'][$j]['memory']['usage'] = $info[2];
+					$infos['instances'][$j]['cpu']['quota'] = $i['cpu'];
+					$infos['instances'][$j]['cpu']['usage'] = $info[3];			
+					$j++;
 				}
 			}
 			

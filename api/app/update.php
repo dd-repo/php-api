@@ -128,7 +128,7 @@ $a->setExecute(function() use ($a)
 		// =================================
 		// GET USERS
 		// =================================
-		$sql = "SELECT user_ldap, user_cf_token FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$sql = "SELECT user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 		$userdata = $GLOBALS['db']->query($sql);
 		if( $userdata == null || $userdata['user_ldap'] == null )
 			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -151,19 +151,8 @@ $a->setExecute(function() use ($a)
 				
 		$ownerdata = $GLOBALS['ldap']->read($data['owner']);
 		
-		$sql = "SELECT user_ldap, user_cf_token FROM users u WHERE u.user_ldap = '{$ownerdata['uidNumber']}'";
+		$sql = "SELECT user_ldap FROM users u WHERE u.user_ldap = '{$ownerdata['uidNumber']}'";
 		$userdata = $GLOBALS['db']->query($sql);
-	}
-	
-	// =================================
-	// GET CF INFO
-	// =================================
-	try
-	{
-		// todo with docker
-	}
-	catch(Exception $e)
-	{
 	}
 	
 	// =================================
@@ -179,25 +168,70 @@ $a->setExecute(function() use ($a)
 	if( $memory !== null )
 	{
 		checkQuota('MEMORY', $user);
-		
-		try
+
+		$newinstances = array();
+		if( $data['gecos'] )
 		{
-			
+			$instances = json_decode($data['gecos'], true);
+			foreach( $instances as $i )
+				$newinstances[] = array('memory' => $memory, 'cpu' => 1);	
 		}
-		catch(Exception $e)
-		{
-		}
+		else
+			$newinstances[] = array('memory' => $memory, 'cpu' => 1);
+				
+		$params = array('gecos'=>json_encode($newinstances));
+		$GLOBALS['ldap']->replace($dn, $params);
 		
 		syncQuota('MEMORY', $user);
 		
 		responder::send("OK");
 	}
+	
+	if( $instances !== null && $instances != 0 )
+	{
+		$memory = 128; 
+		$cpu = 1;	
+		
+		if( $data['gecos'] )
+		{
+			$instances = json_decode($data['gecos'], true);
+			$memory = $instances[0]['memory']; 
+			$cpu = $instances[0]['cpu'];
+		}
+		
+		$newinstances = array();
+		for($i = 0; $i < $instances; $i++ )
+			$newinstances[] = array('memory' => $memory, 'cpu' => $cpu);
+		
+		$params = array('gecos'=>json_encode($newinstances));
+		$GLOBALS['ldap']->replace($dn, $params);		
+	}
+	
 	if( $start !== null )
 	{
+		if( $data['gecos'] )
+		{
+			$instances = json_decode($data['gecos'], true);
+			
+			foreach( $instances as $key => $value )
+			{
+				$commands[] = "docker-instance-start {$data['uid']}-{$k}";
+				$GLOBALS['system']->exec($commands);
+			}
+		}
 	}
 	elseif( $stop !== null )
 	{
-	
+		if( $data['gecos'] )
+		{
+			$instances = json_decode($data['gecos'], true);
+			
+			foreach( $instances as $key => $value )
+			{
+				$commands[] = "docker-instance-stop {$data['uid']}-{$k}";
+				$GLOBALS['system']->exec($commands);
+			}
+		}		
 	}
 	
 	if( $url !== null && $mode == 'add' )

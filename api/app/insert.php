@@ -114,9 +114,12 @@ $a->setExecute(function() use ($a)
 		$app .= $chars[$number];
 	}
 	$app = $runtime . '-' . $app;
-
+	
+	$instances = array();
+	$instances[] = array('memory' => '128', 'cpu' => 1);
+	
 	$dn = ldap::buildDN(ldap::APP, $domain, $app);
-	$params = array('dn' => $dn, 'uid' => $app, 'userPassword' => $pass, 'domain' => $domain, 'owner' => $user_dn, 'description' => json_encode(array($app . '.' . $GLOBALS['CONFIG']['DEV_DOMAIN'])));
+	$params = array('dn' => $dn, 'uid' => $app, 'userPassword' => $pass, 'domain' => $domain, 'gecos' => json_encode($isntances), 'owner' => $user_dn, 'description' => json_encode(array($app . '.' . $GLOBALS['CONFIG']['DEV_DOMAIN'])));
 	
 	$handler = new app();
 	$data = $handler->build($params);
@@ -135,7 +138,8 @@ $a->setExecute(function() use ($a)
 	$data['runtime'] = $runtime;
 	$data['framework'] = $framework;
 	$data['application'] = $application;
-	$GLOBALS['system']->create(system::APP, $data);
+	$commands[] = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:33 {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']} && cp -a {$GLOBALS['CONFIG']['GIT_TEMPLATE']} {$data['homeDirectory']}.git && chown -R {$data['uidNumber']}:{$data['gidNumber']} {$data['homeDirectory']}.git";
+	$GLOBALS['system']->exec($commands);
 	
 	// =================================
 	// SYNC QUOTA
