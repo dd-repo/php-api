@@ -155,14 +155,14 @@ $a->setExecute(function() use ($a)
 			foreach( $instances as $i )
 			{
 				$info = $GLOBALS['system']->getdockerstats($result['uid'] . '-' . $j);
-				$info = explode('.', $info);
+				$info = explode(' ', $info);
 				$infos['instances'][$j]['id'] = $j;
 				$infos['instances'][$j]['state'] = $info[0];
 				$infos['instances'][$j]['uptime'] = $info[1];
 				$infos['instances'][$j]['memory']['quota'] = $i['memory'];
-				$infos['instances'][$j]['memory']['usage'] = $info[2];
+				$infos['instances'][$j]['memory']['usage'] = round($info[2]/1024);
 				$infos['instances'][$j]['cpu']['quota'] = $i['cpu'];
-				$infos['instances'][$j]['cpu']['usage'] = $info[3];			
+				$infos['instances'][$j]['cpu']['usage'] = $info[3]*100;			
 				$j++;
 			}
 		}
@@ -194,9 +194,9 @@ $a->setExecute(function() use ($a)
 					$infos['instances'][$j]['state'] = $info[0];
 					$infos['instances'][$j]['uptime'] = $info[1];
 					$infos['instances'][$j]['memory']['quota'] = $i['memory'];
-					$infos['instances'][$j]['memory']['usage'] = $info[2];
+					$infos['instances'][$j]['memory']['usage'] = round($info[2]/1024);
 					$infos['instances'][$j]['cpu']['quota'] = $i['cpu'];
-					$infos['instances'][$j]['cpu']['usage'] = $info[3];			
+					$infos['instances'][$j]['cpu']['usage'] = $info[3]*100;	
 					$j++;
 				}
 			}
