@@ -139,8 +139,14 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$data['source'] = $source_data;
 	$data['type'] = $type;
-	$GLOBALS['system']->create(system::ALIAS, $data);
+	
+	if( $data['type'] == 'permanent' )
+		$commands[] = "mkdir -p {$data['homeDirectory']} && chmod 751 {$data['homeDirectory']} && cd {$data['homeDirectory']} && echo \"RewriteEngine On\" > .htaccess && echo \"RewriteCond %{HTTP_HOST} ^".str_replace(".", "\\.", $data['associatedDomain'])."\$\" [NC]  >> .htaccess && echo \"RewriteRule ^(.*)$ http://www.{$data['associatedDomain']}/\\\$1 [R=302,L]\" >> .htaccess && echo \"RewriteCond %{HTTP_HOST} ^(.+)\\.".str_replace(".", "\\.", $data['associatedDomain'])."\$\" >> .htaccess && echo \"RewriteRule ^(.*)$ http://%1.{$data['source']['associatedDomain']} [QSA,L,R=301]\" >> .htaccess";
+		else
+	$commands[] = "ln -s {$data['source']['homeDirectory']} {$data['homeDirectory']}";
 
+	$GLOBALS['system']->exec($commands);
+	
 	// =================================
 	// INSERT DEFAULT SUBDOMAINS
 	// =================================

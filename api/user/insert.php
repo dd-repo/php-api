@@ -154,7 +154,14 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$GLOBALS['system']->create(system::USER, $data);
+	if( $GLOBALS['CONFIG']['SYMLINK'] == 1 && $data['ipHostNumber'] )
+		$commands[] = "mkdir -p {$data['homeDirectory']} && chown 33:{$data['gidNumber']} {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']} && chmod g+s {$data['homeDirectory']}";
+	else if( $GLOBALS['CONFIG']['SYMLINK'] == 1 )
+		$commands[] = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:33 {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']} && chmod g+s {$data['homeDirectory']}";
+	else
+		$commands[] = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:{$data['gidNumber']} {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']}";
+	
+	$GLOBALS['system']->exec($commands);
 	
 	responder::send(array("name"=>$user, "id"=>$uid));
 });

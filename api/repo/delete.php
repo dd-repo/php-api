@@ -97,19 +97,11 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$GLOBALS['ldap']->delete($dn);
 
-	switch( $data['gecos'] )
-	{
-		case 'git':
-			$GLOBALS['system']->delete(system::GIT, $data);
-		break;
-		case 'svn':
-			$GLOBALS['system']->delete(system::SVN, $data);
-		break;
-		case 'hg':
-			$GLOBALS['system']->delete(system::MERCURIAL, $data);
-		break;
-	}
-
+	$commands[] = "cd {$data['homeDirectory']} && cd .. && rm {$data['description']}";
+	$commands[] = "rm -Rf {$data['homeDirectory']}";
+	
+	$GLOBALS['system']->exec($commands);
+	
 	// =================================
 	// UPDATE REMOTE USER
 	// =================================

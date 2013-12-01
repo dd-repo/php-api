@@ -104,7 +104,10 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$GLOBALS['system']->create(system::SUBDOMAIN, $data);
+	if( $GLOBALS['CONFIG']['SYMLINK'] == 1 && $data['cNAMERecord'] == $GLOBALS['CONFIG']['DOMAIN'] )
+		$commands[] = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:33 {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']}";
+
+	$GLOBALS['system']->exec($commands);
 	
 	responder::send(array("name"=>$subdomain, "id"=>$result['uidNumber']));
 });

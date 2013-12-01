@@ -115,7 +115,10 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
-	$GLOBALS['system']->delete(system::APP, $data);
+	$commands[] = "rm -Rf {$data['homeDirectory']}";
+	$commands[] = "rm -Rf {$data['homeDirectory']}.git";
+	
+	$GLOBALS['system']->exec($commands);
 	
 	// =================================
 	// UPDATE REMOTE USER

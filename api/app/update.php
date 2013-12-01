@@ -223,7 +223,13 @@ $a->setExecute(function() use ($a)
 		// prepare data
 		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
 		$data['data2'] = $GLOBALS['ldap']->read($dn2);
-		$GLOBALS['system']->update(system::APP, $data, $mode);
+		
+		if( $mode == 'add' )
+			$commands[] = "ln -s {$data['homeDirectory']} {$data['data2']['homeDirectory']}";
+		else if( $mode == 'delete' )
+			$commands[] = "rm {$data['data2']['homeDirectory']}";
+
+		$GLOBALS['system']->exec($commands);
 		
 		// update app
 		$key = array_search($url, $urls);

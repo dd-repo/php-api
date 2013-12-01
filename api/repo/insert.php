@@ -114,15 +114,17 @@ $a->setExecute(function() use ($a)
 	switch( $type )
 	{
 		case 'git':
-			$GLOBALS['system']->create(system::GIT, $data);
+			$commands[] = "mkdir -p {$data['homeDirectory']} && cd {$data['homeDirectory']} && cp -a {$GLOBALS['CONFIG']['GIT_TEMPLATE']}/* {$data['homeDirectory']}/ && chown -R {$data['uidNumber']}:{$data['uidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod -R g+w {$data['homeDirectory']} && find {$data['homeDirectory']} -type d -exec chmod g+s {} \; && cd {$data['homeDirectory']} && cd .. && ln -s {$data['uid']} {$data['description']}";
 		break;
 		case 'svn':
-			$GLOBALS['system']->create(system::SVN, $data);
+			$commands[] = "mkdir -p {$data['homeDirectory']} && rmdir {$data['homeDirectory']} && svnadmin create {$data['homeDirectory']} && chown -R {$data['uidNumber']}:{$data['uidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod -R g+w {$data['homeDirectory']} && find {$data['homeDirectory']} -type d -exec chmod g+s {} \; && cd {$data['homeDirectory']} && cd .. && ln -s {$data['uid']} {$data['description']}";
 		break;
 		case 'hg':
-			$GLOBALS['system']->create(system::MERCURIAL, $data);
+			$commands[] = "mkdir -p {$data['homeDirectory']} && cd {$data['homeDirectory']} && hg init && chown -R {$data['uidNumber']}:{$data['uidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod -R g+w {$data['homeDirectory']} && find {$data['homeDirectory']} -type d -exec chmod g+s {} \; && cd {$data['homeDirectory']} && cd .. && ln -s {$data['uid']} {$data['description']}";			
 		break;
 	}
+	
+	$GLOBALS['system']->exec($commands);
 
 	// =================================
 	// UPDATE REMOTE USER
