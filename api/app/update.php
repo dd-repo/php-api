@@ -184,7 +184,7 @@ $a->setExecute(function() use ($a)
 		
 		syncQuota('MEMORY', $user);
 		
-		responder::send("OK");
+		$docker = true;
 	}
 	
 	if( $instances !== null && $instances != 0 )
@@ -204,7 +204,9 @@ $a->setExecute(function() use ($a)
 			$newinstances[] = array('memory' => $memory, 'cpu' => $cpu);
 		
 		$params = array('gecos'=>json_encode($newinstances));
-		$GLOBALS['ldap']->replace($dn, $params);		
+		$GLOBALS['ldap']->replace($dn, $params);
+		
+		$docker = true;
 	}
 	
 	if( $start !== null )
@@ -283,6 +285,12 @@ $a->setExecute(function() use ($a)
 	
 	if( $user !== null )
 		syncQuota('MEMORY', $user);
+	
+	if( $docker === true )
+	{
+		$commands[] = "/dns/tm/sys/usr/local/bin/docker-update";
+		$GLOBALS['system']->exec($commands);
+	}
 	
 	responder::send("OK");	
 });
