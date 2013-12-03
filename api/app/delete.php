@@ -115,8 +115,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
+	$commands[] = "cd {$data['homeDirectory']} && cd ../../ && rm -Rf var/git/{$data['uid']}";
 	$commands[] = "rm -Rf {$data['homeDirectory']}";
-	$commands[] = "rm -Rf {$data['homeDirectory']}/../../var/git/{$data['uid']}";
 	
 	$GLOBALS['system']->exec($commands);
 	
