@@ -148,12 +148,11 @@ $a->setExecute(function() use ($a)
 		$infos['uris'] = $extra['urls'];
 		$infos['size'] = $storage['storage_size'];
 		$infos['instances'] = array();
-		
-		if( $result['gecos'] )
+
+		$j = 0;
+		if( $extra['instances'] )
 		{
-			$instances = json_decode($result['gecos'], true);
-			$j = 0;
-			foreach( $instances as $i )
+			foreach( $extra['instances'] as $i )
 			{
 				$info = $GLOBALS['system']->getdockerstats($result['uid'] . '-' . $j);
 				$info = explode(' ', $info);
@@ -188,9 +187,9 @@ $a->setExecute(function() use ($a)
 			$infos['uris'] = $extra['urls'];
 			$infos['instances'] = array();
 			
-			if( $r['gecos'] )
+			$j = 0;
+			if( $extra['instances'] )
 			{
-				$j = 0;
 				foreach( $extra['instances'] as $i )
 				{
 					$info = $GLOBALS['system']->getdockerstats($r['uid'] . '-' . $j);

@@ -107,7 +107,15 @@ $a->setExecute(function() use ($a)
 	$handler = new repo();
 	$data = $handler->build($params);
 	$result = $GLOBALS['ldap']->create($dn, $data);
-
+	
+	// =================================
+	// UPDATE REMOTE USER
+	// =================================
+	$mod['member'] = $dn;
+	$GLOBALS['ldap']->replace($user_dn, $mod, ldap::ADD);
+	$mod2['member'] = $user_dn;
+	$GLOBALS['ldap']->replace($dn, $mod2, ldap::ADD);
+	
 	// =================================
 	// INSERT REMOTE REPO
 	// =================================
@@ -124,12 +132,6 @@ $a->setExecute(function() use ($a)
 		break;
 	}
 	$GLOBALS['system']->exec($commands);
-
-	// =================================
-	// UPDATE REMOTE USER
-	// =================================
-	$mod['member'] = $dn;
-	$GLOBALS['ldap']->replace($user_dn, $mod, ldap::ADD);
 
 	responder::send(array("name"=>$repo));
 });

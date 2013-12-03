@@ -134,6 +134,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$mod['member'] = $dn;
 	$GLOBALS['ldap']->replace($user_dn, $mod, ldap::ADD);
+	$mod2['member'] = $user_dn;
+	$GLOBALS['ldap']->replace($dn, $mod2, ldap::ADD);
 	
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
@@ -142,7 +144,7 @@ $a->setExecute(function() use ($a)
 	$data['framework'] = $framework;
 	$data['application'] = $application;
 	$commands[] = "mkdir -p {$data['homeDirectory']}/master && chown -R {$data['uidNumber']}:33 {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']}";
-	$commands[] = "mkdir -p {$data['homeDirectory']}/../../var/git && cp -a {$GLOBALS['CONFIG']['GIT_TEMPLATE']} {$data['homeDirectory']}/../../var/git/{$app} && cd {$data['homeDirectory']}/master && git clone {$data['homeDirectory']}/../../var/git/{$app} .";
+	$commands[] = "mkdir -p {$data['homeDirectory']}/../../var/git/{$app} && cp -a {$GLOBALS['CONFIG']['GIT_TEMPLATE']}/* {$data['homeDirectory']}/../../var/git/{$app}/ && cd {$data['homeDirectory']}/master && git clone {$data['homeDirectory']}/../../var/git/{$app} . && chown -R {$data['uidNumber']}:33 {$data['homeDirectory']}/../../var/git/{$app} && chmod 750 {$data['homeDirectory']}/../../var/git/{$app}";
 	$GLOBALS['system']->exec($commands);
 	
 	// =================================
