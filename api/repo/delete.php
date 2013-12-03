@@ -96,10 +96,7 @@ $a->setExecute(function() use ($a)
 	// DELETE REMOTE REPO
 	// =================================
 	$GLOBALS['ldap']->delete($dn);
-
-	$commands[] = "cd {$data['homeDirectory']} && cd .. && rm {$data['description']}";
 	$commands[] = "rm -Rf {$data['homeDirectory']}";
-	
 	$GLOBALS['system']->exec($commands);
 	
 	// =================================

@@ -138,7 +138,7 @@ $a->setExecute(function() use ($a)
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
 	$commands[] = "mkdir -p {$data['homeDirectory']}/master";
-	$commands[] = "cd {$data['homeDirectory']} && cd ../../ && mkdir -p var/git/{$app} && cp -a {$GLOBALS['CONFIG']['GIT_TEMPLATE']}/* var/git/{$app}/ && cd {$data['homeDirectory']}/master && git clone {$data['homeDirectory']}/../../var/git/{$app} . && chown -R {$data['uidNumber']}:33 {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']} && cd ../../../ && chown -R {$data['uidNumber']}:33 var/git/{$app} && chmod 750 var/git/{$app}";
+	$commands[] = "cd {$data['homeDirectory']} && cd ../../ && mkdir -p var/git/{$app} && cp -a {$GLOBALS['CONFIG']['GIT_TEMPLATE']}/* var/git/{$app}/ && cd {$data['homeDirectory']}/master && git clone {$data['homeDirectory']}/../../var/git/{$app} . && chown -R {$data['uidNumber']}:33 {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']} && cd ../../../ && chown -R {$data['uidNumber']}:{$data['gidNumber']} var/git/{$app} && chmod 750 var/git/{$app}";
 	$GLOBALS['system']->exec($commands);
 	
 	// =================================
