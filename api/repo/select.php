@@ -136,21 +136,21 @@ $a->setExecute(function() use ($a)
 				}
 			}
 		}
-		elseif( $r['member'])
+		elseif( $r['member'] )
 		{
-			if( strpos($data['member'], 'ou=Apps') !== false )
+			if( strpos($r['member'], 'ou=Apps') !== false )
 			{
-				$app = $GLOBALS['ldap']->read($data['member']);
+				$app = $GLOBALS['ldap']->read($r['member']);
 				$apps[] = array('name'=>$app['uid'],'id'=>$app['uidNumber']);
 			}
-			if( strpos($data['member'], 'ou=Groups') !== false )
+			if( strpos($r['member'], 'ou=Groups') !== false )
 			{
-				$group = $GLOBALS['ldap']->read($data['member']);
+				$group = $GLOBALS['ldap']->read($r['member']);
 				$groups[] = array('name'=>$group['uid'],'id'=>$group['uidNumber']);
 			}
-			if( strpos($data['member'], 'ou=Users') !== false )
+			if( strpos($r['member'], 'ou=Users') !== false )
 			{
-				$user = $GLOBALS['ldap']->read($data['member']);
+				$user = $GLOBALS['ldap']->read($r['member']);
 				$users[] = array('name'=>$user['uid'],'id'=>$user['uidNumber']);
 			}
 		}

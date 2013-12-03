@@ -146,6 +146,7 @@ $a->setExecute(function() use ($a)
 		$infos['id'] = $result['uidNumber'];
 		$infos['homeDirectory'] = $result['homeDirectory'];
 		$infos['uris'] = $extra['urls'];
+		$infos['branches'] = $extra['branches'];
 		$infos['size'] = $storage['storage_size'];
 		$infos['instances'] = array();
 
@@ -185,6 +186,7 @@ $a->setExecute(function() use ($a)
 			$infos['homeDirectory'] = $r['homeDirectory'];
 			$infos['size'] = $storage['storage_size'];
 			$infos['uris'] = $extra['urls'];
+			$infos['branches'] = $extra['branches'];
 			$infos['instances'] = array();
 			
 			$j = 0;

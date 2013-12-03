@@ -239,13 +239,13 @@ $a->setExecute(function() use ($a)
 		}
 	}
 	
-	if( $url !== null && $mode == 'add' )
+	if( $url !== null && $branch != null && $mode == 'add' )
 	{
 		$extra = json_decode($data['description'], true);
 		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
 		$data['data2'] = $GLOBALS['ldap']->read($dn2);
 		
-		$commands[] = "ln -s {$data['homeDirectory']} {$data['data2']['homeDirectory']}";
+		$commands[] = "ln -s {$data['homeDirectory']}/{$branch} {$data['data2']['homeDirectory']}";
 		$GLOBALS['system']->exec($commands);
 		
 		$extra['urls'][] = $url;
