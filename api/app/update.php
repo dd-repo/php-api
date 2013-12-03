@@ -69,6 +69,14 @@ $a->addParam(array(
 	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
 	));		
 $a->addParam(array(
+	'name'=>array('branch', 'env', 'environment'),
+	'description'=>'The environement of the app',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>150,
+	'match'=>request::LOWER,
+	));	
+$a->addParam(array(
 	'name'=>array('mode'),
 	'description'=>'Mode for application address, services and environment (can be add/delete).',
 	'optional'=>true,
@@ -103,6 +111,7 @@ $a->setExecute(function() use ($a)
 	$service = $a->getParam('service');
 	$url = $a->getParam('url');
 	$mode = $a->getParam('mode');
+	$branch = $a->getParam('branch');
 	$user = $a->getParam('user');
 
 	// =================================
@@ -211,76 +220,80 @@ $a->setExecute(function() use ($a)
 	
 	if( $start !== null )
 	{
-		if( $data['gecos'] )
+		$extra = json_decode($data['description'], true);
+		
+		foreach( $extra['instances'] as $key => $value )
 		{
-			$instances = json_decode($data['gecos'], true);
-			
-			foreach( $instances as $key => $value )
-			{
-				$commands[] = "docker-instance-start {$data['uid']}-{$k}";
-				$GLOBALS['system']->exec($commands);
-			}
+			$commands[] = "docker-instance-start {$data['uid']}-{$key}";
+			$GLOBALS['system']->exec($commands);
 		}
 	}
-	elseif( $stop !== null )
+	else if( $stop !== null )
 	{
-		if( $data['gecos'] )
+		$extra = json_decode($data['description'], true);
+		
+		foreach( $instances as $key => $value )
 		{
-			$instances = json_decode($data['gecos'], true);
-			
-			foreach( $instances as $key => $value )
-			{
-				$commands[] = "docker-instance-stop {$data['uid']}-{$k}";
-				$GLOBALS['system']->exec($commands);
-			}
-		}		
+			$commands[] = "docker-instance-stop {$data['uid']}-{$key}";
+			$GLOBALS['system']->exec($commands);
+		}
 	}
 	
 	if( $url !== null && $mode == 'add' )
 	{
-		// open urls data
-		$urls = json_decode($data['description'], true);
-		
-		// prepare data
-		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
-		$data['data2'] = $GLOBALS['ldap']->read($dn2);
-		$GLOBALS['system']->update(system::APP, $data, $mode);
-		
-		// update app
-		$urls[] = $url;
-		$params = array('description'=>json_encode($urls));
-		$GLOBALS['ldap']->replace($dn, $params);
-	}
-	elseif( $url !== null && $mode == 'delete' )
-	{
-		// open urls data
-		$urls = json_decode($data['description'], true);
-
-		// prepare data
+		$extra = json_decode($data['description'], true);
 		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
 		$data['data2'] = $GLOBALS['ldap']->read($dn2);
 		
-		if( $mode == 'add' )
-			$commands[] = "ln -s {$data['homeDirectory']} {$data['data2']['homeDirectory']}";
-		else if( $mode == 'delete' )
-			$commands[] = "rm {$data['data2']['homeDirectory']}";
-
+		$commands[] = "ln -s {$data['homeDirectory']} {$data['data2']['homeDirectory']}";
 		$GLOBALS['system']->exec($commands);
 		
-		// update app
-		$key = array_search($url, $urls);
+		$extra['urls'][] = $url;
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);
+	}
+	else if( $url !== null && $mode == 'delete' )
+	{
+		$extra = json_decode($data['description'], true);
+		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
+		$data['data2'] = $GLOBALS['ldap']->read($dn2);
+
+		$commands[] = "rm {$data['data2']['homeDirectory']}";
+		$GLOBALS['system']->exec($commands);
+
+		$key = array_search($url, $extra['urls']);
 		if( $key !== false )
 		{
 			$uris = array();
-			foreach( $urls as $k => $v )
+			foreach( $extra['urls'] as $k => $v )
 			{
 				if( $k != $key )
 					$uris[] = $v;
 			}
 			$urls = $uris;
 		}
-		$params = array('description'=>json_encode($urls));
+		$extra['urls'] = $urls;
+		
+		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);		
+	}
+
+	if( $branch !== null && $mode == 'add' )
+	{
+		$extra = json_decode($data['description'], true);
+		$extra['branches'][] = $branch;
+		
+		$commands[] = "mkdir -p {$data['homeDirectory']}/{$branch} && chown {$data['uidNumber']}:33 {$data['homeDirectory']}/{$branch} && chmod 750 {$data['homeDirectory']}/{$branch}";
+		$commands[] = "cd {$data['homeDirectory']}/master && git branch {$branch} && git push origin {$branch} && cd {$data['homeDirectory']}/{$branch} && git clone {$data['homeDirectory']}/../../var/git/{$app} . && git checkout {$branch}";
+		$GLOBALS['system']->exec($commands);
+		
+		$extra['branches'][] = $branch;
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);
+	}
+	else if( $branch !== null && $mode == 'delete' )
+	{
+		// todo
 	}
 	
 	if( $user !== null )

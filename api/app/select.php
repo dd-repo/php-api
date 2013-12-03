@@ -140,11 +140,12 @@ $a->setExecute(function() use ($a)
 	{		
 		$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$result['homeDirectory']}'";
 		$storage = $GLOBALS['db']->query($sql);			
-					
+		$extra = json_decode($result['description'], true);
+		
 		$infos['name'] = $result['uid'];
 		$infos['id'] = $result['uidNumber'];
 		$infos['homeDirectory'] = $result['homeDirectory'];
-		$infos['uris'] = json_decode($result['description'], true);
+		$infos['uris'] = $extra['urls'];
 		$infos['size'] = $storage['storage_size'];
 		$infos['instances'] = array();
 		
@@ -176,19 +177,21 @@ $a->setExecute(function() use ($a)
 		foreach( $result as $r )
 		{			
 			$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$r['homeDirectory']}'";
-			$storage = $GLOBALS['db']->query($sql);			
+			$storage = $GLOBALS['db']->query($sql);		
+
+			$extra = json_decode($r['description'], true);
+			
 			$infos['name'] = $r['uid'];
 			$infos['id'] = $r['uidNumber'];
 			$infos['homeDirectory'] = $r['homeDirectory'];
 			$infos['size'] = $storage['storage_size'];
-			$infos['uris'] = json_decode($r['description'], true);
+			$infos['uris'] = $extra['urls'];
 			$infos['instances'] = array();
 			
 			if( $r['gecos'] )
 			{
-				$instances = json_decode($r['gecos'], true);
 				$j = 0;
-				foreach( $instances as $i )
+				foreach( $extra['instances'] as $i )
 				{
 					$info = $GLOBALS['system']->getdockerstats($r['uid'] . '-' . $j);
 					$info = explode(' ', $info);
