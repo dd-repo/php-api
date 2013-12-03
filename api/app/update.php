@@ -277,8 +277,7 @@ $a->setExecute(function() use ($a)
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);		
 	}
-
-	if( $branch !== null && $mode == 'add' )
+	else if( $branch !== null && $mode == 'add' )
 	{
 		$extra = json_decode($data['description'], true);
 		$extra['branches'][] = $branch;
