@@ -96,14 +96,14 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// DELETE URLS
 	// =================================
-	$uris = json_decode($data['description'], true);
-	if( count($uris) > 0 )
+	$extra = json_decode($data['description'], true);
+	if( count($extra['urls']) > 0 )
 	{
-		foreach( $uris as $u )
+		foreach( $extra['urls'] as $u )
 		{
 			$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
-			$data['data2'] = $GLOBALS['ldap']->read($dn2);
-			$GLOBALS['system']->update(system::APP, $data, $mode);
+			$data2 = $GLOBALS['ldap']->read($dn2);
+			$commands[] = "rm {$data2['homeDirectory']}";
 		}
 	}
 	
@@ -116,7 +116,7 @@ $a->setExecute(function() use ($a)
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
 	$commands[] = "rm -Rf {$data['homeDirectory']}";
-	$commands[] = "rm -Rf {$data['homeDirectory']}../../var/git/{$data['uid']}";
+	$commands[] = "rm -Rf {$data['homeDirectory']}/../../var/git/{$data['uid']}";
 	
 	$GLOBALS['system']->exec($commands);
 	

@@ -80,7 +80,6 @@ $a->setExecute(function() use ($a)
 	$pass = $a->getParam('pass');
 	$user = $a->getParam('user');
 	$application = $a->getParam('app');
-	$framework = $a->getParam('framework');
 	
 	// =================================
 	// GET USER DATA
