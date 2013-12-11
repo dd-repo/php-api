@@ -208,7 +208,7 @@ $a->setExecute(function() use ($a)
 		if( $extra['instances'] )
 		{
 			$memory = $extra['instances'][0]['memory']; 
-			$cpu = $extra['instances']t[0]['cpu'];
+			$cpu = $extra['instances'][0]['cpu'];
 		}
 		
 		$newinstances = array();
