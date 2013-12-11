@@ -281,7 +281,7 @@ $a->setExecute(function() use ($a)
 	else if( $branch !== null && $mode == 'add' )
 	{
 		$extra = json_decode($data['description'], true);		
-		$commands[] = "mkdir -p {$data['homeDirectory']}/{$branch} && chown {$data['uidNumber']}:33 {$data['homeDirectory']}/{$branch} && chmod 750 {$data['homeDirectory']}/{$branch}";
+		$commands[] = "mkdir -p {$data['homeDirectory']}/{$branch} && chown {$data['uidNumber']}:{$data['gidNumber']} {$data['homeDirectory']}/{$branch} && chmod 750 {$data['homeDirectory']}/{$branch}";
 		$commands[] = "cd {$data['homeDirectory']}/master && git branch {$branch} && git push origin {$branch} && cd {$data['homeDirectory']}/{$branch} && git clone {$data['homeDirectory']}/../../var/git/{$app} . && git checkout {$branch}";
 		$GLOBALS['system']->exec($commands);
 		
