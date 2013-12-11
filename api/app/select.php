@@ -64,6 +64,14 @@ $a->addParam(array(
 	'maxlength'=>5,
 	'match'=>"(1|0|yes|no|true|false)"
 	));
+$a->addParam(array(
+	'name'=>array('extended'),
+	'description'=>'Whether or not to show stats. Default is false.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -78,9 +86,12 @@ $a->setExecute(function() use ($a)
 	$app = $a->getParam('app');
 	$user = $a->getParam('user');
 	$count = $a->getParam('count');
+	$extended = $a->getParam('extended');
 	
 	if( $count == '1' || $count == 'yes' || $count == 'true' || $count === true || $count === 1 ) $count = true;
 	else $count = false;
+	if( $extended == '1' || $extended == 'yes' || $extended == 'true' || $extended === true || $extended === 1 ) $extended = true;
+	else $extended = false;
 	
 	// =================================
 	// GET USER DATA
@@ -151,7 +162,7 @@ $a->setExecute(function() use ($a)
 		$infos['instances'] = array();
 
 		$j = 0;
-		if( $extra['instances'] )
+		if( $extra['instances'] && $extended == true )
 		{
 			foreach( $extra['instances'] as $i )
 			{
@@ -190,7 +201,7 @@ $a->setExecute(function() use ($a)
 			$infos['instances'] = array();
 			
 			$j = 0;
-			if( $extra['instances'] )
+			if( $extra['instances'] && $extended == true )
 			{
 				foreach( $extra['instances'] as $i )
 				{
