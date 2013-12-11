@@ -261,7 +261,7 @@ $a->setExecute(function() use ($a)
 		foreach( $extra['urls'] as $k => $v )
 		{
 			if( $k != $url )
-				$uris[] = $v;
+				$uris[$k] = $v;
 		}
 		$urls = $uris;
 		
