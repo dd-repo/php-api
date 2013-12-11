@@ -243,7 +243,7 @@ $a->setExecute(function() use ($a)
 	}
 	if( $rebuild !== null )
 	{
-		$commands[] = "/dns/tm/sys/usr/local/bin/rebuild-app {$data['uid']} {$data['homeDirectory']} ".strtower($data['uid']);
+		$commands[] = "/dns/tm/sys/usr/local/bin/rebuild-app {$data['uid']} {$data['homeDirectory']} ".strtolower($data['uid']);
 		$GLOBALS['system']->exec($commands);
 	}
 	
