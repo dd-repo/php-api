@@ -116,7 +116,6 @@ $a->setExecute(function() use ($a)
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
 	$commands[] = "/dns/tm/sys/usr/local/bin/delete-app {$data['uid']} {$data['homeDirectory']} {$data['homeDirectory']} ".strtolower($data['uid']);
-	
 	$GLOBALS['system']->exec($commands);
 	
 	// =================================
