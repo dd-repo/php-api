@@ -69,6 +69,14 @@ $a->addParam(array(
 	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
 	));		
 $a->addParam(array(
+	'name'=>array('branch', 'env', 'environment'),
+	'description'=>'The environement of the app',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>150,
+	'match'=>request::LOWER,
+	));	
+$a->addParam(array(
 	'name'=>array('mode'),
 	'description'=>'Mode for application address, services and environment (can be add/delete).',
 	'optional'=>true,
@@ -76,30 +84,6 @@ $a->addParam(array(
 	'maxlength'=>6,
 	'match'=>"(add|delete)"
 	));
-$a->addParam(array(
-	'name'=>array('env'),
-	'description'=>'Environement to add or delete.',
-	'optional'=>true,
-	'minlength'=>2,
-	'maxlength'=>20,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
-	));
-$a->addParam(array(
-	'name'=>array('env_domain'),
-	'description'=>'Environement domain to add or delete.',
-	'optional'=>true,
-	'minlength'=>2,
-	'maxlength'=>100,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
-	));
-$a->addParam(array(
-	'name'=>array('env_type'),
-	'description'=>'Environement type to add or delete.',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>11,
-	'match'=>"(cf|standalone)"
-	));	
 $a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
@@ -127,9 +111,7 @@ $a->setExecute(function() use ($a)
 	$service = $a->getParam('service');
 	$url = $a->getParam('url');
 	$mode = $a->getParam('mode');
-	$env = $a->getParam('env');
-	$env_domain = $a->getParam('env_domain');
-	$env_type = $a->getParam('env_type');
+	$branch = $a->getParam('branch');
 	$user = $a->getParam('user');
 
 	// =================================
@@ -155,7 +137,7 @@ $a->setExecute(function() use ($a)
 		// =================================
 		// GET USERS
 		// =================================
-		$sql = "SELECT user_ldap, user_cf_token FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$sql = "SELECT user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 		$userdata = $GLOBALS['db']->query($sql);
 		if( $userdata == null || $userdata['user_ldap'] == null )
 			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -178,16 +160,10 @@ $a->setExecute(function() use ($a)
 				
 		$ownerdata = $GLOBALS['ldap']->read($data['owner']);
 		
-		$sql = "SELECT user_ldap, user_cf_token FROM users u WHERE u.user_ldap = '{$ownerdata['uidNumber']}'";
+		$sql = "SELECT user_ldap FROM users u WHERE u.user_ldap = '{$ownerdata['uidNumber']}'";
 		$userdata = $GLOBALS['db']->query($sql);
 	}
 	
-	// =================================
-	// GET CF INFO
-	// =================================
-	$cf_info = cf::send('apps/' . $data['uid'], 'GET', array(), $userdata['user_cf_token']);
-	$cf_stats = cf::send('apps/' . $data['uid']. '/stats', 'GET', array(), $userdata['user_cf_token']);
-
 	// =================================
 	// INITIATE QUOTAS
 	// =================================
@@ -198,182 +174,134 @@ $a->setExecute(function() use ($a)
 	// UPDATE REMOTE APP
 	// =================================
 	$params = array();
-	$params['services'] = $cf_info['services'];
 	if( $memory !== null )
 	{
 		checkQuota('MEMORY', $user);
-		$params['resources'] = $cf_info['resources'];
-		$params['resources']['memory'] = $memory;
-		cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
-		$params['state'] = 'STOPPED';
-		cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
-		$params['state'] = 'STARTED';
-		cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
-		syncQuota('MEMORY', $user);
-		
-		responder::send("OK");
-	}
-	if( $service !== null && $mode == 'add' )
-		$params['services'][] = $service;
-	elseif( $service !== null && $mode == 'delete' )
-	{
-		$key = array_search($service, $params['services']);
-		if( $key !== false )
-			unset($params['services'][$key]);
-	}
-	if( $instances !== null )
-	{
-		checkQuota('MEMORY', $user);
-		$params['instances'] = $instances;
-	}
-	if( $start !== null )
-		$params['state'] = 'STARTED';
-	elseif( $stop !== null )
-		$params['state'] = 'STOPPED';
-	
-	if( $url !== null && $mode == 'add' )
-	{
-		// open env data
-		$env_data = json_decode($data['description'], true);
-		
-		$homes = array();
-		if( count($env_data) > 0 )
-		{
-			foreach( $env_data as $k => $v )
-			{
-				$domain_dn = ldap::buildDN(ldap::DOMAIN, $v['domain']);
-				$data_domain = $GLOBALS['ldap']->read($domain_dn);
-				$homes[] = $data_domain['homeDirectory'];
-			}
-		}
-		
-		// prepare data
-		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
-		$data['data2'] = $GLOBALS['ldap']->read($dn2);
-		$data['homes'] = $homes;
-		$GLOBALS['system']->update(system::APP, $data, $mode);
-		
-		$params['uris'] = $cf_info['uris'];
-		$params['uris'][] = $url;
-	}
-	elseif( $url !== null && $mode == 'delete' )
-	{
-		// open env data
-		$env_data = json_decode($data['description'], true);
-		
-		$homes = array();
-		if( count($env_data) > 0 )
-		{
-			foreach( $env_data as $k => $v )
-			{
-				$domain_dn = ldap::buildDN(ldap::DOMAIN, $v['domain']);
-				$data_domain = $GLOBALS['ldap']->read($domain_dn);
-				$homes[] = $data_domain['homeDirectory'];
-			}
-		}
-		
-		// prepare data
-		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
-		$data['data2'] = $GLOBALS['ldap']->read($dn2);
-		$data['homes'] = $homes;
-		$GLOBALS['system']->update(system::APP, $data, $mode);
-		
-		$params['uris'] = $cf_info['uris'];
-		$key = array_search($url, $params['uris']);
-		
-		if( $key !== false )
-		{
-			$uris = array();
-			foreach( $params['uris'] as $k => $v )
-			{
-				if( $k != $key )
-					$uris[] = $v;
-			}
-			$params['uris'] = $uris;
-		}
-	}
-	
-	$new = array();
-	if( $env !== null && $env_domain !==null && $env_type !==null && $mode == 'add' )
-	{
-		// get or create new domain for environment
-		$domain_dn = ldap::buildDN(ldap::DOMAIN, $env_domain);
 
-		// create if not exists
-		try
+		$extra = json_decode($data['description'], true);
+		
+		$newinstances = array();
+		if( $extra['instances'] )
 		{
-			$GLOBALS['ldap']->read($domain_dn);
-		}
-		catch(Exception $e)
-		{
-			if( !($e instanceof ApiException) || !preg_match("/Entry not found/s", $e.'') )
-				throw $e;
-			
-			$split = explode('.', $env_domain);
-			$name = $split[0];
-			$new_params = array('dn' => $domain_dn, 'uid' => $name, 'domain' => $env_domain, 'owner' => $ownerdn);
-			$handler = new domain();
-			$new_data = $handler->build($new_params);
-	
-			$GLOBALS['ldap']->create($domain_dn, $new_data);
-		}
-		
-		// read the new domain
-		$data_domain = $GLOBALS['ldap']->read($domain_dn);
-		
-		$data['domain'] = $data_domain;
-		$data['env'] = $env;
-		$data['env_type'] = $env_type;
-		
-		// do the system actions
-		$GLOBALS['system']->update(system::APP, $data, 'add-env');
-		
-		// update ldap
-		if( $data['description'] )
-		{
-			$new['description'] = json_decode($data['description'], true);
-			$new['description'][$env] = array('type'=>$env_type, 'domain'=>$env_domain);
+			foreach( $extra['instances'] as $i )
+				$newinstances[] = array('memory' => $memory, 'cpu' => 1);	
 		}
 		else
-			$new['description'][$env] = array('type'=>$env_type, 'domain'=>$env_domain);
-	}
-	elseif( $env !== null && $mode == 'delete' )
-	{
-		// open env data
-		$env_data = json_decode($data['description'], true);
+			$newinstances[] = array('memory' => $memory, 'cpu' => 1);
+			
+		$extra['instances'] = $newinstances;
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);
 		
-		if( $env_data[$env] )
-		{
-			// domain info
-			$domain_dn = ldap::buildDN(ldap::DOMAIN, $env_data[$env]['domain']);
-			$data_domain = $GLOBALS['ldap']->read($domain_dn);
-
-			$data['domain'] = $data_domain;
-			$data['env'] = $env;
-			$data['env_type'] = $env_data['type'];
+		syncQuota('MEMORY', $user);
 		
-			$GLOBALS['system']->update(system::APP, $data, 'del-env');
-		
-			// rebuild the env data
-			$new['description'] = array();
-			foreach( $env_data as $k => $v )
-			{
-				if( $k != $env )
-					$new['description'][$k] = $v;
-			}
-		}
+		$docker = true;
 	}
 	
-	if( count($new) > 0 )
+	if( $instances !== null && $instances != 0 )
 	{
-		$new['description'] = json_encode($new['description']);
-		$GLOBALS['ldap']->replace($dn, $new);
+		$memory = 128; 
+		$cpu = 1;	
+		
+		$extra = json_decode($data['description'], true);
+		
+		if( $extra['instances'] )
+		{
+			$memory = $extra['instances'][0]['memory']; 
+			$cpu = $extra['instances'][0]['cpu'];
+		}
+		
+		$newinstances = array();
+		for($i = 0; $i < $instances; $i++ )
+			$newinstances[] = array('memory' => $memory, 'cpu' => $cpu);
+		
+		$extra['instances'] = $newinstances;
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);
+		
+		$docker = true;
 	}
+	
+	if( $start !== null )
+	{
+		$commands[] = "/dns/tm/sys/usr/local/bin/manage-docker {$data['uid']} start";
+		$GLOBALS['system']->exec($commands);
+	}
+	else if( $stop !== null )
+	{
+		$commands[] = "/dns/tm/sys/usr/local/bin/manage-docker {$data['uid']} stop";
+		$GLOBALS['system']->exec($commands);
+	}
+	
+	if( $url !== null && $branch != null && $mode == 'add' )
+	{
+		$extra = json_decode($data['description'], true);
+		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
+		$data['data2'] = $GLOBALS['ldap']->read($dn2);
+		
+		$extra['urls'][$url] = $branch;
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);
+		
+		$texturls = '';
+		foreach( $extra['urls'] as $key => $value )
+			$texturls .= ' ' . $key;
 
-	cf::send('apps/' . $data['uid'], 'PUT', $params, $userdata['user_cf_token']);
-			
+		$commands[] = "ln -s {$data['homeDirectory']}/{$branch} {$data['data2']['homeDirectory']}";
+		$commands[] = "/dns/tm/sys/usr/local/bin/update-app {$data['uid']} \"{$texturls}\"";
+		$GLOBALS['system']->exec($commands);
+	}
+	else if( $url !== null && $mode == 'delete' )
+	{
+		$extra = json_decode($data['description'], true);
+		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
+		$data['data2'] = $GLOBALS['ldap']->read($dn2);
+
+		$uris = array();
+		foreach( $extra['urls'] as $k => $v )
+		{
+			if( $k != $url )
+				$uris[$k] = $v;
+		}
+		$urls = $uris;
+		
+		$extra['urls'] = $urls;
+		
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);		
+		
+		$texturls = '';
+		foreach( $extra['urls'] as $key => $value )
+			$texturls .= ' ' . $key;
+
+		$commands[] = "rm {$data['data2']['homeDirectory']}";			
+		$commands[] = "/dns/tm/sys/usr/local/bin/update-app {$data['uid']} \"{$texturls}\"";
+		$GLOBALS['system']->exec($commands);
+	}
+	else if( $branch !== null && $mode == 'add' )
+	{
+		$extra = json_decode($data['description'], true);		
+		$commands[] = "mkdir -p {$data['homeDirectory']}/{$branch} && chown {$data['uidNumber']}:{$data['gidNumber']} {$data['homeDirectory']}/{$branch} && chmod 750 {$data['homeDirectory']}/{$branch}";
+		$commands[] = "cd {$data['homeDirectory']}/master && git branch {$branch} && git push origin {$branch} && cd {$data['homeDirectory']}/{$branch} && git clone {$data['homeDirectory']}/../../var/git/{$app} . && git checkout {$branch}";
+		$GLOBALS['system']->exec($commands);
+		
+		$extra['branches'][] = $branch;
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);
+	}
+	else if( $branch !== null && $mode == 'delete' )
+	{
+		// todo
+	}
+	
 	if( $user !== null )
 		syncQuota('MEMORY', $user);
+	
+	if( $docker === true )
+	{
+		$commands[] = "/dns/tm/sys/usr/local/bin/docker-update";
+		$GLOBALS['system']->exec($commands);
+	}
 	
 	responder::send("OK");	
 });

@@ -50,6 +50,7 @@ $i->addEntry('/grant/user/select', array('grant', 'grants', 'access', 'can', 'ch
 $i->addEntry('token', array('token', 'tokens'));
 $i->addEntry('group', array('group', 'groups'));
 $i->addEntry('domain', array('domain', 'domains'));
+$i->addEntry('alias', array('alias', 'aliases'));
 $i->addEntry('subdomain', array('subdomain', 'subdomains'));
 $i->addEntry('app', array('app', 'apps'));
 $i->addEntry('service', array('service', 'services'));

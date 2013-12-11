@@ -39,6 +39,15 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));	
 $a->addParam(array(
+	'name'=>array('pass', 'password'),
+	'description'=>'The password of the service.',
+	'optional'=>false,
+	'minlength'=>3,
+	'maxlength'=>50,
+	'match'=>request::PHRASE|request::SPECIAL,
+	'action'=>true
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>false,
@@ -68,13 +77,14 @@ $a->setExecute(function() use ($a)
 	$domain = $a->getParam('domain');
 	$runtime = $a->getParam('runtime');
 	$framework = $a->getParam('framework');
+	$pass = $a->getParam('pass');
 	$user = $a->getParam('user');
 	$application = $a->getParam('app');
 	
 	// =================================
 	// GET USER DATA
 	// =================================
-	$sql = "SELECT user_ldap, user_name, user_cf_token FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+	$sql = "SELECT user_ldap, user_name FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 	$userdata = $GLOBALS['db']->query($sql);
 	if( $userdata == null || $userdata['user_ldap'] == null )
 		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -104,9 +114,13 @@ $a->setExecute(function() use ($a)
 		$app .= $chars[$number];
 	}
 	$app = $runtime . '-' . $app;
-
+	
+	$extra = array();
+	$extra['instances'] = array(array('memory' => '128', 'cpu' => 1));
+	$extra['branches'] = array('master');
+	
 	$dn = ldap::buildDN(ldap::APP, $domain, $app);
-	$params = array('dn' => $dn, 'uid' => $app, 'domain' => $domain, 'owner' => $user_dn);
+	$params = array('dn' => $dn, 'uid' => $app, 'userPassword' => $pass, 'domain' => $domain, 'description' => json_encode($extra), 'owner' => $user_dn);
 	
 	$handler = new app();
 	$data = $handler->build($params);
@@ -122,12 +136,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$data['runtime'] = $runtime;
-	$data['url'] = $app . '.' . $GLOBALS['CONFIG']['DEV_DOMAIN'];
-	$data['framework'] = $framework;
-	$data['application'] = $application;
-	$data['token'] = $userdata['user_cf_token'];
-	$GLOBALS['system']->create(system::APP, $data);
+	$commands[] = "/dns/tm/sys/usr/local/bin/create-app {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime} ".strtolower($app);
+	$GLOBALS['system']->exec($commands);
 	
 	// =================================
 	// SYNC QUOTA
@@ -139,6 +149,5 @@ $a->setExecute(function() use ($a)
 });
 
 return $a;
-
 
 ?>

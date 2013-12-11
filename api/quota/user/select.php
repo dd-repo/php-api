@@ -51,7 +51,7 @@ $quota = request::getCheckParam(array(
 	));
 
 if( $user !== null && $quota !== null )
-	throw new ApiException("Too many parameters", 412, "Cannot specify both user ({$user}} and quota ({$quota})");
+	throw new ApiException("Too many parameters", 412, "Cannot specify both user ({$user}) and quota ({$quota})");
 if( $user === null && $quota === null )
 	throw new ApiException("Missing conditional parameter", 412, "Cannot specify none of user and quota");
 

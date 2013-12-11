@@ -65,7 +65,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET USER DATA
 	// =================================
-	$sql = "SELECT user_ldap, user_id, user_cf_token FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+	$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 	$userdata = $GLOBALS['db']->query($sql);
 	if( $userdata == null || $userdata['user_ldap'] == null )
 		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -107,28 +107,29 @@ $a->setExecute(function() use ($a)
 	$handler = new repo();
 	$data = $handler->build($params);
 	$result = $GLOBALS['ldap']->create($dn, $data);
-
+	
+	// =================================
+	// UPDATE REMOTE USER
+	// =================================
+	$mod['member'] = $dn;
+	$GLOBALS['ldap']->replace($user_dn, $mod, ldap::ADD);
+	
 	// =================================
 	// INSERT REMOTE REPO
 	// =================================
 	switch( $type )
 	{
 		case 'git':
-			$GLOBALS['system']->create(system::GIT, $data);
+			$commands[] = "mkdir -p {$data['homeDirectory']} && cd {$data['homeDirectory']} && cp -a {$GLOBALS['CONFIG']['GIT_TEMPLATE']}/* {$data['homeDirectory']}/ && chown -R {$data['uidNumber']}:{$data['uidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod -R g+w {$data['homeDirectory']} && find {$data['homeDirectory']} -type d -exec chmod g+s {} \;";
 		break;
 		case 'svn':
-			$GLOBALS['system']->create(system::SVN, $data);
+			$commands[] = "mkdir -p {$data['homeDirectory']} && rmdir {$data['homeDirectory']} && svnadmin create {$data['homeDirectory']} && chown -R {$data['uidNumber']}:{$data['uidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod -R g+w {$data['homeDirectory']} && find {$data['homeDirectory']} -type d -exec chmod g+s {} \; && cd {$data['homeDirectory']}";
 		break;
 		case 'hg':
-			$GLOBALS['system']->create(system::MERCURIAL, $data);
+			$commands[] = "mkdir -p {$data['homeDirectory']} && cd {$data['homeDirectory']} && hg init && chown -R {$data['uidNumber']}:{$data['uidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod -R g+w {$data['homeDirectory']} && find {$data['homeDirectory']} -type d -exec chmod g+s {} \; && cd {$data['homeDirectory']}";			
 		break;
 	}
-
-	// =================================
-	// UPDATE REMOTE USER
-	// =================================
-	$mod['member'] = $dn;
-	$GLOBALS['ldap']->replace($user_dn, $mod, ldap::ADD);
+	$GLOBALS['system']->exec($commands);
 
 	responder::send(array("name"=>$repo));
 });

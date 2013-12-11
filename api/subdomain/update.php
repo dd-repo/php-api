@@ -42,7 +42,7 @@ $a->addParam(array(
 	'description'=>'The CNAME Record of the subdomain.',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>20,
+	'maxlength'=>50,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(

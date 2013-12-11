@@ -54,7 +54,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET USER DATA
 	// =================================
-	$sql = "SELECT user_ldap, user_name, user_cf_token FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+	$sql = "SELECT user_ldap, user_name FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 	$userdata = $GLOBALS['db']->query($sql);
 	if( $userdata == null || $userdata['user_ldap'] == null )
 		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -94,20 +94,30 @@ $a->setExecute(function() use ($a)
 		throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the app {$app}");
 
 	// =================================
+	// DELETE URLS
+	// =================================
+	$extra = json_decode($data['description'], true);
+	if( count($extra['urls']) > 0 )
+	{
+		foreach( $extra['urls'] as $u )
+		{
+			$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
+			$data2 = $GLOBALS['ldap']->read($dn2);
+			$commands[] = "rm {$data2['homeDirectory']}";
+		}
+	}
+	
+	// =================================
 	// DELETE REMOTE APP
 	// =================================
 	$GLOBALS['ldap']->delete($dn);
 	
 	// =================================
-	// DELETE CLOUDFOUNDRY APP
-	// =================================
-	cf::send('apps/' . $data['uid'], 'DELETE', null, $userdata['user_cf_token']);
-
-	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
-	$GLOBALS['system']->delete(system::APP, $data);
-
+	$commands[] = "/dns/tm/sys/usr/local/bin/delete-app {$data['uid']} {$data['homeDirectory']} ".strtolower($data['uid']);
+	$GLOBALS['system']->exec($commands);
+	
 	// =================================
 	// UPDATE REMOTE USER
 	// =================================

@@ -8,7 +8,7 @@ if( !defined('PROPER_START') )
 
 $a = new action();
 $a->addAlias(array('create', 'add'));
-$a->setDescription("Creates a new domain");
+$a->setDescription("Creates a new alias");
 $a->addGrant(array('ACCESS', 'DOMAIN_INSERT'));
 $a->setReturn(array(array(
 	'id'=>'the id of the domain', 
@@ -20,7 +20,25 @@ $a->addParam(array(
 	'optional'=>false,
 	'minlength'=>2,
 	'maxlength'=>200,
-	'match'=>request::PHRASE,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	'action'=>true
+	));
+$a->addParam(array(
+	'name'=>array('source', 'source_name', 'source_id', 'id'),
+	'description'=>'The name of the new domain.',
+	'optional'=>false,
+	'minlength'=>2,
+	'maxlength'=>200,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	'action'=>true
+	));
+$a->addParam(array(
+	'name'=>array('type'),
+	'description'=>'Type of alias.',
+	'optional'=>false,
+	'minlength'=>2,
+	'maxlength'=>15,
+	'match'=>"(transparent|permanent)",
 	'action'=>true
 	));
 $a->addParam(array(
@@ -43,10 +61,10 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$domain = $a->getParam('domain');
+	$source = $a->getParam('source');
+	$type = $a->getParam('type');
 	$user = $a->getParam('user');
 	
-	if( !preg_match("/^([a-zA-Z0-9\\-_]+\\.)+[a-zA-Z0-9\\-_]+$/", $domain) )
-		throw new ApiException("Parameter validation failed", 412, "Eh ho... t'sais pas ce que c'est un nom de domaine ou quoi !? Nana mais sans blague, tu crois vraiment que \"" . $domain . "\" ca va marcher ? Et si tu allais t'acheter un cerveau, et des lunettes pour lire la doc sur ce que c'est un nom de domaine... Et vas aussi lire les <a href=\"http://fr.wikipedia.org/wiki/Darwin_Awards\">Darwin Awards</a>, ca te donnera peut-être des idées... pfff le boulet quoi !");
 	if( is_numeric($domain) )
 		throw new ApiException("Parameter validation failed", 412, "Parameter domain may not be numeric : " . $domain);
 
@@ -62,7 +80,17 @@ $a->setExecute(function() use ($a)
 	// GET REMOTE USER DN
 	// =================================	
 	$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
-	
+
+	// =================================
+	// SELECT REMOTE SOURCE
+	// =================================
+	if( is_numeric($source) )
+		$dn = $GLOBALS['ldap']->getDNfromUID($source);
+	else
+		$dn = ldap::buildDN(ldap::DOMAIN, $source);
+		
+	$source_data = $GLOBALS['ldap']->read($dn);
+		
 	// =================================
 	// CHECK QUOTA
 	// =================================
@@ -94,13 +122,12 @@ $a->setExecute(function() use ($a)
 	$dn = ldap::buildDN(ldap::DOMAIN, $domain);
 	$split = explode('.', $domain);
 	$name = $split[0];
-	$params = array('dn' => $dn, 'uid' => $name, 'domain' => $domain, 'owner' => $user_dn);
+	$params = array('dn' => $dn, 'uid' => $name, 'domain' => $domain, 'type'=>$type, 'source' => $source_data['associatedDomain'], 'owner' => $user_dn);
 	
-	$handler = new domain();
+	$handler = new alias();
 	$data = $handler->build($params);
 	
 	$GLOBALS['ldap']->create($dn, $data);
-
 		
 	// =================================
 	// SYNC QUOTA
@@ -110,48 +137,25 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "mkdir -p {$data['homeDirectory']} && chown root:{$data['gidNumber']} {$data['homeDirectory']} && chmod 751 {$data['homeDirectory']} && cd {$data['homeDirectory']} && echo \"RewriteEngine On\" > .htaccess  && echo \"RewriteCond %{HTTP_HOST} ^".str_replace(".", "\\.", $data['associatedDomain'])."\$\" [NC]  >> .htaccess && echo \"RewriteRule ^(.*)$ http://www.{$data['associatedDomain']}/\\\$1 [QSA,L,R=301]\" >> .htaccess";
+	$data['source'] = $source_data;
+	$data['type'] = $type;
+	
+	if( $data['type'] == 'permanent' )
+		$commands[] = "mkdir -p {$data['homeDirectory']} && chmod 751 {$data['homeDirectory']} && cd {$data['homeDirectory']} && echo \"RewriteEngine On\" > .htaccess && echo \"RewriteCond %{HTTP_HOST} ^".str_replace(".", "\\.", $data['associatedDomain'])."\$\" [NC]  >> .htaccess && echo \"RewriteRule ^(.*)$ http://www.{$data['associatedDomain']}/\\\$1 [R=302,L]\" >> .htaccess && echo \"RewriteCond %{HTTP_HOST} ^(.+)\\.".str_replace(".", "\\.", $data['associatedDomain'])."\$\" >> .htaccess && echo \"RewriteRule ^(.*)$ http://%1.{$data['source']['associatedDomain']} [QSA,L,R=301]\" >> .htaccess";
+	else
+		$commands[] = "ln -s {$data['source']['homeDirectory']} {$data['homeDirectory']}";
 	$GLOBALS['system']->exec($commands);
 	
 	// =================================
-	// INSERT REMOTE CONTAINERS
-	// =================================
-	$data_users = array('ou' => 'Users', 'objectClass' => array('top', 'organizationalUnit'));
-	$data_groups = array('ou' => 'Groups', 'objectClass' => array('top', 'organizationalUnit'));
-	$data_apps = array('ou' => 'Apps', 'objectClass' => array('top', 'organizationalUnit'));
-	$data_repos = array('ou' => 'Repos', 'objectClass' => array('top', 'organizationalUnit'));
-	$data_people = array('ou' => 'People', 'objectClass' => array('top', 'organizationalUnit'));
-	$GLOBALS['ldap']->create('ou=Users,' . $dn, $data_users);
-	$GLOBALS['ldap']->create('ou=Groups,' . $dn, $data_groups);
-	$GLOBALS['ldap']->create('ou=Apps,' . $dn, $data_groups);
-	$GLOBALS['ldap']->create('ou=Repos,' . $dn, $data_repos);
-	$GLOBALS['ldap']->create('ou=People,' . $dn, $data_people);
-
-	// =================================
 	// INSERT DEFAULT SUBDOMAINS
 	// =================================
-	$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, 'www');
-	$params = array('dn' => $dn, 'subdomain' => 'www', 'uid' => 'www', 'domain' => $domain, 'owner' => $user_dn);
-	$handler = new subdomain();
-	$data = $handler->build($params);
-	$GLOBALS['ldap']->create($dn, $data);
-	$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, 'mail');
-	$params = array('dn' => $dn, 'subdomain' => 'mail', 'uid' => 'mail', 'domain' => $domain, 'owner' => $user_dn);
-	$handler = new subdomain();
-	$data = $handler->build($params);
-	$GLOBALS['ldap']->create($dn, $data);
-	$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, 'admin');
-	$params = array('dn' => $dn, 'subdomain' => 'admin', 'uid' => 'admin', 'domain' => $domain, 'owner' => $user_dn);
-	$handler = new subdomain();
-	$data = $handler->build($params);
-	$GLOBALS['ldap']->create($dn, $data);
-	$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, 'stats');
-	$params = array('dn' => $dn, 'subdomain' => 'stats', 'uid' => 'stats', 'domain' => $domain, 'owner' => $user_dn);
+	$dn = ldap::buildDN(ldap::SUBDOMAIN, $domain, '*');
+	$params = array('dn' => $dn, 'subdomain' => '*', 'uid' => '*', 'domain' => $domain, 'owner' => $user_dn);
 	$handler = new subdomain();
 	$data = $handler->build($params);
 	$GLOBALS['ldap']->create($dn, $data);
 	
-	responder::send(array("domain"=>$domain, "id"=>$result['uidNumber']));
+	responder::send(array("domain"=>$domain, "id"=>$data['uidNumber']));
 });
 
 return $a;

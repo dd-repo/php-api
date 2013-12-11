@@ -39,6 +39,15 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));
 $a->addParam(array(
+	'name'=>array('pass', 'password'),
+	'description'=>'The password of the service.',
+	'optional'=>false,
+	'minlength'=>3,
+	'maxlength'=>50,
+	'match'=>request::PHRASE|request::SPECIAL,
+	'action'=>true
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>false,
@@ -60,12 +69,13 @@ $a->setExecute(function() use ($a)
 	$desc = $a->getParam('desc');
 	$vendor = $a->getParam('vendor');
 	$version = $a->getParam('version');
+	$pass = $a->getParam('pass');
 	$user = $a->getParam('user');
 	
 	// =================================
 	// GET USER DATA
 	// =================================
-	$sql = "SELECT user_ldap, user_id, user_cf_token FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+	$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 	$userdata = $GLOBALS['db']->query($sql);
 	if( $userdata == null || $userdata['user_ldap'] == null )
 		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -78,7 +88,7 @@ $a->setExecute(function() use ($a)
 	checkQuota('SERVICES', $user);
 
 	// =================================
-	// INSERT REMOTE SERVICE
+	// GENERATE NAME
 	// =================================
 	while(true)
 	{
@@ -98,9 +108,26 @@ $a->setExecute(function() use ($a)
 		if( $exists == null || $exists['service_name'] == null )
 			break;			
 	}
-	
-	$params = array('name' => $service, 'vendor' => $vendor, 'version' => $version, 'tier' => 'free');
-	cf::send('services', 'POST', $params, $userdata['user_cf_token']);
+
+	// =================================
+	// INSERT REMOTE SERVICE
+	// =================================
+	switch( $vendor )
+	{
+		case 'mysql':
+			$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+			mysql_query("CREATE USER '{$service}'@'%' IDENTIFIED BY '{$pass}'", $link);
+			mysql_query("CREATE DATABASE `{$service}` CHARACTER SET utf8 COLLATE utf8_unicode_ci", $link);
+			mysql_query("GRANT USAGE ON * . * TO '{$service}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0", $link);
+			mysql_query("GRANT ALL PRIVILEGES ON `{$service}` . * TO '{$service}'@'%'", $link);
+			mysql_query("FLUSH PRIVILEGES", $link);
+			mysql_close($link);
+		break;
+		case 'postgresql':
+		
+		break;
+		
+	}
 	
 	// =================================
 	// INSERT LOCAL SERVICE

@@ -143,6 +143,7 @@ $a->setExecute(function() use ($a)
 		$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$result['homeDirectory']}'";
 		$storage = $GLOBALS['db']->query($sql);
 		
+		$ac['dn'] = $dn;
 		$ac['name'] = $result['uid'];
 		$ac['id'] = $result['uidNumber'];
 		$ac['size'] = $storage['storage_size'];
@@ -192,6 +193,7 @@ $a->setExecute(function() use ($a)
 			$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$r['homeDirectory']}'";
 			$storage = $GLOBALS['db']->query($sql);
 			
+			$ac['dn'] = $r['dn'];
 			$ac['name'] = $r['uid'];
 			$ac['id'] = $r['uidNumber'];
 			$ac['firstname'] = $r['givenName'];

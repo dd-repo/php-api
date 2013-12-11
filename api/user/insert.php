@@ -131,19 +131,11 @@ $a->setExecute(function() use ($a)
 	$data = $handler->build($params);
 	
 	$result = $GLOBALS['ldap']->create($dn, $data);
-
-	// =================================
-	// INSERT CLOUDFOUNDRY USER
-	// =================================
-	$params = array('email'=>$data['mail'], 'password'=>$data['userPassword']);
-	cf::send('users', 'POST', $params);
-	$params = array('password'=>$data['userPassword']);
-	$token = cf::send('users/' . $data['mail'] . '/tokens', 'POST', $params);
 	
 	// =================================
 	// INSERT LOCAL USER
 	// =================================
-	$sql = "INSERT INTO users (user_name, user_ldap, user_date, user_cf_token) VALUES ('".security::escape($user)."', {$data['uidNumber']}, ".time().", '{$token['token']}')";
+	$sql = "INSERT INTO users (user_name, user_ldap, user_date) VALUES ('".security::escape($user)."', {$data['uidNumber']}, ".time().")";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	$uid = $GLOBALS['db']->last_id();
 
@@ -162,7 +154,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$GLOBALS['system']->create(system::USER, $data);
+	$commands[] = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:{$data['gidNumber']} {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']}";
+	$GLOBALS['system']->exec($commands);
 	
 	responder::send(array("name"=>$user, "id"=>$uid));
 });

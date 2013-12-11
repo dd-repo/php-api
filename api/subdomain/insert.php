@@ -104,7 +104,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$GLOBALS['system']->create(system::SUBDOMAIN, $data);
+	//$commands[] = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:{$data['gidNumber']} {$data['homeDirectory']} && chmod 751 {$data['homeDirectory']}";
+	//$GLOBALS['system']->exec($commands);
 	
 	responder::send(array("name"=>$subdomain, "id"=>$result['uidNumber']));
 });

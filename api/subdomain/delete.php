@@ -96,7 +96,9 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
-	$GLOBALS['system']->delete(system::SUBDOMAIN, $result);
+	$commands[] = "rm -Rf {$data['homeDirectory']}";
+	
+	$GLOBALS['system']->exec($commands);
 	
 	responder::send("OK");
 });

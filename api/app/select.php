@@ -64,6 +64,14 @@ $a->addParam(array(
 	'maxlength'=>5,
 	'match'=>"(1|0|yes|no|true|false)"
 	));
+$a->addParam(array(
+	'name'=>array('extended'),
+	'description'=>'Whether or not to show stats. Default is false.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -78,16 +86,19 @@ $a->setExecute(function() use ($a)
 	$app = $a->getParam('app');
 	$user = $a->getParam('user');
 	$count = $a->getParam('count');
+	$extended = $a->getParam('extended');
 	
 	if( $count == '1' || $count == 'yes' || $count == 'true' || $count === true || $count === 1 ) $count = true;
 	else $count = false;
+	if( $extended == '1' || $extended == 'yes' || $extended == 'true' || $extended === true || $extended === 1 ) $extended = true;
+	else $extended = false;
 	
 	// =================================
 	// GET USER DATA
 	// =================================
 	if( $user !== null )
 	{ 
-		$sql = "SELECT user_ldap, user_cf_token FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$sql = "SELECT user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 		$userdata = $GLOBALS['db']->query($sql);
 		if( $userdata == null || $userdata['user_ldap'] == null )
 			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -137,42 +148,39 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$apps = array();
 	if( $app !== null )
-	{
-		try 
-		{
-			$cf_info = cf::send('apps/' . $result['uid'], 'GET', array(), $userdata['user_cf_token']);
-			$cf_stats = cf::send('apps/' . $result['uid'] . '/stats', 'GET', array(), $userdata['user_cf_token']);
-		}
-		catch(Exception $e) 
-		{
-		}
-		
+	{		
 		$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$result['homeDirectory']}'";
 		$storage = $GLOBALS['db']->query($sql);			
-					
+		$extra = json_decode($result['description'], true);
+		
 		$infos['name'] = $result['uid'];
 		$infos['id'] = $result['uidNumber'];
 		$infos['homeDirectory'] = $result['homeDirectory'];
-		$infos['envs'] = json_decode($result['description'], true);
+		$infos['uris'] = $extra['urls'];
+		$infos['branches'] = $extra['branches'];
 		$infos['size'] = $storage['storage_size'];
-		$infos['uris'] = $cf_info['uris'];
-		$infos['services'] = $cf_info['services'];
 		$infos['instances'] = array();
-		$i = 0;
-		if( $cf_stats )
+
+		$j = 0;
+		if( $extra['instances'] )
 		{
-			foreach( $cf_stats as $s )
+			foreach( $extra['instances'] as $i )
 			{
-				$infos['instances'][$i]['id'] = $i;
-				$infos['instances'][$i]['state'] = $s['state'];
-				$infos['instances'][$i]['uptime'] = $s['stats']['uptime'];
-				$infos['instances'][$i]['disk']['quota'] = $s['stats']['disk_quota'];
-				$infos['instances'][$i]['disk']['usage'] = $s['stats']['usage']['disk'];
-				$infos['instances'][$i]['memory']['quota'] = $s['stats']['mem_quota'];
-				$infos['instances'][$i]['memory']['usage'] = $s['stats']['usage']['mem'];
-				$infos['instances'][$i]['cpu']['quota'] = $s['stats']['cores'];
-				$infos['instances'][$i]['cpu']['usage'] = $s['stats']['usage']['cpu'];			
-				$i++;			
+				if( $extended == true )
+					$info = $GLOBALS['system']->getdockerstats($result['uid'] . '-' . $j);
+				else
+					$info = '';
+				$info = explode(' ', $info);
+				$infos['instances'][$j]['id'] = $j;
+				if( strlen($info[0]) > 2 )
+					$infos['instances'][$j]['state'] = 'RUNNING';
+				else
+					$infos['instances'][$j]['state'] = 'STOPPED';
+				$infos['instances'][$j]['memory']['quota'] = $i['memory'];
+				$infos['instances'][$j]['memory']['usage'] = round($info[3]/1024);
+				$infos['instances'][$j]['cpu']['quota'] = $i['cpu'];
+				$infos['instances'][$j]['cpu']['usage'] = $info[2]*100;			
+				$j++;
 			}
 		}
 		
@@ -181,44 +189,41 @@ $a->setExecute(function() use ($a)
 	else
 	{
 		foreach( $result as $r )
-		{
-			$cf_info = false;
-			$cf_stats = false;
-			
-			try 
-			{
-				$cf_info = cf::send('apps/' . $r['uid'], 'GET', array(), $userdata['user_cf_token']);
-				$cf_stats = cf::send('apps/' . $r['uid'] . '/stats', 'GET', array(), $userdata['user_cf_token']);
-			}
-			catch(Exception $e) 
-			{
-			}		
-			
+		{			
 			$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$r['homeDirectory']}'";
-			$storage = $GLOBALS['db']->query($sql);			
+			$storage = $GLOBALS['db']->query($sql);		
+
+			$extra = json_decode($r['description'], true);
+			
 			$infos['name'] = $r['uid'];
 			$infos['id'] = $r['uidNumber'];
 			$infos['homeDirectory'] = $r['homeDirectory'];
-			$infos['envs'] = json_decode($r['description'], true);
 			$infos['size'] = $storage['storage_size'];
-			$infos['uris'] = $cf_info['uris'];
-			$infos['services'] = $cf_info['services'];
+			$infos['uris'] = $extra['urls'];
+			$infos['branches'] = $extra['branches'];
 			$infos['instances'] = array();
-			$i = 0;
-			if( $cf_stats )
+			
+			$j = 0;
+			if( $extra['instances'] )
 			{
-				foreach( $cf_stats as $s )
+				foreach( $extra['instances'] as $i )
 				{
-					$infos['instances'][$i]['id'] = $i;
-					$infos['instances'][$i]['state'] = $s['state'];
-					$infos['instances'][$i]['uptime'] = $s['stats']['uptime'];
-					$infos['instances'][$i]['disk']['quota'] = $s['stats']['disk_quota'];
-					$infos['instances'][$i]['disk']['usage'] = $s['stats']['usage']['disk'];
-					$infos['instances'][$i]['memory']['quota'] = $s['stats']['mem_quota'];
-					$infos['instances'][$i]['memory']['usage'] = $s['stats']['usage']['mem'];
-					$infos['instances'][$i]['cpu']['quota'] = $s['stats']['cores'];
-					$infos['instances'][$i]['cpu']['usage'] = $s['stats']['usage']['cpu'];			
-					$i++;	
+					if( $extended == true )
+						$info = $GLOBALS['system']->getdockerstats($r['uid'] . '-' . $j);
+					else
+						$info = '';
+					
+					$info = explode(' ', $info);
+					$infos['instances'][$j]['id'] = $j;
+					if( strlen($info[0]) > 2 )
+						$infos['instances'][$j]['state'] = 'RUNNING';
+					else
+						$infos['instances'][$j]['state'] = 'STOPPED';
+					$infos['instances'][$j]['memory']['quota'] = $i['memory'];
+					$infos['instances'][$j]['memory']['usage'] = round($info[3]/1024);
+					$infos['instances'][$j]['cpu']['quota'] = $i['cpu'];
+					$infos['instances'][$j]['cpu']['usage'] = $info[2]*100;		
+					$j++;
 				}
 			}
 			
