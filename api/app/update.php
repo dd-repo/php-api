@@ -239,13 +239,13 @@ $a->setExecute(function() use ($a)
 		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
 		$data['data2'] = $GLOBALS['ldap']->read($dn2);
 		
-		$extra['urls'][] = $url;
+		$extra['urls'][$url] = $branch;
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
 		
 		$texturls = '';
-		foreach( $extra['urls'] as $u )
-			$texturls .= ' ' . $u;
+		foreach( $extra['urls'] as $key => $value )
+			$texturls .= ' ' . $key;
 
 		$commands[] = "ln -s {$data['homeDirectory']}/{$branch} {$data['data2']['homeDirectory']}";
 		$commands[] = "/dns/tm/sys/usr/local/bin/update-app {$data['uid']} \"{$texturls}\"";
@@ -274,8 +274,8 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['ldap']->replace($dn, $params);		
 		
 		$texturls = '';
-		foreach( $extra['urls'] as $u )
-			$texturls .= ' ' . $u;
+		foreach( $extra['urls'] as $key => $value )
+			$texturls .= ' ' . $key;
 
 		$commands[] = "rm {$data['data2']['homeDirectory']}";			
 		$commands[] = "/dns/tm/sys/usr/local/bin/update-app {$data['uid']} \"{$texturls}\"";
