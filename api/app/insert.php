@@ -136,8 +136,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "mkdir -p {$data['homeDirectory']}/master";
-	$commands[] = "cd {$data['homeDirectory']} && cd ../../ && mkdir -p var/git/{$app} && cp -a {$GLOBALS['CONFIG']['GIT_TEMPLATE']}/* var/git/{$app}/ && cd {$data['homeDirectory']}/master && git clone {$data['homeDirectory']}/../../var/git/{$app} . && chown -R {$data['uidNumber']}:{$data['gidNumber']} {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']} && cd ../../../ && chown -R {$data['uidNumber']}:{$data['gidNumber']} var/git/{$app} && chmod 770 var/git/{$app}";
+	$commands[] = "/dns/tm/sys/usr/local/bin/create-app {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime}";
 	$GLOBALS['system']->exec($commands);
 	
 	// =================================
