@@ -251,6 +251,13 @@ $a->setExecute(function() use ($a)
 		$extra['urls'][] = $url;
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
+		
+		$texturls = '';
+		foreach( $extra['urls'] as $u )
+			$texturls .= ' ' . $u;
+			
+		$commands[] = "/dns/tm/sys/usr/local/bin/update-app {$data['uid']} \"{$texturls}\"";
+		$GLOBALS['system']->exec($commands);
 	}
 	else if( $url !== null && $mode == 'delete' )
 	{
@@ -276,6 +283,13 @@ $a->setExecute(function() use ($a)
 		
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);		
+		
+		$texturls = '';
+		foreach( $extra['urls'] as $u )
+			$texturls .= ' ' . $u;
+			
+		$commands[] = "/dns/tm/sys/usr/local/bin/update-app {$data['uid']} \"{$texturls}\"";
+		$GLOBALS['system']->exec($commands);
 	}
 	else if( $branch !== null && $mode == 'add' )
 	{
