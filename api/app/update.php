@@ -53,6 +53,14 @@ $a->addParam(array(
 	'match'=>"(1|yes|true)"
 	));
 $a->addParam(array(
+	'name'=>array('rebuild'),
+	'description'=>'Rebuild the application',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|yes|true)"
+	));
+$a->addParam(array(
 	'name'=>array('url', 'uri'),
 	'description'=>'The url of the app',
 	'optional'=>true,
@@ -108,6 +116,7 @@ $a->setExecute(function() use ($a)
 	$memory = $a->getParam('memory');
 	$start = $a->getParam('start');
 	$stop = $a->getParam('stop');
+	$rebuild = $a->getParam('rebuild');
 	$service = $a->getParam('service');
 	$url = $a->getParam('url');
 	$mode = $a->getParam('mode');
@@ -230,6 +239,11 @@ $a->setExecute(function() use ($a)
 	else if( $stop !== null )
 	{
 		$commands[] = "/dns/tm/sys/usr/local/bin/manage-docker {$data['uid']} stop";
+		$GLOBALS['system']->exec($commands);
+	}
+	if( $rebuild !== null )
+	{
+		$commands[] = "/dns/tm/sys/usr/local/bin/rebuild-app {$data['uid']} {$data['homeDirectory']} ".strtower($data['uid']);
 		$GLOBALS['system']->exec($commands);
 	}
 	
