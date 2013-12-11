@@ -162,11 +162,14 @@ $a->setExecute(function() use ($a)
 		$infos['instances'] = array();
 
 		$j = 0;
-		if( $extra['instances'] && $extended == true )
+		if( $extra['instances'] )
 		{
 			foreach( $extra['instances'] as $i )
 			{
-				$info = $GLOBALS['system']->getdockerstats($result['uid'] . '-' . $j);
+				if( $extended == true )
+					$info = $GLOBALS['system']->getdockerstats($result['uid'] . '-' . $j);
+				else
+					$info = '';
 				$info = explode(' ', $info);
 				$infos['instances'][$j]['id'] = $j;
 				if( strlen($info[0]) > 2 )
@@ -201,11 +204,15 @@ $a->setExecute(function() use ($a)
 			$infos['instances'] = array();
 			
 			$j = 0;
-			if( $extra['instances'] && $extended == true )
+			if( $extra['instances'] )
 			{
 				foreach( $extra['instances'] as $i )
 				{
-					$info = $GLOBALS['system']->getdockerstats($r['uid'] . '-' . $j);
+					if( $extended == true )
+						$info = $GLOBALS['system']->getdockerstats($r['uid'] . '-' . $j);
+					else
+						$info = '';
+					
 					$info = explode(' ', $info);
 					$infos['instances'][$j]['id'] = $j;
 					if( strlen($info[0]) > 2 )
