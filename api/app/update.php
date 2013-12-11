@@ -257,17 +257,14 @@ $a->setExecute(function() use ($a)
 		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
 		$data['data2'] = $GLOBALS['ldap']->read($dn2);
 
-		$key = array_search($url, $extra['urls']);
-		if( $key !== false )
+		$uris = array();
+		foreach( $extra['urls'] as $k => $v )
 		{
-			$uris = array();
-			foreach( $extra['urls'] as $k => $v )
-			{
-				if( $k != $key )
-					$uris[] = $v;
-			}
-			$urls = $uris;
+			if( $k != $url )
+				$uris[] = $v;
 		}
+		$urls = $uris;
+		
 		$extra['urls'] = $urls;
 		
 		$params = array('description'=>json_encode($extra));
