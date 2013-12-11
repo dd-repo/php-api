@@ -178,17 +178,19 @@ $a->setExecute(function() use ($a)
 	{
 		checkQuota('MEMORY', $user);
 
+		$extra = json_decode($data['description'], true);
+		
 		$newinstances = array();
-		if( $data['gecos'] )
+		if( $extra['instances'] )
 		{
-			$inst = json_decode($data['gecos'], true);
-			foreach( $inst as $i )
+			foreach( $extra['instances'] as $i )
 				$newinstances[] = array('memory' => $memory, 'cpu' => 1);	
 		}
 		else
 			$newinstances[] = array('memory' => $memory, 'cpu' => 1);
-				
-		$params = array('gecos'=>json_encode($newinstances));
+			
+		$extra['instances'] = $newinstances;
+		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
 		
 		syncQuota('MEMORY', $user);
@@ -201,18 +203,20 @@ $a->setExecute(function() use ($a)
 		$memory = 128; 
 		$cpu = 1;	
 		
-		if( $data['gecos'] )
+		$extra = json_decode($data['description'], true);
+		
+		if( $extra['instances'] )
 		{
-			$inst = json_decode($data['gecos'], true);
-			$memory = $inst[0]['memory']; 
-			$cpu = $inst[0]['cpu'];
+			$memory = $extra['instances'][0]['memory']; 
+			$cpu = $extra['instances']t[0]['cpu'];
 		}
 		
 		$newinstances = array();
 		for($i = 0; $i < $instances; $i++ )
 			$newinstances[] = array('memory' => $memory, 'cpu' => $cpu);
 		
-		$params = array('gecos'=>json_encode($newinstances));
+		$extra['instances'] = $newinstances;
+		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
 		
 		$docker = true;
