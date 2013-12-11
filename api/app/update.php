@@ -224,23 +224,13 @@ $a->setExecute(function() use ($a)
 	
 	if( $start !== null )
 	{
-		$extra = json_decode($data['description'], true);
-		
-		foreach( $extra['instances'] as $key => $value )
-		{
-			$commands[] = "docker-instance-start {$data['uid']}-{$key}";
-			$GLOBALS['system']->exec($commands);
-		}
+		$commands[] = "/dns/tm/sys/usr/local/bin/manage-docker {$data['uid']} start";
+		$GLOBALS['system']->exec($commands);
 	}
 	else if( $stop !== null )
 	{
-		$extra = json_decode($data['description'], true);
-		
-		foreach( $instances as $key => $value )
-		{
-			$commands[] = "docker-instance-stop {$data['uid']}-{$key}";
-			$GLOBALS['system']->exec($commands);
-		}
+		$commands[] = "/dns/tm/sys/usr/local/bin/manage-docker {$data['uid']} stop";
+		$GLOBALS['system']->exec($commands);
 	}
 	
 	if( $url !== null && $branch != null && $mode == 'add' )
