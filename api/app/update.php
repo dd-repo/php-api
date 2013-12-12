@@ -299,7 +299,7 @@ $a->setExecute(function() use ($a)
 		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid']);
 		$GLOBALS['system']->exec($commands);
 		
-		$extra['branches'][$branch] = array('instances'=>array(array('memory' => '128', 'cpu' => 1))));
+		$extra['branches'][$branch] = array('instances'=>array(array('memory' => '128', 'cpu' => 1)));
 		
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
