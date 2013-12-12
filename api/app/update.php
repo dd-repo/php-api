@@ -210,6 +210,7 @@ $a->setExecute(function() use ($a)
 	// UPDATE REMOTE APP
 	// =================================
 	$params = array();
+	$docker = false;
 	if( $reassign !== null )
 	{
 		$extra = json_decode($data['description'], true);
