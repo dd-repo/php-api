@@ -204,9 +204,8 @@ $a->setExecute(function() use ($a)
 			$infos['id'] = $r['uidNumber'];
 			$infos['homeDirectory'] = $r['homeDirectory'];
 			$infos['size'] = $storage['storage_size'];
-			$infos['uris'] = $extra['urls'];
 			$infos['branches'] = $extra['branches'];
-			$infos['instances'] = array();
+			$infos['branches']['instances'] = array();
 			
 			$j = 0;
 			if( $extra['branches'] )
