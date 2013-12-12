@@ -221,7 +221,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$params = array();
 	$docker = false;
-	if( $pass != null )
+	if( $pass !== null )
 	{
 		$params['userPassword'] = $pass;
 		$GLOBALS['ldap']->replace($dn, $params);
