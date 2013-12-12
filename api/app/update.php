@@ -221,19 +221,19 @@ $a->setExecute(function() use ($a)
 		$docker = true;
 	}
 	
-	if( $start !== null )
+	if( $start !== null && $branch !== null )
 	{
-		$commands[] = "/dns/tm/sys/usr/local/bin/manage-docker {$data['uid']} start";
+		$commands[] = "/dns/tm/sys/usr/local/bin/manage-docker {$data['uid']} {$branch} start";
 		$GLOBALS['system']->exec($commands);
 	}
-	else if( $stop !== null )
+	else if( $stop !== null && $branch !== null )
 	{
-		$commands[] = "/dns/tm/sys/usr/local/bin/manage-docker {$data['uid']} stop";
+		$commands[] = "/dns/tm/sys/usr/local/bin/manage-docker {$data['uid']} {$branch} stop";
 		$GLOBALS['system']->exec($commands);
 	}
-	if( $rebuild !== null )
+	if( $rebuild !== null && $branch !== null )
 	{
-		$commands[] = "/dns/tm/sys/usr/local/bin/rebuild-app {$data['uid']} {$data['homeDirectory']} ".strtolower($data['uid']);
+		$commands[] = "/dns/tm/sys/usr/local/bin/rebuild-app {$data['uid']} {$data['homeDirectory']} {$branch} ".strtolower($data['uid']);
 		$GLOBALS['system']->exec($commands);
 	}
 	
