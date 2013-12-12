@@ -211,9 +211,9 @@ $a->setExecute(function() use ($a)
 			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
 			{
 				if( $key == $instance )
-					$newinstances[] = array('host' => $hostname, 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
+					$newinstances[] = array('host' => $hostname, 'port' => $value['port'], 'memory' => $memory, 'cpu' => $value['cpu']);	
 				else
-					$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
+					$newinstances[] = array('host' => $value['host'], 'port' => $value['port'], 'memory' => $memory, 'cpu' => $value['cpu']);	
 			}
 		
 			$extra['branches'][$branch]['instances'] = $newinstances;
