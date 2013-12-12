@@ -220,27 +220,25 @@ $a->setExecute(function() use ($a)
 		{
 			foreach( $extra['branches'] as $k => $v )
 			{
+				$sql = "SELECT port, used FROM ports WHERE used = 0";
+				$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+				if( !$portresult['port'] )
+				{
+					$sql = "INSERT INTO ports (used) VALUES (1)";
+					$GLOBALS['db']->query($sql, mysql::NO_ROW);
+					$port = $GLOBALS['db']->last_id();
+				}
+				else
+				{
+					$port = $portresult['port'];
+					$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
+					$GLOBALS['db']->query($sql, mysql::NO_ROW);
+				}
+				
 				if( is_array($v['instances']) )
 				{
 					foreach( $v['instances'] as $key => $value )
-					{
-						$sql = "SELECT port, used FROM ports WHERE used = 0";
-						$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
-						if( !$portresult['port'] )
-						{
-							$sql = "INSERT INTO ports (used) VALUES (1)";
-							$GLOBALS['db']->query($sql, mysql::NO_ROW);
-							$port = $GLOBALS['db']->last_id();
-						}
-						else
-						{
-							$port = $portresult['port'];
-							$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
-							$GLOBALS['db']->query($sql, mysql::NO_ROW);
-						}
-
 						$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => $value['memory'], 'cpu' => $value['cpu']);
-					}
 				
 					$extra['branches'][$k]['instances'] = $newinstances;
 				}
