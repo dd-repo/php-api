@@ -116,8 +116,7 @@ $a->setExecute(function() use ($a)
 	$app = $runtime . '-' . $app;
 	
 	$extra = array();
-	$extra['instances'] = array(array('memory' => '128', 'cpu' => 1));
-	$extra['branches'] = array('master');
+	$extra['branches'] = array('master' => array('instances'=>array(array('memory' => '128', 'cpu' => 1))));
 	
 	$dn = ldap::buildDN(ldap::APP, $domain, $app);
 	$params = array('dn' => $dn, 'uid' => $app, 'userPassword' => $pass, 'domain' => $domain, 'description' => json_encode($extra), 'owner' => $user_dn);
