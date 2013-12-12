@@ -61,6 +61,14 @@ $a->addParam(array(
 	'match'=>"(1|yes|true)"
 	));
 $a->addParam(array(
+	'name'=>array('reassign'),
+	'description'=>'Reassign all ports of the app',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|yes|true)"
+	));
+$a->addParam(array(
 	'name'=>array('url', 'uri'),
 	'description'=>'The url of the app',
 	'optional'=>true,
@@ -133,6 +141,7 @@ $a->setExecute(function() use ($a)
 	$start = $a->getParam('start');
 	$stop = $a->getParam('stop');
 	$rebuild = $a->getParam('rebuild');
+	$reassign = $a->getParam('reassign');
 	$service = $a->getParam('service');
 	$url = $a->getParam('url');
 	$mode = $a->getParam('mode');
@@ -201,6 +210,41 @@ $a->setExecute(function() use ($a)
 	// UPDATE REMOTE APP
 	// =================================
 	$params = array();
+	if( $reassign !== null )
+	{
+		$extra = json_decode($data['description'], true);
+		
+		$newinstances = array();
+		if( $extra['branches'][$branch]['instances'] )
+		{
+			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
+			{
+				$sql = "SELECT port, used FROM ports WHERE used = 0";
+				$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+				if( !$portresult['port'] )
+				{
+					$sql = "INSERT INTO ports (used) VALUES (1)";
+					$GLOBALS['db']->query($sql, mysql::NO_ROW);
+					$port = $GLOBALS['db']->last_id();
+				}
+				else
+				{
+					$port = $portresult['port'];
+					$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
+					$GLOBALS['db']->query($sql, mysql::NO_ROW);
+				}
+
+				//$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => $value['memory'], 'cpu' => $value['cpu']);
+				$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => 128, 'cpu' => 1);
+			}
+		
+			$extra['branches'][$branch]['instances'] = $newinstances;
+		
+			$params = array('description'=>json_encode($extra));
+			$GLOBALS['ldap']->replace($dn, $params);
+		}		
+	}
+	
 	if( $hostname !== null && $instance !== null && $branch != null )
 	{
 		$extra = json_decode($data['description'], true);
@@ -211,9 +255,9 @@ $a->setExecute(function() use ($a)
 			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
 			{
 				if( $key == $instance )
-					$newinstances[] = array('host' => $hostname, 'port' => $value['port'], 'memory' => $memory, 'cpu' => $value['cpu']);	
+					$newinstances[] = array('host' => $hostname, 'port' => $value['port'], 'memory' => $value['memory'], 'cpu' => $value['cpu']);	
 				else
-					$newinstances[] = array('host' => $value['host'], 'port' => $value['port'], 'memory' => $memory, 'cpu' => $value['cpu']);	
+					$newinstances[] = array('host' => $value['host'], 'port' => $value['port'], 'memory' => $value['memory'], 'cpu' => $value['cpu']);	
 			}
 		
 			$extra['branches'][$branch]['instances'] = $newinstances;
