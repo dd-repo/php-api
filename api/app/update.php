@@ -85,6 +85,22 @@ $a->addParam(array(
 	'match'=>request::LOWER,
 	));	
 $a->addParam(array(
+	'name'=>array('host', 'hostname'),
+	'description'=>'The host of the instance',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	));
+$a->addParam(array(
+	'name'=>array('instance'),
+	'description'=>'The instance',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>2,
+	'match'=>request::NUMBER,
+	));	
+$a->addParam(array(
 	'name'=>array('mode'),
 	'description'=>'Mode for application address, services and environment (can be add/delete).',
 	'optional'=>true,
@@ -121,6 +137,8 @@ $a->setExecute(function() use ($a)
 	$url = $a->getParam('url');
 	$mode = $a->getParam('mode');
 	$branch = $a->getParam('branch');
+	$host = $a->getParam('host');
+	$instance = $a->getParam('instance');
 	$user = $a->getParam('user');
 
 	// =================================
@@ -183,6 +201,22 @@ $a->setExecute(function() use ($a)
 	// UPDATE REMOTE APP
 	// =================================
 	$params = array();
+	if( $host !== null && $instance !== null )
+	{
+		$extra = json_decode($data['description'], true);
+		
+		$newinstances = array();
+		if( $extra['branches'][$branch]['instances'] )
+		{
+			foreach( $extra['branches'][$branch]['instances'] as $i )
+				$newinstances[] = array('host' => $host, 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
+
+			$extra['branches'][$branch]['instances'] = $newinstances;
+		
+			$params = array('description'=>json_encode($extra));
+			$GLOBALS['ldap']->replace($dn, $params);
+		}
+	}
 	if( $memory !== null && $branch !== null )
 	{
 		checkQuota('MEMORY', $user);

@@ -178,6 +178,7 @@ $a->setExecute(function() use ($a)
 								$info = '';
 							$info = explode(' ', $info);
 							$infos['branches'][$key]['instances'][$j]['id'] = $j;
+							$infos['branches'][$key]['instances'][$j]['host'] = $i['host'];
 							$infos['branches'][$key]['instances'][$j]['port'] = $i['port'];
 							if( strlen($info[0]) > 2 )
 								$infos['branches'][$key]['instances'][$j]['state'] = 'RUNNING';
@@ -231,6 +232,7 @@ $a->setExecute(function() use ($a)
 							
 								$info = explode(' ', $info);
 								$infos['branches'][$key]['instances'][$j]['id'] = $j;
+								$infos['branches'][$key]['instances'][$j]['host'] = $i['host'];
 								$infos['branches'][$key]['instances'][$j]['port'] = $i['port'];
 								if( strlen($info[0]) > 2 )
 									$infos['branches'][$key]['instances'][$j]['state'] = 'RUNNING';
