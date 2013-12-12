@@ -239,8 +239,7 @@ $a->setExecute(function() use ($a)
 							$GLOBALS['db']->query($sql, mysql::NO_ROW);
 						}
 
-						//$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => $value['memory'], 'cpu' => $value['cpu']);
-						$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => 128, 'cpu' => 1);
+						$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => $value['memory'], 'cpu' => $value['cpu']);
 					}
 				
 					$extra['branches'][$k]['instances'] = $newinstances;
