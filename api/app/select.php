@@ -164,26 +164,29 @@ $a->setExecute(function() use ($a)
 		{
 			foreach( $extra['branches'] as $key => $value )
 			{
-				$infos['branches'][$key]['instances'] = array();
-				if( $value['instances'] )
+				if( is_array($infos['branches'][$key]) )
 				{
-					foreach( $value['instances'] as $i )
+					$infos['branches'][$key]['instances'] = array();
+					if( $value['instances'] )
 					{
-						if( $extended == true )
-							$info = $GLOBALS['system']->getdockerstats($result['uid'] . '-' . $key . '-' . $j);
-						else
-							$info = '';
-						$info = explode(' ', $info);
-						$infos['branches'][$key]['instances'][$j]['id'] = $j;
-						if( strlen($info[0]) > 2 )
-							$infos['branches'][$key]['instances'][$j]['state'] = 'RUNNING';
-						else
-							$infos['branches'][$key]['instances'][$j]['state'] = 'STOPPED';
-						$infos['branches'][$key]['instances'][$j]['memory']['quota'] = $i['memory'];
-						$infos['branches'][$key]['instances'][$j]['memory']['usage'] = round($info[3]/1024);
-						$infos['branches'][$key]['instances'][$j]['cpu']['quota'] = $i['cpu'];
-						$infos['branches'][$key]['instances'][$j]['cpu']['usage'] = $info[2]*100;			
-						$j++;
+						foreach( $value['instances'] as $i )
+						{
+							if( $extended == true )
+								$info = $GLOBALS['system']->getdockerstats($result['uid'] . '-' . $key . '-' . $j);
+							else
+								$info = '';
+							$info = explode(' ', $info);
+							$infos['branches'][$key]['instances'][$j]['id'] = $j;
+							if( strlen($info[0]) > 2 )
+								$infos['branches'][$key]['instances'][$j]['state'] = 'RUNNING';
+							else
+								$infos['branches'][$key]['instances'][$j]['state'] = 'STOPPED';
+							$infos['branches'][$key]['instances'][$j]['memory']['quota'] = $i['memory'];
+							$infos['branches'][$key]['instances'][$j]['memory']['usage'] = round($info[3]/1024);
+							$infos['branches'][$key]['instances'][$j]['cpu']['quota'] = $i['cpu'];
+							$infos['branches'][$key]['instances'][$j]['cpu']['usage'] = $info[2]*100;			
+							$j++;
+						}
 					}
 				}
 			}
@@ -211,27 +214,30 @@ $a->setExecute(function() use ($a)
 			{
 				foreach( $extra['branches'] as $key => $value )
 				{
-					$infos['branches'][$key]['instances'] = array();
-					if( $value['instances'] )
+					if( is_array($infos['branches'][$key]) )
 					{
-						foreach( $value['instances'] as $i )
+						$infos['branches'][$key]['instances'] = array();
+						if( $value['instances'] )
 						{
-							if( $extended == true )
-								$info = $GLOBALS['system']->getdockerstats($r['uid'] . '-' . $j);
-							else
-								$info = '';
-						
-							$info = explode(' ', $info);
-							$infos['branches'][$key]['instances'][$j]['id'] = $j;
-							if( strlen($info[0]) > 2 )
-								$infos['branches'][$key]['instances'][$j]['state'] = 'RUNNING';
-							else
-								$infos['branches'][$key]['instances'][$j]['state'] = 'STOPPED';
-							$infos['branches'][$key]['instances'][$j]['memory']['quota'] = $i['memory'];
-							$infos['branches'][$key]['instances'][$j]['memory']['usage'] = round($info[3]/1024);
-							$infos['branches'][$key]['instances'][$j]['cpu']['quota'] = $i['cpu'];
-							$infos['branches'][$key]['instances'][$j]['cpu']['usage'] = $info[2]*100;		
-							$j++;
+							foreach( $value['instances'] as $i )
+							{
+								if( $extended == true )
+									$info = $GLOBALS['system']->getdockerstats($r['uid'] . '-' . $j);
+								else
+									$info = '';
+							
+								$info = explode(' ', $info);
+								$infos['branches'][$key]['instances'][$j]['id'] = $j;
+								if( strlen($info[0]) > 2 )
+									$infos['branches'][$key]['instances'][$j]['state'] = 'RUNNING';
+								else
+									$infos['branches'][$key]['instances'][$j]['state'] = 'STOPPED';
+								$infos['branches'][$key]['instances'][$j]['memory']['quota'] = $i['memory'];
+								$infos['branches'][$key]['instances'][$j]['memory']['usage'] = round($info[3]/1024);
+								$infos['branches'][$key]['instances'][$j]['cpu']['quota'] = $i['cpu'];
+								$infos['branches'][$key]['instances'][$j]['cpu']['usage'] = $info[2]*100;		
+								$j++;
+							}
 						}
 					}
 				}
