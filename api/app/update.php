@@ -137,7 +137,7 @@ $a->setExecute(function() use ($a)
 	$url = $a->getParam('url');
 	$mode = $a->getParam('mode');
 	$branch = $a->getParam('branch');
-	$host = $a->getParam('host');
+	$hostname = $a->getParam('hostname');
 	$instance = $a->getParam('instance');
 	$user = $a->getParam('user');
 
@@ -201,7 +201,7 @@ $a->setExecute(function() use ($a)
 	// UPDATE REMOTE APP
 	// =================================
 	$params = array();
-	if( $host !== null && $instance !== null )
+	if( $hostname !== null && $instance !== null && $branch != null )
 	{
 		$extra = json_decode($data['description'], true);
 		
@@ -211,7 +211,7 @@ $a->setExecute(function() use ($a)
 			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
 			{
 				if( $key == $instance )
-					$newinstances[] = array('host' => $host, 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
+					$newinstances[] = array('host' => $hostname, 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
 				else
 					$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
 			}
