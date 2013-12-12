@@ -183,22 +183,23 @@ $a->setExecute(function() use ($a)
 	// UPDATE REMOTE APP
 	// =================================
 	$params = array();
-	if( $memory !== null )
+	if( $memory !== null && $branch !== null )
 	{
 		checkQuota('MEMORY', $user);
 
 		$extra = json_decode($data['description'], true);
 		
 		$newinstances = array();
-		if( $extra['instances'] )
+		if( $extra['branches'][$branch]['instances'] )
 		{
-			foreach( $extra['instances'] as $i )
+			foreach( $extra['branches'][$branch]['instances'] as $i )
 				$newinstances[] = array('memory' => $memory, 'cpu' => 1);	
 		}
 		else
 			$newinstances[] = array('memory' => $memory, 'cpu' => 1);
 			
-		$extra['instances'] = $newinstances;
+		$extra['branches'][$branch]['instances'] = $newinstances;
+		
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
 		
@@ -207,24 +208,24 @@ $a->setExecute(function() use ($a)
 		$docker = true;
 	}
 	
-	if( $instances !== null && $instances != 0 )
+	if( $instances !== null && $instances != 0 && $branch !== null )
 	{
 		$memory = 128; 
 		$cpu = 1;	
 		
 		$extra = json_decode($data['description'], true);
 		
-		if( $extra['instances'] )
+		if( $extra['branches'][$branch]['instances'] )
 		{
-			$memory = $extra['instances'][0]['memory']; 
-			$cpu = $extra['instances'][0]['cpu'];
+			$memory = $extra['branches'][$branch]['instances'][0]['memory']; 
+			$cpu = $extra['branches'][$branch]['instances'][0]['cpu'];
 		}
 		
 		$newinstances = array();
 		for($i = 0; $i < $instances; $i++ )
 			$newinstances[] = array('memory' => $memory, 'cpu' => $cpu);
 		
-		$extra['instances'] = $newinstances;
+		$extra['branches'][$branch]['instances'] = $newinstances;
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
 		
@@ -253,39 +254,39 @@ $a->setExecute(function() use ($a)
 		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
 		$data['data2'] = $GLOBALS['ldap']->read($dn2);
 		
-		$extra['urls'][$url] = $branch;
+		$extra['branches'][$branch]['urls'] = $url;
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
 		
 		$texturls = '';
-		foreach( $extra['urls'] as $key => $value )
+		foreach( $extra['branches'][$branch]['urls'] as $uri )
 			$texturls .= ' ' . $key;
 
 		$commands[] = "ln -s {$data['homeDirectory']}/{$branch} {$data['data2']['homeDirectory']}";
 		$commands[] = "/dns/tm/sys/usr/local/bin/update-app {$data['uid']} \"{$texturls}\"";
 		$GLOBALS['system']->exec($commands);
 	}
-	else if( $url !== null && $mode == 'delete' )
+	else if( $url !== null && $mode == 'delete' && $branch != null )
 	{
 		$extra = json_decode($data['description'], true);
 		$dn2 = $GLOBALS['ldap']->getDNfromHostname($url);
 		$data['data2'] = $GLOBALS['ldap']->read($dn2);
 
 		$uris = array();
-		foreach( $extra['urls'] as $k => $v )
+		foreach( $extra['branches'][$branch]['urls'] as $v )
 		{
-			if( $k != $url )
-				$uris[$k] = $v;
+			if( $v != $url )
+				$uris[] = $v;
 		}
 		$urls = $uris;
 		
-		$extra['urls'] = $urls;
+		$extra['branches'][$branch]['urls'] = $urls;
 		
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);		
 		
 		$texturls = '';
-		foreach( $extra['urls'] as $key => $value )
+		foreach( $extra['branches'][$branch]['urls'] as $key => $value )
 			$texturls .= ' ' . $key;
 
 		$commands[] = "rm {$data['data2']['homeDirectory']}";			
