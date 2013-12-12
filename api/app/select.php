@@ -155,6 +155,7 @@ $a->setExecute(function() use ($a)
 		
 		$infos['name'] = $result['uid'];
 		$infos['id'] = $result['uidNumber'];
+		$infos['certificate'] = $result['gecos'];
 		$infos['homeDirectory'] = $result['homeDirectory'];
 		$infos['branches'] = $extra['branches'];
 		$infos['size'] = $storage['storage_size'];
@@ -207,6 +208,7 @@ $a->setExecute(function() use ($a)
 			$infos['name'] = $r['uid'];
 			$infos['id'] = $r['uidNumber'];
 			$infos['homeDirectory'] = $r['homeDirectory'];
+			$infos['certificate'] = $r['gecos'];
 			$infos['size'] = $storage['storage_size'];
 			$infos['branches'] = $extra['branches'];
 			
