@@ -301,7 +301,7 @@ $a->setExecute(function() use ($a)
 
 		$newinstances = array();
 		for( $i = 0; $i < $instances; $i++ )
-			$newinstances[] = array('port' => $extra['branches'][$branch]['instances'][0]['port'], 'memory' => $extra['branches'][$branch]['instances'][0]['memory'], 'cpu' => $extra['branches'][$branch]['instances'][0]['cpu']);
+			$newinstances[] = array('host' => $extra['branches'][$branch]['instances'][0]['host'], 'port' => $extra['branches'][$branch]['instances'][0]['port'], 'memory' => $extra['branches'][$branch]['instances'][0]['memory'], 'cpu' => $extra['branches'][$branch]['instances'][0]['cpu']);
 		
 		$extra['branches'][$branch]['instances'] = $newinstances;
 		$params = array('description'=>json_encode($extra));
