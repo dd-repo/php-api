@@ -282,7 +282,7 @@ $a->setExecute(function() use ($a)
 		if( $extra['branches'][$branch]['instances'] )
 		{
 			foreach( $extra['branches'][$branch]['instances'] as $i )
-				$newinstances[] = array('port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
+				$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
 
 			$extra['branches'][$branch]['instances'] = $newinstances;
 		
@@ -298,15 +298,25 @@ $a->setExecute(function() use ($a)
 	if( $instances !== null && $instances != 0 && $branch !== null )
 	{
 		$extra = json_decode($data['description'], true);
-
+		
 		$newinstances = array();
-		for( $i = 0; $i < $instances; $i++ )
-			$newinstances[] = array('host' => $extra['branches'][$branch]['instances'][0]['host'], 'port' => $extra['branches'][$branch]['instances'][0]['port'], 'memory' => $extra['branches'][$branch]['instances'][0]['memory'], 'cpu' => $extra['branches'][$branch]['instances'][0]['cpu']);
+		if( $extra['branches'][$branch]['instances'] )
+		{
+			$count = 0;
+			foreach( $extra['branches'][$branch]['instances'] as $i )
+			{
+				if( $count < $instances )
+					$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
+				
+				$count++;
+			}
+			
+			$extra['branches'][$branch]['instances'] = $newinstances;
 		
-		$extra['branches'][$branch]['instances'] = $newinstances;
-		$params = array('description'=>json_encode($extra));
-		$GLOBALS['ldap']->replace($dn, $params);
-		
+			$params = array('description'=>json_encode($extra));
+			$GLOBALS['ldap']->replace($dn, $params);
+		}
+
 		$docker = true;
 	}
 	
