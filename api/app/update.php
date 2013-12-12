@@ -306,10 +306,13 @@ $a->setExecute(function() use ($a)
 			foreach( $extra['branches'][$branch]['instances'] as $i )
 			{
 				if( $count < $instances )
-					$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
+					$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $i['memory'], 'cpu' => $i['cpu']);	
 				
 				$count++;
 			}
+			
+			for( $j = $count; $j < $instances; $j++ )
+				$newinstances[] = array('port' => $i['port'], 'memory' => $i['memory'], 'cpu' => $i['cpu']);	
 			
 			$extra['branches'][$branch]['instances'] = $newinstances;
 		
