@@ -254,8 +254,7 @@ $a->setExecute(function() use ($a)
 				{
 					foreach( $v['instances'] as $key => $value )
 						$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => $value['memory'], 'cpu' => $value['cpu']);
-					}
-				
+						
 					$extra['branches'][$k]['instances'] = $newinstances;
 				}
 			}
