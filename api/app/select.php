@@ -159,7 +159,6 @@ $a->setExecute(function() use ($a)
 		$infos['branches'] = $extra['branches'];
 		$infos['size'] = $storage['storage_size'];
 		
-		$j = 0;
 		if( $extra['branches'] )
 		{
 			foreach( $extra['branches'] as $key => $value )
@@ -169,6 +168,7 @@ $a->setExecute(function() use ($a)
 					$infos['branches'][$key]['instances'] = array();
 					if( $value['instances'] )
 					{
+						$j = 0;
 						foreach( $value['instances'] as $i )
 						{
 							if( $extended == true )
@@ -210,7 +210,6 @@ $a->setExecute(function() use ($a)
 			$infos['size'] = $storage['storage_size'];
 			$infos['branches'] = $extra['branches'];
 			
-			$j = 0;
 			if( $extra['branches'] )
 			{
 				foreach( $extra['branches'] as $key => $value )
@@ -220,6 +219,7 @@ $a->setExecute(function() use ($a)
 						$infos['branches'][$key]['instances'] = array();
 						if( $value['instances'] )
 						{
+							$j = 0;
 							foreach( $value['instances'] as $i )
 							{
 								if( $extended == true )
