@@ -223,12 +223,12 @@ $a->setExecute(function() use ($a)
 	
 	if( $start !== null && $branch !== null )
 	{
-		$commands[] = "/dns/tm/sys/usr/local/bin/manage-docker {$data['uid']} {$branch} start";
+		$commands[] = "/dns/tm/sys/usr/local/bin/manage-app {$data['uid']} {$branch} start";
 		$GLOBALS['system']->exec($commands);
 	}
 	else if( $stop !== null && $branch !== null )
 	{
-		$commands[] = "/dns/tm/sys/usr/local/bin/manage-docker {$data['uid']} {$branch} stop";
+		$commands[] = "/dns/tm/sys/usr/local/bin/manage-app {$data['uid']} {$branch} stop";
 		$GLOBALS['system']->exec($commands);
 	}
 	if( $rebuild !== null && $branch !== null )
