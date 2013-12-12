@@ -125,7 +125,7 @@ $a->setExecute(function() use ($a)
 	}
 	else
 	{
-		$port = portresult['port'];
+		$port = $portresult['port'];
 		$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	}
