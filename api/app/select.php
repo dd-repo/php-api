@@ -158,13 +158,13 @@ $a->setExecute(function() use ($a)
 		$infos['homeDirectory'] = $result['homeDirectory'];
 		$infos['branches'] = $extra['branches'];
 		$infos['size'] = $storage['storage_size'];
-		$infos['branches']['instances'] = array();
-
+		
 		$j = 0;
 		if( $extra['branches'] )
 		{
 			foreach( $extra['branches'] as $key => $value )
 			{
+				$infos['branches'][$key]['instances'] = array();
 				if( $value['instances'] )
 				{
 					foreach( $value['instances'] as $i )
@@ -205,13 +205,13 @@ $a->setExecute(function() use ($a)
 			$infos['homeDirectory'] = $r['homeDirectory'];
 			$infos['size'] = $storage['storage_size'];
 			$infos['branches'] = $extra['branches'];
-			$infos['branches']['instances'] = array();
 			
 			$j = 0;
 			if( $extra['branches'] )
 			{
 				foreach( $extra['branches'] as $key => $value )
 				{
+					$infos['branches'][$key]['instances'] = array();
 					if( $value['instances'] )
 					{
 						foreach( $value['instances'] as $i )
