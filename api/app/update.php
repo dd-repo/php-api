@@ -117,6 +117,15 @@ $a->addParam(array(
 	'match'=>"(add|delete)"
 	));
 $a->addParam(array(
+	'name'=>array('pass', 'password'),
+	'description'=>'The password of the app.',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>50,
+	'match'=>request::PHRASE|request::SPECIAL,
+	'action'=>true
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -148,6 +157,7 @@ $a->setExecute(function() use ($a)
 	$branch = $a->getParam('branch');
 	$hostname = $a->getParam('hostname');
 	$instance = $a->getParam('instance');
+	$pass = $a->getParam('pass');
 	$user = $a->getParam('user');
 
 	// =================================
@@ -211,6 +221,11 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$params = array();
 	$docker = false;
+	if( $pass != null )
+	{
+		$params['userPassword'] = $pass;
+		$GLOBALS['ldap']->replace($dn, $params);
+	}
 	if( $reassign !== null )
 	{
 		$extra = json_decode($data['description'], true);
@@ -239,6 +254,7 @@ $a->setExecute(function() use ($a)
 				{
 					foreach( $v['instances'] as $key => $value )
 						$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => $value['memory'], 'cpu' => $value['cpu']);
+					}
 				
 					$extra['branches'][$k]['instances'] = $newinstances;
 				}
