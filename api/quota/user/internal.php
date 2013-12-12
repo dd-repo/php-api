@@ -68,7 +68,7 @@ function syncQuota($type, $user)
 			foreach( $apps as $a )
 			{
 				$extra = json_decode($a['description'], true);
-				if( count($extra['branches']) > 0 )
+				if( is_array($extra['branches']) )
 				{
 					foreach( $extra['branches'] as $key => $value )
 					{
@@ -79,8 +79,7 @@ function syncQuota($type, $user)
 						}
 					}
 				}
-			}			
-					
+			}
 		break;
 		case 'SERVICES':
 			$sql = "SELECT user_ldap, user_id FROM users u WHERE {$where}";
