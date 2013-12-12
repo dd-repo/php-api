@@ -193,16 +193,14 @@ $a->setExecute(function() use ($a)
 		if( $extra['branches'][$branch]['instances'] )
 		{
 			foreach( $extra['branches'][$branch]['instances'] as $i )
-				$newinstances[] = array('memory' => $memory, 'cpu' => 1);	
+				$newinstances[] = array('port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
+
+			$extra['branches'][$branch]['instances'] = $newinstances;
+		
+			$params = array('description'=>json_encode($extra));
+			$GLOBALS['ldap']->replace($dn, $params);
 		}
-		else
-			$newinstances[] = array('memory' => $memory, 'cpu' => 1);
-			
-		$extra['branches'][$branch]['instances'] = $newinstances;
-		
-		$params = array('description'=>json_encode($extra));
-		$GLOBALS['ldap']->replace($dn, $params);
-		
+	
 		syncQuota('MEMORY', $user);
 		
 		$docker = true;
@@ -210,20 +208,11 @@ $a->setExecute(function() use ($a)
 	
 	if( $instances !== null && $instances != 0 && $branch !== null )
 	{
-		$memory = 128; 
-		$cpu = 1;	
-		
 		$extra = json_decode($data['description'], true);
-		
-		if( $extra['branches'][$branch]['instances'] )
-		{
-			$memory = $extra['branches'][$branch]['instances'][0]['memory']; 
-			$cpu = $extra['branches'][$branch]['instances'][0]['cpu'];
-		}
-		
+
 		$newinstances = array();
-		for($i = 0; $i < $instances; $i++ )
-			$newinstances[] = array('memory' => $memory, 'cpu' => $cpu);
+		for( $i = 0; $i < $instances; $i++ )
+			$newinstances[] = array('port' => $extra['branches'][$branch]['instances'][0]['port'], 'memory' => $extra['branches'][$branch]['instances'][0]['memory'], 'cpu' => $extra['branches'][$branch]['instances'][0]['cpu']);
 		
 		$extra['branches'][$branch]['instances'] = $newinstances;
 		$params = array('description'=>json_encode($extra));
@@ -298,8 +287,23 @@ $a->setExecute(function() use ($a)
 		$extra = json_decode($data['description'], true);		
 		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid']);
 		$GLOBALS['system']->exec($commands);
-		
-		$extra['branches'][$branch] = array('instances'=>array(array('memory' => '128', 'cpu' => 1)));
+	
+		$sql = "SELECT port, used FROM ports WHERE used = 0";
+		$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+		if( !$portresult['port'] )
+		{
+			$sql = "INSERT INTO ports (used) VALUES (1)";
+			$GLOBALS['db']->query($sql, mysql::NO_ROW);
+			$port = $GLOBALS['db']->last_id();
+		}
+		else
+		{
+			$port = portresult['port'];
+			$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
+			$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		}
+	
+		$extra['branches'][$branch] = array('instances'=>array(array('port'=>$port, 'memory' => '128', 'cpu' => 1)));
 		
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);

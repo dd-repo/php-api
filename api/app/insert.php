@@ -115,8 +115,23 @@ $a->setExecute(function() use ($a)
 	}
 	$app = $runtime . '-' . $app;
 	
+	$sql = "SELECT port, used FROM ports WHERE used = 0";
+	$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+	if( !$portresult['port'] )
+	{
+		$sql = "INSERT INTO ports (used) VALUES (1)";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		$port = $GLOBALS['db']->last_id();
+	}
+	else
+	{
+		$port = portresult['port'];
+		$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	}
+	
 	$extra = array();
-	$extra['branches'] = array('master' => array('instances'=>array(array('memory' => '128', 'cpu' => 1))));
+	$extra['branches'] = array('master' => array('instances'=>array(array('port'=>$port, 'memory' => '128', 'cpu' => 1))));
 	
 	$dn = ldap::buildDN(ldap::APP, $domain, $app);
 	$params = array('dn' => $dn, 'uid' => $app, 'userPassword' => $pass, 'domain' => $domain, 'description' => json_encode($extra), 'owner' => $user_dn);
