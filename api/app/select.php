@@ -13,7 +13,7 @@ $a->addGrant(array('ACCESS', 'APP_SELECT'));
 $a->setReturn(array(array(
 	'id'=>'the id of the app', 
 	'name'=>'the name of the app',
-	'uris'=>'the uris of the app',
+	'urls'=>'the urls of the app',
 	'homeDirectory'=>'the directory of the app',
 	'domain'=>'the app domain',
 	'instances'=>array(
