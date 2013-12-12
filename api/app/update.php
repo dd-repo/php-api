@@ -219,7 +219,7 @@ $a->setExecute(function() use ($a)
 		{
 			foreach( $extra['branches'] as $k => $v )
 			{
-				if( is_array($v['instances'] )
+				if( is_array($v['instances']) )
 				{
 					foreach( $v['instances'] as $key => $value )
 					{
