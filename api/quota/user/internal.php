@@ -63,6 +63,7 @@ function syncQuota($type, $user)
 			$userdata = $GLOBALS['db']->query($sql);
 			if( $userdata == null || $userdata['user_ldap'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
+			$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
 			$apps = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::APP, "(owner={$user_dn})"));
 			$count = 0;
 			foreach( $apps as $a )
