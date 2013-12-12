@@ -208,9 +208,14 @@ $a->setExecute(function() use ($a)
 		$newinstances = array();
 		if( $extra['branches'][$branch]['instances'] )
 		{
-			foreach( $extra['branches'][$branch]['instances'] as $i )
-				$newinstances[] = array('host' => $host, 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
-
+			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
+			{
+				if( $key == $instance )
+					$newinstances[] = array('host' => $host, 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
+				else
+					$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
+			}
+		
 			$extra['branches'][$branch]['instances'] = $newinstances;
 		
 			$params = array('description'=>json_encode($extra));
