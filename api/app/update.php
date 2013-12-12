@@ -215,30 +215,36 @@ $a->setExecute(function() use ($a)
 		$extra = json_decode($data['description'], true);
 		
 		$newinstances = array();
-		foreach( $extra['branches'] as $k => $v )
+		if( is_array($extra['branches']) )
 		{
-			foreach( $v['instances'] as $key => $value )
+			foreach( $extra['branches'] as $k => $v )
 			{
-				$sql = "SELECT port, used FROM ports WHERE used = 0";
-				$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
-				if( !$portresult['port'] )
+				if( is_array($v['instances'] )
 				{
-					$sql = "INSERT INTO ports (used) VALUES (1)";
-					$GLOBALS['db']->query($sql, mysql::NO_ROW);
-					$port = $GLOBALS['db']->last_id();
-				}
-				else
-				{
-					$port = $portresult['port'];
-					$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
-					$GLOBALS['db']->query($sql, mysql::NO_ROW);
-				}
+					foreach( $v['instances'] as $key => $value )
+					{
+						$sql = "SELECT port, used FROM ports WHERE used = 0";
+						$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+						if( !$portresult['port'] )
+						{
+							$sql = "INSERT INTO ports (used) VALUES (1)";
+							$GLOBALS['db']->query($sql, mysql::NO_ROW);
+							$port = $GLOBALS['db']->last_id();
+						}
+						else
+						{
+							$port = $portresult['port'];
+							$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
+							$GLOBALS['db']->query($sql, mysql::NO_ROW);
+						}
 
-				//$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => $value['memory'], 'cpu' => $value['cpu']);
-				$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => 128, 'cpu' => 1);
+						//$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => $value['memory'], 'cpu' => $value['cpu']);
+						$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => 128, 'cpu' => 1);
+					}
+				
+					$extra['branches'][$k]['instances'] = $newinstances;
+				}
 			}
-		
-			$extra['branches'][$k]['instances'] = $newinstances;
 		}
 		
 		$params = array('description'=>json_encode($extra));
