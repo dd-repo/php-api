@@ -215,9 +215,9 @@ $a->setExecute(function() use ($a)
 		$extra = json_decode($data['description'], true);
 		
 		$newinstances = array();
-		if( $extra['branches'][$branch]['instances'] )
+		foreach( $extra['branches'] as $k => $v )
 		{
-			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
+			foreach( $v['instances'] as $key => $value )
 			{
 				$sql = "SELECT port, used FROM ports WHERE used = 0";
 				$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
@@ -238,11 +238,11 @@ $a->setExecute(function() use ($a)
 				$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => 128, 'cpu' => 1);
 			}
 		
-			$extra['branches'][$branch]['instances'] = $newinstances;
+			$extra['branches'][$k]['instances'] = $newinstances;
+		}
 		
-			$params = array('description'=>json_encode($extra));
-			$GLOBALS['ldap']->replace($dn, $params);
-		}		
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);
 	}
 	
 	if( $hostname !== null && $instance !== null && $branch != null )
