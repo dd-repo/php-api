@@ -178,6 +178,20 @@ $a->setExecute(function() use ($a)
 	else
 		throw new ApiException("Not found", 404, "Can not find app: {$app}");
 	
+	$expl = explode('-', $data['uid']);
+	$language = $expl[0];
+		
+	switch( $language )
+	{
+		case 'ruby':
+		case 'rubyrails':
+		case 'rubysinatra':
+			$file = "Gemfile";
+		break;
+		default:
+			$file = "";
+	}
+		
 	if( $user !== null )
 	{
 		// =================================
@@ -348,7 +362,7 @@ $a->setExecute(function() use ($a)
 	}
 	if( $rebuild !== null && $branch !== null )
 	{
-		$commands[] = "/dns/tm/sys/usr/local/bin/rebuild-app {$data['uid']} {$data['homeDirectory']} {$branch} ".strtolower($data['uid']);
+		$commands[] = "/dns/tm/sys/usr/local/bin/rebuild-app {$data['uid']} {$data['homeDirectory']} {$branch} ".strtolower($data['uid'])." {$file}");
 		$GLOBALS['system']->exec($commands);
 	}
 	
@@ -399,11 +413,8 @@ $a->setExecute(function() use ($a)
 	}
 	else if( $branch !== null && $mode == 'add' )
 	{
-		$expl = explode('-', $data['uid']);
-		$language = $expl[0];
-		
 		$extra = json_decode($data['description'], true);
-		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language}";
+		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language} {$file}";
 		$GLOBALS['system']->exec($commands);
 	
 		$sql = "SELECT port, used FROM ports WHERE used = 0";
