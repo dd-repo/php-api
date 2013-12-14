@@ -31,14 +31,6 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));	
 $a->addParam(array(
-	'name'=>array('framework', 'app_framework'),
-	'description'=>'The target framework',
-	'optional'=>false,
-	'minlength'=>1,
-	'maxlength'=>30,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT
-	));	
-$a->addParam(array(
 	'name'=>array('pass', 'password'),
 	'description'=>'The password of the service.',
 	'optional'=>false,
@@ -76,7 +68,6 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$domain = $a->getParam('domain');
 	$runtime = $a->getParam('runtime');
-	$framework = $a->getParam('framework');
 	$pass = $a->getParam('pass');
 	$user = $a->getParam('user');
 	$application = $a->getParam('app');
