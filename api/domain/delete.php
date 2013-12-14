@@ -79,8 +79,6 @@ $a->setExecute(function() use ($a)
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
 	$commands[] = "rm -Rf {$data['homeDirectory']}";
-	$commands[] = "rm -Rf {$data['homeDirectory']}.git";
-	
 	$GLOBALS['system']->exec($commands);
 	
 	// =================================
