@@ -399,8 +399,11 @@ $a->setExecute(function() use ($a)
 	}
 	else if( $branch !== null && $mode == 'add' )
 	{
-		$extra = json_decode($data['description'], true);		
-		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid']);
+		$expl = explode('-', $data['uid']);
+		$language = $expl[0];
+		
+		$extra = json_decode($data['description'], true);
+		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language}";
 		$GLOBALS['system']->exec($commands);
 	
 		$sql = "SELECT port, used FROM ports WHERE used = 0";
