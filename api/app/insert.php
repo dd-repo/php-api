@@ -47,14 +47,6 @@ $a->addParam(array(
 	'maxlength'=>30,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));
-$a->addParam(array(
-	'name'=>array('app'),
-	'description'=>'The specified app.',
-	'optional'=>false,
-	'minlength'=>0,
-	'maxlength'=>50,
-	'match'=>request::LOWER
-	));	
 	
 $a->setExecute(function() use ($a)
 {
@@ -70,7 +62,6 @@ $a->setExecute(function() use ($a)
 	$runtime = $a->getParam('runtime');
 	$pass = $a->getParam('pass');
 	$user = $a->getParam('user');
-	$application = $a->getParam('app');
 	
 	// =================================
 	// GET USER DATA
