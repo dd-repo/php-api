@@ -69,6 +69,14 @@ $a->addParam(array(
 	'match'=>"(1|yes|true)"
 	));
 $a->addParam(array(
+	'name'=>array('binary', 'app_binary'),
+	'description'=>'The binary to execute.',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>50,
+	'match'=>request::PHRASE|request::SPECIAL
+	));
+$a->addParam(array(
 	'name'=>array('url', 'uri'),
 	'description'=>'The url of the app',
 	'optional'=>true,
@@ -150,6 +158,7 @@ $a->setExecute(function() use ($a)
 	$start = $a->getParam('start');
 	$stop = $a->getParam('stop');
 	$rebuild = $a->getParam('rebuild');
+	$binary = $a->getParam('binary');
 	$reassign = $a->getParam('reassign');
 	$service = $a->getParam('service');
 	$url = $a->getParam('url');
@@ -414,7 +423,7 @@ $a->setExecute(function() use ($a)
 	else if( $branch !== null && $mode == 'add' )
 	{
 		$extra = json_decode($data['description'], true);
-		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language} {$file}";
+		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language} {$file} \"".security::encode($binary)."\"";
 		$GLOBALS['system']->exec($commands);
 	
 		$sql = "SELECT port, used FROM ports WHERE used = 0";

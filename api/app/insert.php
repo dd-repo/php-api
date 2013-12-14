@@ -47,6 +47,14 @@ $a->addParam(array(
 	'maxlength'=>30,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));
+$a->addParam(array(
+	'name'=>array('binary', 'app_binary'),
+	'description'=>'The binary to execute.',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>50,
+	'match'=>request::PHRASE|request::SPECIAL
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -61,6 +69,7 @@ $a->setExecute(function() use ($a)
 	$domain = $a->getParam('domain');
 	$runtime = $a->getParam('runtime');
 	$pass = $a->getParam('pass');
+	$binary = $a->getParam('binary');
 	$user = $a->getParam('user');
 	
 	// =================================
@@ -143,7 +152,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "/dns/tm/sys/usr/local/bin/create-app {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime} ".strtolower($app)." {$file}";
+	$commands[] = "/dns/tm/sys/usr/local/bin/create-app {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime} ".strtolower($app)." {$file} \"".security::encode($binary)."\"";
 	$GLOBALS['system']->exec($commands);
 	
 	// =================================
