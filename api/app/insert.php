@@ -52,7 +52,7 @@ $a->addParam(array(
 	'description'=>'The binary to execute.',
 	'optional'=>true,
 	'minlength'=>3,
-	'maxlength'=>50,
+	'maxlength'=>150,
 	'match'=>request::PHRASE|request::SPECIAL
 	));
 	
