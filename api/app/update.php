@@ -252,7 +252,7 @@ $a->setExecute(function() use ($a)
 		}
 		else
 		{
-			$sql = "UPDATE ports SET app_tag = '".security::encode($tag)."' WHERE app_id = {$data['uidNumber']}";
+			$sql = "UPDATE apps SET app_tag = '".security::encode($tag)."' WHERE app_id = {$data['uidNumber']}";
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 	}
