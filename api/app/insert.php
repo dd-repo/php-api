@@ -152,7 +152,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "/dns/tm/sys/usr/local/bin/create-app {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime} ".strtolower($app)." \"".security::encode($binary)."\"";
+	$commands[] = "/dns/tm/sys/usr/local/bin/app-create {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime} ".strtolower($app)." \"".security::encode($binary)."\"";
 	$GLOBALS['system']->exec($commands);
 	
 	// =================================
