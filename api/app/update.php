@@ -53,6 +53,14 @@ $a->addParam(array(
 	'match'=>"(1|yes|true)"
 	));
 $a->addParam(array(
+	'name'=>array('restart'),
+	'description'=>'Restart the application',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|yes|true)"
+	));
+$a->addParam(array(
 	'name'=>array('rebuild'),
 	'description'=>'Rebuild the application',
 	'optional'=>true,
@@ -155,6 +163,7 @@ $a->setExecute(function() use ($a)
 	$memory = $a->getParam('memory');
 	$start = $a->getParam('start');
 	$stop = $a->getParam('stop');
+	$restart = $a->getParam('restart');
 	$rebuild = $a->getParam('rebuild');
 	$reassign = $a->getParam('reassign');
 	$service = $a->getParam('service');
@@ -187,17 +196,6 @@ $a->setExecute(function() use ($a)
 	
 	$expl = explode('-', $data['uid']);
 	$language = $expl[0];
-		
-	switch( $language )
-	{
-		case 'ruby':
-		case 'rubyrails':
-		case 'rubysinatra':
-			$file = "Gemfile";
-		break;
-		default:
-			$file = "";
-	}
 	
 	$sql = "SELECT app_id FROM apps WHERE app_id = {$data['uidNumber']}";
 	$appresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
@@ -375,13 +373,39 @@ $a->setExecute(function() use ($a)
 	
 	if( $start !== null && $branch !== null )
 	{
-		$commands[] = "/dns/tm/sys/usr/local/bin/manage-app {$data['uid']} {$branch} start";
+		$extra = json_decode($data['description'], true);
+		if( $extra['branches'][$branch]['instances'] )
+		{
+			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
+				$commands[] = "/dns/tm/sys/usr/local/bin/manage-runit {$data['uid']}-{$branch}-{$key} start";
+		}
+		
 		$GLOBALS['system']->exec($commands);
 	}
 	else if( $stop !== null && $branch !== null )
 	{
-		$commands[] = "/dns/tm/sys/usr/local/bin/manage-app {$data['uid']} {$branch} stop";
+		$extra = json_decode($data['description'], true);
+		if( $extra['branches'][$branch]['instances'] )
+		{
+			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
+				$commands[] = "/dns/tm/sys/usr/local/bin/manage-runit {$data['uid']}-{$branch}-{$key} stop";
+		}
+		
 		$GLOBALS['system']->exec($commands);
+	}
+	else if( $restart !== null && $branch !== null )
+	{
+		$extra = json_decode($data['description'], true);
+		if( $extra['branches'][$branch]['instances'] )
+		{
+			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
+			{
+				$commands = array();
+				$commands[] = "/dns/tm/sys/usr/local/bin/manage-runit {$data['uid']}-{$branch}-{$key} stop";
+				$commands[] = "/dns/tm/sys/usr/local/bin/manage-runit {$data['uid']}-{$branch}-{$key} start";
+				$GLOBALS['system']->exec($commands);
+			}
+		}
 	}
 	if( $rebuild !== null && $branch !== null )
 	{
@@ -437,7 +461,7 @@ $a->setExecute(function() use ($a)
 	else if( $branch !== null && $mode == 'add' )
 	{
 		$extra = json_decode($data['description'], true);
-		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language} {$file} \"{$appresult['app_binary']}\"";
+		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language} \"{$appresult['app_binary']}\"";
 		$GLOBALS['system']->exec($commands);
 	
 		$sql = "SELECT port, used FROM ports WHERE used = 0";

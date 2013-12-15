@@ -129,17 +129,6 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	}
 
-	switch( $runtime )
-	{
-		case 'ruby':
-		case 'rubyrails':
-		case 'rubysinatra':
-			$file = "Gemfile";
-		break;
-		default:
-			$file = "";
-	}
-	
 	$extra = array();
 	$extra['branches'] = array('master' => array('instances'=>array(array('port'=>$port, 'memory' => '128', 'cpu' => 1))));
 	
@@ -163,7 +152,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "/dns/tm/sys/usr/local/bin/create-app {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime} ".strtolower($app)." {$file} \"".security::encode($binary)."\"";
+	$commands[] = "/dns/tm/sys/usr/local/bin/create-app {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime} ".strtolower($app)." \"".security::encode($binary)."\"";
 	$GLOBALS['system']->exec($commands);
 	
 	// =================================
