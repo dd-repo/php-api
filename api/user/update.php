@@ -235,12 +235,6 @@ $a->setExecute(function() use ($a)
 			// =================================
 			$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=UsersManager.updateUser&userLogin={$result['user_name']}&password={$pass}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
 			@file_get_contents($url);
-
-			// =================================
-			// UPDATE CLOUDFOUNDRY USER
-			// =================================
-			$row = array('email'=> $data['mail'], 'password'=>$pass);
-			cf::send('users/' . $data['mail'], 'PUT', $row, $result['user_cf_token']);
 		}
 	}
 	catch(Exception $e)
