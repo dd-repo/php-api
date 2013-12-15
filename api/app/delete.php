@@ -103,7 +103,7 @@ $a->setExecute(function() use ($a)
 		$branches = '';
 		foreach( $extra['branches'] as $k => $v )
 		{	
-			$branches = $branches . ",{$k}";
+			$branches = $branches . " {$k}";
 			foreach( $v['urls'] as $u )
 			{
 				$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
