@@ -143,6 +143,9 @@ $a->setExecute(function() use ($a)
 	
 	$result = $GLOBALS['ldap']->create($dn, $data);
 
+	$sql = "INSERT INTO apps (app_id, app_binary) VALUES ({$data['uidNumber']}, '".security::encode($binary)."')";
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
+			
 	// =================================
 	// UPDATE REMOTE USER
 	// =================================

@@ -69,14 +69,6 @@ $a->addParam(array(
 	'match'=>"(1|yes|true)"
 	));
 $a->addParam(array(
-	'name'=>array('binary', 'app_binary'),
-	'description'=>'The binary to execute.',
-	'optional'=>true,
-	'minlength'=>3,
-	'maxlength'=>150,
-	'match'=>request::PHRASE|request::SPECIAL
-	));
-$a->addParam(array(
 	'name'=>array('url', 'uri'),
 	'description'=>'The url of the app',
 	'optional'=>true,
@@ -130,8 +122,14 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>3,
 	'maxlength'=>50,
-	'match'=>request::PHRASE|request::SPECIAL,
-	'action'=>true
+	'match'=>request::PHRASE|request::SPECIAL
+	));
+$a->addParam(array(
+	'name'=>array('tag', 'app_tag'),
+	'description'=>'The tag of the app',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>200
 	));
 $a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
@@ -158,7 +156,6 @@ $a->setExecute(function() use ($a)
 	$start = $a->getParam('start');
 	$stop = $a->getParam('stop');
 	$rebuild = $a->getParam('rebuild');
-	$binary = $a->getParam('binary');
 	$reassign = $a->getParam('reassign');
 	$service = $a->getParam('service');
 	$url = $a->getParam('url');
@@ -167,6 +164,7 @@ $a->setExecute(function() use ($a)
 	$hostname = $a->getParam('hostname');
 	$instance = $a->getParam('instance');
 	$pass = $a->getParam('pass');
+	$tag = $a->getParam('tag');
 	$user = $a->getParam('user');
 
 	// =================================
@@ -200,6 +198,9 @@ $a->setExecute(function() use ($a)
 		default:
 			$file = "";
 	}
+	
+	$sql = "SELECT app_id FROM apps WHERE app_id = {$data['uidNumber']}";
+	$appresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 		
 	if( $user !== null )
 	{
@@ -244,6 +245,19 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$params = array();
 	$docker = false;
+	if( $tag !== null )
+	{
+		if( !$appresult['app_id'] )
+		{
+			$sql = "INSERT INTO apps (app_id, app_tag) VALUES ({$data['uidNumber']}, '".security::encode($tag)."')";
+			$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		}
+		else
+		{
+			$sql = "UPDATE ports SET app_tag = '".security::encode($tag)."' WHERE app_id = {$data['uidNumber']}";
+			$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		}
+	}
 	if( $pass !== null )
 	{
 		$params['userPassword'] = $pass;
@@ -423,7 +437,7 @@ $a->setExecute(function() use ($a)
 	else if( $branch !== null && $mode == 'add' )
 	{
 		$extra = json_decode($data['description'], true);
-		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language} {$file} \"".security::encode($binary)."\"";
+		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language} {$file} \"{$appresult['app_binary']}\"";
 		$GLOBALS['system']->exec($commands);
 	
 		$sql = "SELECT port, used FROM ports WHERE used = 0";
