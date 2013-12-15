@@ -150,12 +150,17 @@ $a->setExecute(function() use ($a)
 	if( $app !== null )
 	{		
 		$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$result['homeDirectory']}'";
-		$storage = $GLOBALS['db']->query($sql);			
+		$storage = $GLOBALS['db']->query($sql);
+		$sql = "SELECT app_binary, app_tag FROM apps WHERE app_id = '{$result['uidNumber']}'";
+		$appinfo = $GLOBALS['db']->query($sql);
+		
 		$extra = json_decode($result['description'], true);
 		
 		$infos['name'] = $result['uid'];
 		$infos['id'] = $result['uidNumber'];
 		$infos['certificate'] = $result['gecos'];
+		$infos['binary'] = $appinfo['app_binary'];
+		$infos['tag'] = $appinfo['app_tag'];
 		$infos['homeDirectory'] = $result['homeDirectory'];
 		$infos['branches'] = $extra['branches'];
 		$infos['size'] = $storage['storage_size'];
@@ -203,12 +208,16 @@ $a->setExecute(function() use ($a)
 		{			
 			$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$r['homeDirectory']}'";
 			$storage = $GLOBALS['db']->query($sql);		
-
+			$sql = "SELECT app_binary, app_tag FROM apps WHERE app_id = '{$r['uidNumber']}'";
+			$appinfo = $GLOBALS['db']->query($sql);
+		
 			$extra = json_decode($r['description'], true);
 			
 			$infos['name'] = $r['uid'];
 			$infos['id'] = $r['uidNumber'];
 			$infos['homeDirectory'] = $r['homeDirectory'];
+			$infos['binary'] = $appinfo['app_binary'];
+			$infos['tag'] = $appinfo['app_tag'];
 			$infos['certificate'] = $r['gecos'];
 			$infos['size'] = $storage['storage_size'];
 			$infos['branches'] = $extra['branches'];
