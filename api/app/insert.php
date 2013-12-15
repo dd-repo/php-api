@@ -55,6 +55,13 @@ $a->addParam(array(
 	'maxlength'=>150,
 	'match'=>request::PHRASE|request::SPECIAL
 	));
+$a->addParam(array(
+	'name'=>array('tag', 'app_tag'),
+	'description'=>'The tag of the app',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>200
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -70,6 +77,7 @@ $a->setExecute(function() use ($a)
 	$runtime = $a->getParam('runtime');
 	$pass = $a->getParam('pass');
 	$binary = $a->getParam('binary');
+	$tag = $a->getParam('tag');
 	$user = $a->getParam('user');
 	
 	// =================================
@@ -143,7 +151,7 @@ $a->setExecute(function() use ($a)
 	
 	$result = $GLOBALS['ldap']->create($dn, $data);
 
-	$sql = "INSERT INTO apps (app_id, app_binary) VALUES ({$data['uidNumber']}, '".security::encode($binary)."')";
+	$sql = "INSERT INTO apps (app_id, app_binary, app_tag) VALUES ({$data['uidNumber']}, '".security::encode($binary)."', '".security::encode($tag)."')";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 			
 	// =================================
