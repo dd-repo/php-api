@@ -494,7 +494,7 @@ $a->setExecute(function() use ($a)
 	
 	if( $docker === true )
 	{
-		$commands[] = "/dns/tm/sys/usr/local/bin/reload-app {$data['uid']}";
+		$commands[] = "/dns/tm/sys/usr/local/bin/app-reload {$data['uid']}";
 		$GLOBALS['system']->exec($commands);
 	}
 	
