@@ -13,7 +13,7 @@ $a->addGrant(array('ACCESS', 'NEWS_UPDATE'));
 $a->setReturn("OK");
 
 $a->addParam(array(
-	'name'=>array('news_id'),
+	'name'=>array('news_id', 'id'),
 	'description'=>'The id of the news',
 	'optional'=>false,
 	'minlength'=>1,
