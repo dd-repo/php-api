@@ -57,6 +57,7 @@ $a->setExecute(function() use ($a)
 	$news = array();
 	foreach( $result as $r )
 	{
+		$n['id'] = $r['news_id'];
 		$n['title'] = $r['news_title'];
 		$n['description'] = $r['news_description'];
 		$n['content'] = $r['news_content'];
