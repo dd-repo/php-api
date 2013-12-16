@@ -35,7 +35,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// DELETE NEWS
 	// =================================
-	$sql = "DELETE FROM news WHERE news_id = '{$id}";
+	$sql = "DELETE FROM news WHERE news_id = '{$id}'";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	responder::send("OK");
