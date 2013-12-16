@@ -95,6 +95,7 @@ $i->addEntry('app', array('app', 'apps'));
 $i->addEntry('bill', array('bill', 'bills'));
 $i->addEntry('service', array('service', 'services'));
 $i->addEntry('repo', array('repo', 'repos'));
+$i->addEntry('news', array('news'));
 $i->addEntry('test', array('test', 'hello'));
 
 return $i;
