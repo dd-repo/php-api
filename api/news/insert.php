@@ -74,7 +74,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// INSERT NEWS
 	// =================================
-	$sql = "INSERT INTO `news` (news_title, news_description, news_content, news_author, news_date, news_language) VALUE ('".security::escape($title)."', '".security::escape($description)."', '".security::escape($content)."', '".security::escape($author)."', UNIX_TIMESTAMP, '{$language}')";
+	$sql = "INSERT INTO `news` (news_title, news_description, news_content, news_author, news_date, news_language) VALUE ('".security::escape($title)."', '".security::escape($description)."', '".security::escape($content)."', '".security::escape($author)."', UNIX_TIMESTAMP(), '{$language}')";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	$id = $GLOBALS['db']->last_id();
 	
