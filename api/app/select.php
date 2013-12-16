@@ -178,7 +178,7 @@ $a->setExecute(function() use ($a)
 						foreach( $value['instances'] as $i )
 						{
 							if( $extended == true )
-								$info = $GLOBALS['system']->getdockerstats($i['host'], $result['uid'] . '-' . $key . '-' . $j);
+								$info = $GLOBALS['system']->getdockerstats($i['host'], $i['port']);
 							else
 								$info = '';
 							$info = explode(' ', $info);
