@@ -178,21 +178,23 @@ $a->setExecute(function() use ($a)
 						foreach( $value['instances'] as $i )
 						{
 							if( $extended == true )
+							{
 								$info = $GLOBALS['system']->getdockerstats($i['host'], $result['uid'] . '-' . $key . '-' . $j, $i['port']);
+								$info = json_decode($info, true);
+							}
 							else
-								$info = '';
-							$info = explode(' ', $info);
+								$info = array();
+														
 							$infos['branches'][$key]['instances'][$j]['id'] = $j;
 							$infos['branches'][$key]['instances'][$j]['host'] = $i['host'];
 							$infos['branches'][$key]['instances'][$j]['port'] = $i['port'];
-							if( strlen($info[0]) > 2 )
-								$infos['branches'][$key]['instances'][$j]['state'] = 'RUNNING';
-							else
-								$infos['branches'][$key]['instances'][$j]['state'] = 'STOPPED';
+							$infos['branches'][$key]['instances'][$j]['status'] = $info['status'];
+							$infos['branches'][$key]['instances'][$j]['docker'] = $info['docker'];
+							$infos['branches'][$key]['instances'][$j]['uptime'] = $info['uptime'];
 							$infos['branches'][$key]['instances'][$j]['memory']['quota'] = $i['memory'];
-							$infos['branches'][$key]['instances'][$j]['memory']['usage'] = round($info[3]/1024);
+							$infos['branches'][$key]['instances'][$j]['memory']['usage'] = round($info['memory']/1024);
 							$infos['branches'][$key]['instances'][$j]['cpu']['quota'] = $i['cpu'];
-							$infos['branches'][$key]['instances'][$j]['cpu']['usage'] = $info[2]*100;			
+							$infos['branches'][$key]['instances'][$j]['cpu']['usage'] = $info['cpu']*100;			
 							$j++;
 						}
 					}
@@ -235,22 +237,23 @@ $a->setExecute(function() use ($a)
 							foreach( $value['instances'] as $i )
 							{
 								if( $extended == true )
-									$info = $GLOBALS['system']->getdockerstats($r['uid'] . '-' . $j);
+								{
+									$info = $GLOBALS['system']->getdockerstats($i['host'], $r['uid'] . '-' . $key . '-' . $j, $i['port']);
+									$info = json_decode($info, true);
+								}
 								else
-									$info = '';
-							
-								$info = explode(' ', $info);
+									$info = array();
+															
 								$infos['branches'][$key]['instances'][$j]['id'] = $j;
 								$infos['branches'][$key]['instances'][$j]['host'] = $i['host'];
 								$infos['branches'][$key]['instances'][$j]['port'] = $i['port'];
-								if( strlen($info[0]) > 2 )
-									$infos['branches'][$key]['instances'][$j]['state'] = 'RUNNING';
-								else
-									$infos['branches'][$key]['instances'][$j]['state'] = 'STOPPED';
+								$infos['branches'][$key]['instances'][$j]['status'] = $info['status'];
+								$infos['branches'][$key]['instances'][$j]['docker'] = $info['docker'];
+								$infos['branches'][$key]['instances'][$j]['uptime'] = $info['uptime'];
 								$infos['branches'][$key]['instances'][$j]['memory']['quota'] = $i['memory'];
-								$infos['branches'][$key]['instances'][$j]['memory']['usage'] = round($info[3]/1024);
+								$infos['branches'][$key]['instances'][$j]['memory']['usage'] = round($info['memory']/1024);
 								$infos['branches'][$key]['instances'][$j]['cpu']['quota'] = $i['cpu'];
-								$infos['branches'][$key]['instances'][$j]['cpu']['usage'] = $info[2]*100;		
+								$infos['branches'][$key]['instances'][$j]['cpu']['usage'] = $info['cpu']*100;		
 								$j++;
 							}
 						}
