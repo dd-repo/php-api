@@ -428,7 +428,7 @@ $a->setExecute(function() use ($a)
 			$texturls .= ' ' . $key;
 
 		$commands[] = "ln -s {$data['homeDirectory']}/{$branch} {$data['data2']['homeDirectory']}";
-		$commands[] = "/dns/tm/sys/usr/local/bin/update-app {$data['uid']} \"{$texturls}\"";
+		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']} \"{$texturls}\"";
 		$GLOBALS['system']->exec($commands);
 	}
 	else if( $url !== null && $mode == 'delete' && $branch != null )
@@ -455,7 +455,7 @@ $a->setExecute(function() use ($a)
 			$texturls .= ' ' . $key;
 
 		$commands[] = "rm {$data['data2']['homeDirectory']}";			
-		$commands[] = "/dns/tm/sys/usr/local/bin/update-app {$data['uid']} \"{$texturls}\"";
+		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']} \"{$texturls}\"";
 		$GLOBALS['system']->exec($commands);
 	}
 	else if( $branch !== null && $mode == 'add' )
