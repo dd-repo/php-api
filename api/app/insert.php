@@ -62,6 +62,14 @@ $a->addParam(array(
 	'minlength'=>3,
 	'maxlength'=>200
 	));
+$a->addParam(array(
+	'name'=>array('nodocker'),
+	'description'=>'No docker for this app',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|yes|true)"
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -78,6 +86,7 @@ $a->setExecute(function() use ($a)
 	$pass = $a->getParam('pass');
 	$binary = $a->getParam('binary');
 	$tag = $a->getParam('tag');
+	$nodocker = $a->getParam('nodocker');
 	$user = $a->getParam('user');
 	
 	// =================================
@@ -131,7 +140,10 @@ $a->setExecute(function() use ($a)
 	}
 
 	$extra = array();
-	$extra['branches'] = array('master' => array('instances'=>array(array('port'=>$port, 'memory' => '128', 'cpu' => 1))));
+	if( $nodocker != null )
+		$extra['branches'] = array('master' => array('instances'=>array()));
+	else
+		$extra['branches'] = array('master' => array('instances'=>array(array('port'=>$port, 'memory' => '128', 'cpu' => 1))));
 	
 	$dn = ldap::buildDN(ldap::APP, $domain, $app);
 	$params = array('dn' => $dn, 'uid' => $app, 'userPassword' => $pass, 'domain' => $domain, 'description' => json_encode($extra), 'owner' => $user_dn);
