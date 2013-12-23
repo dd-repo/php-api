@@ -104,11 +104,14 @@ $a->setExecute(function() use ($a)
 		foreach( $extra['branches'] as $k => $v )
 		{	
 			$branches = $branches . " {$k}";
-			foreach( $v['urls'] as $u )
+			if( count($v['urls']) > 0 )
 			{
-				$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
-				$data2 = $GLOBALS['ldap']->read($dn2);
-				$commands[] = "rm {$data2['homeDirectory']}";
+				foreach( $v['urls'] as $u )
+				{
+					$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
+					$data2 = $GLOBALS['ldap']->read($dn2);
+					$commands[] = "rm {$data2['homeDirectory']}";
+				}
 			}
 		}
 	}
