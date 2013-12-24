@@ -103,7 +103,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
-	$GLOBALS['system']->delete(system::USER, $result);
+	$commands[] = "rm -Rf {$result['homeDirectory']}";
+	$GLOBALS['system']->exec($commands);
 	
 	responder::send("OK");
 });

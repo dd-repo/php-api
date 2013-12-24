@@ -121,18 +121,27 @@ $a->setExecute(function() use ($a)
 			{
 				if( strpos($m, 'ou=Apps') !== false )
 				{
-					$app = $GLOBALS['ldap']->read($m);
-					$apps[] = array('name'=>$app['uid'],'id'=>$app['uidNumber']);
+					try
+					{
+						$app = $GLOBALS['ldap']->read($m);
+						$apps[] = array('name'=>$app['uid'],'id'=>$app['uidNumber']);
+					} catch(Exception $e) { }
 				}
 				if( strpos($m, 'ou=Groups') !== false )
 				{
-					$group = $GLOBALS['ldap']->read($m);
-					$groups[] = array('name'=>$group['uid'],'id'=>$group['uidNumber']);
+					try
+					{
+						$group = $GLOBALS['ldap']->read($m);
+						$groups[] = array('name'=>$group['uid'],'id'=>$group['uidNumber']);
+					} catch(Exception $e) { }
 				}
 				if( strpos($m, 'ou=Users') !== false )
 				{
-					$user = $GLOBALS['ldap']->read($m);
-					$users[] = array('name'=>$user['uid'],'id'=>$user['uidNumber']);
+					try
+					{
+						$user = $GLOBALS['ldap']->read($m);
+						$users[] = array('name'=>$user['uid'],'id'=>$user['uidNumber']);
+					} catch(Exception $e) { }
 				}
 			}
 		}
@@ -140,18 +149,27 @@ $a->setExecute(function() use ($a)
 		{
 			if( strpos($r['member'], 'ou=Apps') !== false )
 			{
-				$app = $GLOBALS['ldap']->read($r['member']);
-				$apps[] = array('name'=>$app['uid'],'id'=>$app['uidNumber']);
+				try
+				{
+					$app = $GLOBALS['ldap']->read($r['member']);
+					$apps[] = array('name'=>$app['uid'],'id'=>$app['uidNumber']);
+				} catch(Exception $e) { }
 			}
 			if( strpos($r['member'], 'ou=Groups') !== false )
 			{
-				$group = $GLOBALS['ldap']->read($r['member']);
-				$groups[] = array('name'=>$group['uid'],'id'=>$group['uidNumber']);
+				try
+				{
+					$group = $GLOBALS['ldap']->read($r['member']);
+					$groups[] = array('name'=>$group['uid'],'id'=>$group['uidNumber']);
+				} catch(Exception $e) { }
 			}
 			if( strpos($r['member'], 'ou=Users') !== false )
 			{
-				$user = $GLOBALS['ldap']->read($r['member']);
-				$users[] = array('name'=>$user['uid'],'id'=>$user['uidNumber']);
+				try
+				{
+					$user = $GLOBALS['ldap']->read($r['member']);
+					$users[] = array('name'=>$user['uid'],'id'=>$user['uidNumber']);
+				} catch(Exception $e) { }
 			}
 		}
 		

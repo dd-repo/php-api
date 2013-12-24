@@ -13,7 +13,7 @@ $a->addGrant(array('ACCESS', 'APP_SELECT'));
 $a->setReturn(array(array(
 	'id'=>'the id of the app', 
 	'name'=>'the name of the app',
-	'uris'=>'the uris of the app',
+	'urls'=>'the urls of the app',
 	'homeDirectory'=>'the directory of the app',
 	'domain'=>'the app domain',
 	'instances'=>array(
@@ -150,37 +150,55 @@ $a->setExecute(function() use ($a)
 	if( $app !== null )
 	{		
 		$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$result['homeDirectory']}'";
-		$storage = $GLOBALS['db']->query($sql);			
+		$storage = $GLOBALS['db']->query($sql);
+		$sql = "SELECT app_binary, app_tag FROM apps WHERE app_id = '{$result['uidNumber']}'";
+		$appinfo = $GLOBALS['db']->query($sql);
+		
 		$extra = json_decode($result['description'], true);
 		
 		$infos['name'] = $result['uid'];
 		$infos['id'] = $result['uidNumber'];
+		$infos['certificate'] = $result['gecos'];
+		$infos['binary'] = $appinfo['app_binary'];
+		$infos['tag'] = $appinfo['app_tag'];
 		$infos['homeDirectory'] = $result['homeDirectory'];
-		$infos['uris'] = $extra['urls'];
 		$infos['branches'] = $extra['branches'];
 		$infos['size'] = $storage['storage_size'];
-		$infos['instances'] = array();
-
-		$j = 0;
-		if( $extra['instances'] )
+		
+		if( $extra['branches'] )
 		{
-			foreach( $extra['instances'] as $i )
+			foreach( $extra['branches'] as $key => $value )
 			{
-				if( $extended == true )
-					$info = $GLOBALS['system']->getdockerstats($result['uid'] . '-' . $j);
-				else
-					$info = '';
-				$info = explode(' ', $info);
-				$infos['instances'][$j]['id'] = $j;
-				if( strlen($info[0]) > 2 )
-					$infos['instances'][$j]['state'] = 'RUNNING';
-				else
-					$infos['instances'][$j]['state'] = 'STOPPED';
-				$infos['instances'][$j]['memory']['quota'] = $i['memory'];
-				$infos['instances'][$j]['memory']['usage'] = round($info[3]/1024);
-				$infos['instances'][$j]['cpu']['quota'] = $i['cpu'];
-				$infos['instances'][$j]['cpu']['usage'] = $info[2]*100;			
-				$j++;
+				if( is_array($infos['branches'][$key]) )
+				{
+					$infos['branches'][$key]['instances'] = array();
+					if( $value['instances'] )
+					{
+						$j = 0;
+						foreach( $value['instances'] as $i )
+						{
+							if( $extended == true )
+							{
+								$info = $GLOBALS['system']->getdockerstats($i['host'], $result['uid'] . '-' . $key . '-' . $j, $i['port']);
+								$info = json_decode($info, true);
+							}
+							else
+								$info = array();
+														
+							$infos['branches'][$key]['instances'][$j]['id'] = $j;
+							$infos['branches'][$key]['instances'][$j]['host'] = $i['host'];
+							$infos['branches'][$key]['instances'][$j]['port'] = $i['port'];
+							$infos['branches'][$key]['instances'][$j]['status'] = $info['status'];
+							$infos['branches'][$key]['instances'][$j]['docker'] = $info['docker'];
+							$infos['branches'][$key]['instances'][$j]['uptime'] = $info['uptime'];
+							$infos['branches'][$key]['instances'][$j]['memory']['quota'] = $i['memory'];
+							$infos['branches'][$key]['instances'][$j]['memory']['usage'] = round($info['memory']/1024);
+							$infos['branches'][$key]['instances'][$j]['cpu']['quota'] = $i['cpu'];
+							$infos['branches'][$key]['instances'][$j]['cpu']['usage'] = $info['cpu']*100;			
+							$j++;
+						}
+					}
+				}
 			}
 		}
 		
@@ -192,41 +210,56 @@ $a->setExecute(function() use ($a)
 		{			
 			$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$r['homeDirectory']}'";
 			$storage = $GLOBALS['db']->query($sql);		
-
+			$sql = "SELECT app_binary, app_tag FROM apps WHERE app_id = '{$r['uidNumber']}'";
+			$appinfo = $GLOBALS['db']->query($sql);
+		
 			$extra = json_decode($r['description'], true);
 			
 			$infos['name'] = $r['uid'];
 			$infos['id'] = $r['uidNumber'];
 			$infos['homeDirectory'] = $r['homeDirectory'];
+			$infos['binary'] = $appinfo['app_binary'];
+			$infos['tag'] = $appinfo['app_tag'];
+			$infos['certificate'] = $r['gecos'];
 			$infos['size'] = $storage['storage_size'];
-			$infos['uris'] = $extra['urls'];
 			$infos['branches'] = $extra['branches'];
-			$infos['instances'] = array();
 			
-			$j = 0;
-			if( $extra['instances'] )
+			if( $extra['branches'] )
 			{
-				foreach( $extra['instances'] as $i )
+				foreach( $extra['branches'] as $key => $value )
 				{
-					if( $extended == true )
-						$info = $GLOBALS['system']->getdockerstats($r['uid'] . '-' . $j);
-					else
-						$info = '';
-					
-					$info = explode(' ', $info);
-					$infos['instances'][$j]['id'] = $j;
-					if( strlen($info[0]) > 2 )
-						$infos['instances'][$j]['state'] = 'RUNNING';
-					else
-						$infos['instances'][$j]['state'] = 'STOPPED';
-					$infos['instances'][$j]['memory']['quota'] = $i['memory'];
-					$infos['instances'][$j]['memory']['usage'] = round($info[3]/1024);
-					$infos['instances'][$j]['cpu']['quota'] = $i['cpu'];
-					$infos['instances'][$j]['cpu']['usage'] = $info[2]*100;		
-					$j++;
+					if( is_array($infos['branches'][$key]) )
+					{
+						$infos['branches'][$key]['instances'] = array();
+						if( $value['instances'] )
+						{
+							$j = 0;
+							foreach( $value['instances'] as $i )
+							{
+								if( $extended == true )
+								{
+									$info = $GLOBALS['system']->getdockerstats($i['host'], $r['uid'] . '-' . $key . '-' . $j, $i['port']);
+									$info = json_decode($info, true);
+								}
+								else
+									$info = array();
+															
+								$infos['branches'][$key]['instances'][$j]['id'] = $j;
+								$infos['branches'][$key]['instances'][$j]['host'] = $i['host'];
+								$infos['branches'][$key]['instances'][$j]['port'] = $i['port'];
+								$infos['branches'][$key]['instances'][$j]['status'] = $info['status'];
+								$infos['branches'][$key]['instances'][$j]['docker'] = $info['docker'];
+								$infos['branches'][$key]['instances'][$j]['uptime'] = $info['uptime'];
+								$infos['branches'][$key]['instances'][$j]['memory']['quota'] = $i['memory'];
+								$infos['branches'][$key]['instances'][$j]['memory']['usage'] = round($info['memory']/1024);
+								$infos['branches'][$key]['instances'][$j]['cpu']['quota'] = $i['cpu'];
+								$infos['branches'][$key]['instances'][$j]['cpu']['usage'] = $info['cpu']*100;		
+								$j++;
+							}
+						}
+					}
 				}
 			}
-			
 			$apps[] = $infos;
 		}
 	}

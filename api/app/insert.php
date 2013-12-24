@@ -31,14 +31,6 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));	
 $a->addParam(array(
-	'name'=>array('framework', 'app_framework'),
-	'description'=>'The target framework',
-	'optional'=>false,
-	'minlength'=>1,
-	'maxlength'=>30,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT
-	));	
-$a->addParam(array(
 	'name'=>array('pass', 'password'),
 	'description'=>'The password of the service.',
 	'optional'=>false,
@@ -56,13 +48,28 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));
 $a->addParam(array(
-	'name'=>array('app'),
-	'description'=>'The specified app.',
-	'optional'=>false,
-	'minlength'=>0,
-	'maxlength'=>50,
-	'match'=>request::LOWER
-	));	
+	'name'=>array('binary', 'app_binary'),
+	'description'=>'The binary to execute.',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>150,
+	'match'=>request::PHRASE|request::SPECIAL
+	));
+$a->addParam(array(
+	'name'=>array('tag', 'app_tag'),
+	'description'=>'The tag of the app',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>200
+	));
+$a->addParam(array(
+	'name'=>array('nodocker'),
+	'description'=>'No docker for this app',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|yes|true)"
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -76,10 +83,11 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$domain = $a->getParam('domain');
 	$runtime = $a->getParam('runtime');
-	$framework = $a->getParam('framework');
 	$pass = $a->getParam('pass');
+	$binary = $a->getParam('binary');
+	$tag = $a->getParam('tag');
+	$nodocker = $a->getParam('nodocker');
 	$user = $a->getParam('user');
-	$application = $a->getParam('app');
 	
 	// =================================
 	// GET USER DATA
@@ -93,6 +101,7 @@ $a->setExecute(function() use ($a)
 	// GET REMOTE USER DN
 	// =================================	
 	$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
+	$userinfo = $GLOBALS['ldap']->read($user_dn);
 	
 	// =================================
 	// CHECK QUOTA
@@ -115,9 +124,26 @@ $a->setExecute(function() use ($a)
 	}
 	$app = $runtime . '-' . $app;
 	
+	$sql = "SELECT port, used FROM ports WHERE used = 0";
+	$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+	if( !$portresult['port'] )
+	{
+		$sql = "INSERT INTO ports (used) VALUES (1)";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		$port = $GLOBALS['db']->last_id();
+	}
+	else
+	{
+		$port = $portresult['port'];
+		$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	}
+
 	$extra = array();
-	$extra['instances'] = array(array('memory' => '128', 'cpu' => 1));
-	$extra['branches'] = array('master');
+	if( $nodocker != null )
+		$extra['branches'] = array('master' => array('instances'=>array()));
+	else
+		$extra['branches'] = array('master' => array('instances'=>array(array('port'=>$port, 'memory' => '128', 'cpu' => 1))));
 	
 	$dn = ldap::buildDN(ldap::APP, $domain, $app);
 	$params = array('dn' => $dn, 'uid' => $app, 'userPassword' => $pass, 'domain' => $domain, 'description' => json_encode($extra), 'owner' => $user_dn);
@@ -127,6 +153,9 @@ $a->setExecute(function() use ($a)
 	
 	$result = $GLOBALS['ldap']->create($dn, $data);
 
+	$sql = "INSERT INTO apps (app_id, app_binary, app_tag) VALUES ({$data['uidNumber']}, '".security::encode($binary)."', '".security::encode($tag)."')";
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
+			
 	// =================================
 	// UPDATE REMOTE USER
 	// =================================
@@ -136,7 +165,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "/dns/tm/sys/usr/local/bin/create-app {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime} ".strtolower($app);
+	$commands[] = "/dns/tm/sys/usr/local/bin/app-create {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime} ".strtolower($app)." \"".security::encode($binary)."\"";
+	$commands[] = "cd {$userinfo['homeDirectory']} && ln -s ".str_replace("Apps/{$app}", "var/git/{$app}", $data['homeDirectory'])." {$app}.git";
 	$GLOBALS['system']->exec($commands);
 	
 	// =================================

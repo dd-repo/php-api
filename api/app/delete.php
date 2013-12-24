@@ -94,16 +94,25 @@ $a->setExecute(function() use ($a)
 		throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the app {$app}");
 
 	// =================================
-	// DELETE URLS
+	// DELETE OTHERS
 	// =================================
 	$extra = json_decode($data['description'], true);
-	if( count($extra['urls']) > 0 )
+	
+	if( is_array($extra['branches']) )
 	{
-		foreach( $extra['urls'] as $u )
-		{
-			$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
-			$data2 = $GLOBALS['ldap']->read($dn2);
-			$commands[] = "rm {$data2['homeDirectory']}";
+		$branches = '';
+		foreach( $extra['branches'] as $k => $v )
+		{	
+			$branches = $branches . " {$k}";
+			if( count($v['urls']) > 0 )
+			{
+				foreach( $v['urls'] as $u )
+				{
+					$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
+					$data2 = $GLOBALS['ldap']->read($dn2);
+					$commands[] = "rm {$data2['homeDirectory']}";
+				}
+			}
 		}
 	}
 	
@@ -115,7 +124,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "/dns/tm/sys/usr/local/bin/delete-app {$data['uid']} {$data['homeDirectory']} ".strtolower($data['uid']);
+	$commands[] = "/dns/tm/sys/usr/local/bin/app-delete {$data['uid']} {$data['homeDirectory']} ".strtolower($data['uid'])." \"{$branches}\"";
 	$GLOBALS['system']->exec($commands);
 	
 	// =================================

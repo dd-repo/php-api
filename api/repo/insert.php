@@ -74,6 +74,7 @@ $a->setExecute(function() use ($a)
 	// GET REMOTE USER DN
 	// =================================	
 	$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
+	$userinfo = $GLOBALS['ldap']->read($user_dn);
 	
 	// =================================
 	// GET DOMAIN DATA
@@ -121,12 +122,15 @@ $a->setExecute(function() use ($a)
 	{
 		case 'git':
 			$commands[] = "mkdir -p {$data['homeDirectory']} && cd {$data['homeDirectory']} && cp -a {$GLOBALS['CONFIG']['GIT_TEMPLATE']}/* {$data['homeDirectory']}/ && chown -R {$data['uidNumber']}:{$data['uidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod -R g+w {$data['homeDirectory']} && find {$data['homeDirectory']} -type d -exec chmod g+s {} \;";
+			$commands[] = "cd {$userinfo['homeDirectory']} && ln -s {$data['homeDirectory']} {$data['uid']}.git";
 		break;
 		case 'svn':
 			$commands[] = "mkdir -p {$data['homeDirectory']} && rmdir {$data['homeDirectory']} && svnadmin create {$data['homeDirectory']} && chown -R {$data['uidNumber']}:{$data['uidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod -R g+w {$data['homeDirectory']} && find {$data['homeDirectory']} -type d -exec chmod g+s {} \; && cd {$data['homeDirectory']}";
+			$commands[] = "cd {$userinfo['homeDirectory']} && ln -s {$data['homeDirectory']} {$data['uid']}.svn";
 		break;
 		case 'hg':
 			$commands[] = "mkdir -p {$data['homeDirectory']} && cd {$data['homeDirectory']} && hg init && chown -R {$data['uidNumber']}:{$data['uidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod -R g+w {$data['homeDirectory']} && find {$data['homeDirectory']} -type d -exec chmod g+s {} \; && cd {$data['homeDirectory']}";			
+			$commands[] = "cd {$userinfo['homeDirectory']} && ln -s {$data['homeDirectory']} {$data['uid']}.hg";
 		break;
 	}
 	$GLOBALS['system']->exec($commands);
