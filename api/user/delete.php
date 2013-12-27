@@ -65,8 +65,19 @@ $a->setExecute(function() use ($a)
 		{
 			if( $a['dn'] ) 
 			{
+				$extra = json_decode($a['description'], true);
+				if( is_array($extra['branches']) )
+				{
+					$branches = '';
+					foreach( $extra['branches'] as $k => $v )
+						$branches = $branches . " {$k}";
+				}
+				
 				$GLOBALS['ldap']->delete($a['dn']);
-				$GLOBALS['system']->delete(system::APP, $a);
+				
+				$commands = array();
+				$commands[] = "/dns/tm/sys/usr/local/bin/app-delete {$data['uid']} {$data['homeDirectory']} ".strtolower($data['uid'])." \"{$branches}\"";
+				$GLOBALS['system']->exec($commands);
 			}
 		}
 		
@@ -81,7 +92,9 @@ $a->setExecute(function() use ($a)
 			if( $d['dn'] ) 
 			{
 				$GLOBALS['ldap']->delete($d['dn']);
-				$GLOBALS['system']->delete(system::DOMAIN, $d);
+				$commands = array();
+				$commands[] = "rm -Rf {$data['homeDirectory']}";
+				$GLOBALS['system']->exec($commands);
 			}
 		}
 		
@@ -106,8 +119,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
+	$commands = array();
 	$commands[] = "rm -Rf {$data['homeDirectory']}";
-	$commands[] = "rm -Rf {$data['homeDirectory']}.git";
 	
 	$GLOBALS['system']->exec($commands);
 	
