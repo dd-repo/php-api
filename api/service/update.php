@@ -88,7 +88,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $desc !== null )
 	{
-		$sql = "UPDATE `services` SET service_desc = '".security::escape($desc)."' WHERE service_name = '".security::escape($service)."'";
+		$sql = "UPDATE `services` SET service_description = '".security::escape($desc)."' WHERE service_name = '".security::escape($service)."'";
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	}
 	
