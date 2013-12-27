@@ -141,7 +141,7 @@ $a->setExecute(function() use ($a)
 		$records = explode(',', $arecord);
 		$params['aRecord'] = array();
 		foreach( $records as $r )
-			$params['aRecord'][] = $arecord;
+			$params['aRecord'][] = $r;
 	}
 	else if( $arecord !== null )
 		$params['aRecord'] = $arecord;
