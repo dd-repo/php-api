@@ -23,6 +23,14 @@ $a->addParam(array(
 	'action'=>true
 	));
 $a->addParam(array(
+	'name'=>array('plan'),
+	'description'=>'The name of the target user.',
+	'optional'=>false,
+	'minlength'=>1,
+	'maxlength'=>2,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
 	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
 	'description'=>'The email of the user.',
 	'optional'=>false,
@@ -42,6 +50,7 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$user = $a->getParam('user');
+	$plan = $a->getParam('plan');
 	$mail = $a->getParam('mail');
 	
 	// =================================
@@ -93,8 +102,8 @@ $a->setExecute(function() use ($a)
 	// INSERT PENDING REQUEST
 	// =================================
 	$code = md5($user.$email.time());
-	$sql = "INSERT INTO register (register_user, register_email, register_code, register_date)
-			VALUES ('".security::escape($user)."', '".security::escape($mail)."', '{$code}', UNIX_TIMESTAMP())";
+	$sql = "INSERT INTO register (register_user, register_email, register_code, register_date, register_plan)
+			VALUES ('".security::escape($user)."', '".security::escape($mail)."', '{$code}', UNIX_TIMESTAMP(), '{$plan}')";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 
 	responder::send(array("code"=>$code));
