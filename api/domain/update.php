@@ -27,7 +27,7 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>100,
-	'match'=>request::PHRASE
+	'match'=>request::NUMBER|request::PUNCT|request::SPECIAL
 	));
 $a->addParam(array(
 	'name'=>array('mx1'),
