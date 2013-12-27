@@ -192,7 +192,7 @@ $a->setExecute(function() use ($a)
 							$infos['branches'][$key]['instances'][$j]['docker'] = $info['docker'];
 							$infos['branches'][$key]['instances'][$j]['uptime'] = $info['uptime'];
 							$infos['branches'][$key]['instances'][$j]['memory']['quota'] = $i['memory'];
-							$infos['branches'][$key]['instances'][$j]['memory']['usage'] = $info['memory'];
+							$infos['branches'][$key]['instances'][$j]['memory']['usage'] = round($info['memory']/1024);
 							$infos['branches'][$key]['instances'][$j]['cpu']['quota'] = $i['cpu'];
 							$infos['branches'][$key]['instances'][$j]['cpu']['usage'] = $info['cpu']*100;			
 							$j++;
@@ -251,7 +251,7 @@ $a->setExecute(function() use ($a)
 								$infos['branches'][$key]['instances'][$j]['docker'] = $info['docker'];
 								$infos['branches'][$key]['instances'][$j]['uptime'] = $info['uptime'];
 								$infos['branches'][$key]['instances'][$j]['memory']['quota'] = $i['memory'];
-								$infos['branches'][$key]['instances'][$j]['memory']['usage'] = $info['memory'];
+								$infos['branches'][$key]['instances'][$j]['memory']['usage'] = round($info['memory']/1024);
 								$infos['branches'][$key]['instances'][$j]['cpu']['quota'] = $i['cpu'];
 								$infos['branches'][$key]['instances'][$j]['cpu']['usage'] = $info['cpu']*100;		
 								$j++;
