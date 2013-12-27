@@ -46,14 +46,14 @@ $a->setExecute(function() use ($a)
 	$user = $a->getParam('user');
 	
 	if( !preg_match("/^([a-zA-Z0-9\\-_]+\\.)+[a-zA-Z0-9\\-_]+$/", $domain) )
-		throw new ApiException("Parameter validation failed", 412, "Eh ho... t'sais pas ce que c'est un nom de domaine ou quoi !? Nana mais sans blague, tu crois vraiment que \"" . $domain . "\" ca va marcher ? Et si tu allais t'acheter un cerveau, et des lunettes pour lire la doc sur ce que c'est un nom de domaine... Et vas aussi lire les <a href=\"http://fr.wikipedia.org/wiki/Darwin_Awards\">Darwin Awards</a>, ca te donnera peut-être des idées... pfff le boulet quoi !");
+		throw new ApiException("Parameter validation failed", 412, "The domain ". $domain ." is not valid.");
 	if( is_numeric($domain) )
 		throw new ApiException("Parameter validation failed", 412, "Parameter domain may not be numeric : " . $domain);
 
 	// =================================
 	// GET USER DATA
 	// =================================
-	$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+	$sql = "SELECT user_name, user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 	$userdata = $GLOBALS['db']->query($sql);
 	if( $userdata == null || $userdata['user_ldap'] == null )
 		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -150,6 +150,14 @@ $a->setExecute(function() use ($a)
 	$handler = new subdomain();
 	$data = $handler->build($params);
 	$GLOBALS['ldap']->create($dn, $data);
+
+	// =================================
+	// INSERT PIWIK SITE
+	// =================================
+	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.addSite&siteName={$domain}&urls=http://{$domain}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+	$json = json_decode(@file_get_contents($url), true);
+	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=UsersManager.setUserAccess&userLogin={$userdata['user_name']}&access=admin&idSites={$json['value']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+	@file_get_contents($url);
 	
 	responder::send(array("domain"=>$domain, "id"=>$result['uidNumber']));
 });
