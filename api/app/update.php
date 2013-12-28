@@ -377,6 +377,7 @@ $a->setExecute(function() use ($a)
 	
 	if( $start !== null && $branch !== null )
 	{
+		$commands = array();
 		$extra = json_decode($data['description'], true);
 		if( $extra['branches'][$branch]['instances'] )
 		{
@@ -388,6 +389,7 @@ $a->setExecute(function() use ($a)
 	}
 	else if( $stop !== null && $branch !== null )
 	{
+		$commands = array();
 		$extra = json_decode($data['description'], true);
 		if( $extra['branches'][$branch]['instances'] )
 		{
@@ -413,6 +415,7 @@ $a->setExecute(function() use ($a)
 	}
 	if( $rebuild !== null && $branch !== null )
 	{
+		$commands = array();
 		$commands[] = "/dns/tm/sys/usr/local/bin/app-rebuild {$data['uid']} {$data['homeDirectory']} {$branch} ".strtolower($data['uid'])." {$file}";
 		$GLOBALS['system']->exec($commands);
 	}
@@ -431,6 +434,7 @@ $a->setExecute(function() use ($a)
 		foreach( $extra['branches'][$branch]['urls'] as $uri )
 			$texturls .= ' ' . $key;
 
+		$commands = array();
 		$commands[] = "ln -s {$data['homeDirectory']}/{$branch} {$data['data2']['homeDirectory']}";
 		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']} \"{$texturls}\"";
 		$GLOBALS['system']->exec($commands);
@@ -458,6 +462,7 @@ $a->setExecute(function() use ($a)
 		foreach( $extra['branches'][$branch]['urls'] as $key => $value )
 			$texturls .= ' ' . $key;
 
+		$commands = array();
 		$commands[] = "rm {$data['data2']['homeDirectory']}";			
 		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']} \"{$texturls}\"";
 		$GLOBALS['system']->exec($commands);
@@ -465,6 +470,7 @@ $a->setExecute(function() use ($a)
 	else if( $branch !== null && $mode == 'add' )
 	{
 		$extra = json_decode($data['description'], true);
+		$commands = array();
 		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language} \"{$appresult['app_binary']}\"";
 		$GLOBALS['system']->exec($commands);
 	
@@ -498,6 +504,7 @@ $a->setExecute(function() use ($a)
 	
 	if( $docker === true )
 	{
+		$commands = array();
 		$commands[] = "/dns/tm/sys/usr/local/bin/app-reload {$data['uid']}";
 		$GLOBALS['system']->exec($commands);
 	}
