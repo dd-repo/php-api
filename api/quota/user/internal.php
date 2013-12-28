@@ -26,7 +26,7 @@ function checkQuota($type, $user)
 			AND {$where}";
 	$result = $GLOBALS['db']->query($sql);
 	
-	if( $result == null || $result['quota_max'] == null || $result['quota_used'] >= $result['quota_max']+1 )
+	if( $result == null || $result['quota_max'] == null || $result['quota_used'] >= $result['quota_max'] )
 		throw new ApiException("Unsufficient quota", 412, "Quota limit reached or not set : {$result['quota_used']}/{$result['quota_max']}");
 }
 
