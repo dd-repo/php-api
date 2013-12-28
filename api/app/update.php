@@ -343,7 +343,7 @@ $a->setExecute(function() use ($a)
 		$docker = true;
 	}
 	
-	if( $instances !== null && $instances != 0 && $branch !== null )
+	if( $instances !== null && $branch !== null )
 	{
 		checkQuota('MEMORY', $user);
 		
