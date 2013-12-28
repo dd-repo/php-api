@@ -345,6 +345,8 @@ $a->setExecute(function() use ($a)
 	
 	if( $instances !== null && $instances != 0 && $branch !== null )
 	{
+		checkQuota('MEMORY', $user);
+		
 		$extra = json_decode($data['description'], true);
 		
 		$newinstances = array();
@@ -368,6 +370,8 @@ $a->setExecute(function() use ($a)
 			$GLOBALS['ldap']->replace($dn, $params);
 		}
 
+		syncQuota('MEMORY', $user);
+		
 		$docker = true;
 	}
 	
