@@ -388,7 +388,7 @@ $a->setExecute(function() use ($a)
 		if( $extra['branches'][$branch]['instances'] )
 		{
 			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
-				$commands[] = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} stop";
+				$commands[] = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} stop ".strtolower($data['uid'])." {$branch}";
 		}
 		
 		$GLOBALS['system']->exec($commands);
@@ -401,8 +401,8 @@ $a->setExecute(function() use ($a)
 			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
 			{
 				$commands = array();
-				$commands[] = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} stop";
-				$commands[] = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} start";
+				$commands[] = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} stop ".strtolower($data['uid'])." {$branch}";
+				$commands[] = "sleep 2 && /dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} start";
 				$GLOBALS['system']->exec($commands);
 			}
 		}
