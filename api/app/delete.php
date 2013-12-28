@@ -122,6 +122,12 @@ $a->setExecute(function() use ($a)
 	$GLOBALS['ldap']->delete($dn);
 	
 	// =================================
+	// DELETE LOCAL APP
+	// =================================	
+	$sql = "DELETE FROM apps WHERE app_id = {$data['uidNumber']}";
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	
+	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
 	$commands[] = "/dns/tm/sys/usr/local/bin/app-delete {$data['uid']} {$data['homeDirectory']} ".strtolower($data['uid'])." \"{$branches}\"";
