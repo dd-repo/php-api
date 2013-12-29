@@ -332,7 +332,7 @@ $a->setExecute(function() use ($a)
 			$GLOBALS['ldap']->replace($dn, $params);
 		}
 	}
-	if( $cache != null )
+	if( $cache !== null )
 	{
 		$extra = json_decode($data['description'], true);
 		$extra['cache'] = $cache;
