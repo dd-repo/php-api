@@ -163,6 +163,7 @@ $a->setExecute(function() use ($a)
 		$infos['tag'] = $appinfo['app_tag'];
 		$infos['homeDirectory'] = $result['homeDirectory'];
 		$infos['branches'] = $extra['branches'];
+		$infos['cache'] = $extra['cache'];
 		$infos['size'] = $storage['storage_size'];
 		
 		if( $extra['branches'] )
@@ -223,6 +224,7 @@ $a->setExecute(function() use ($a)
 			$infos['certificate'] = $r['gecos'];
 			$infos['size'] = $storage['storage_size'];
 			$infos['branches'] = $extra['branches'];
+			$infos['cache'] = $extra['cache'];
 			
 			if( $extra['branches'] )
 			{
