@@ -140,6 +140,14 @@ $a->addParam(array(
 	'maxlength'=>200
 	));
 $a->addParam(array(
+	'name'=>array('cache'),
+	'description'=>'Whether or not to active nginx cache.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -174,8 +182,12 @@ $a->setExecute(function() use ($a)
 	$instance = $a->getParam('instance');
 	$pass = $a->getParam('pass');
 	$tag = $a->getParam('tag');
+	$cache = $a->getParam('cache');
 	$user = $a->getParam('user');
 
+	if( $cache == '1' || $cache == 'yes' || $cache == 'true' || $cache === true || $cache === 1 ) $cache = 1;
+	else $cache = 0;
+	
 	// =================================
 	// GET APP DN
 	// =================================
@@ -319,6 +331,14 @@ $a->setExecute(function() use ($a)
 			$params = array('description'=>json_encode($extra));
 			$GLOBALS['ldap']->replace($dn, $params);
 		}
+	}
+	if( $cache != null )
+	{
+		$extra = json_decode($data['description'], true);
+		$extra['cache'] = $cache;
+		
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);
 	}
 	if( $memory !== null && $branch !== null )
 	{
