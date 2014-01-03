@@ -370,9 +370,9 @@ $a->setExecute(function() use ($a)
 		$extra = json_decode($data['description'], true);
 		
 		$newinstances = array();
+		$count = 0;
 		if( $extra['branches'][$branch]['instances'] )
 		{
-			$count = 0;
 			foreach( $extra['branches'][$branch]['instances'] as $i )
 			{
 				if( $count < $instances )
@@ -380,15 +380,15 @@ $a->setExecute(function() use ($a)
 				
 				$count++;
 			}
-			
-			for( $j = $count; $j < $instances; $j++ )
-				$newinstances[] = array('port' => $i['port'], 'memory' => $i['memory'], 'cpu' => $i['cpu']);	
-			
-			$extra['branches'][$branch]['instances'] = $newinstances;
-		
-			$params = array('description'=>json_encode($extra));
-			$GLOBALS['ldap']->replace($dn, $params);
 		}
+		
+		for( $j = $count; $j < $instances; $j++ )
+			$newinstances[] = array('port' => $i['port'], 'memory' => $i['memory'], 'cpu' => $i['cpu']);	
+		
+		$extra['branches'][$branch]['instances'] = $newinstances;
+	
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);
 
 		syncQuota('MEMORY', $user);
 		
