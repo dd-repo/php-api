@@ -381,6 +381,25 @@ $a->setExecute(function() use ($a)
 				$count++;
 			}
 		}
+		else
+		{
+			$sql = "SELECT port, used FROM ports WHERE used = 0";
+			$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+			if( !$portresult['port'] )
+			{
+				$sql = "INSERT INTO ports (used) VALUES (1)";
+				$GLOBALS['db']->query($sql, mysql::NO_ROW);
+				$i['port'] = $GLOBALS['db']->last_id();
+			}
+			else
+			{
+				$i['port'] = $portresult['port'];
+				$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
+				$GLOBALS['db']->query($sql, mysql::NO_ROW);
+			}
+			$i['memory'] = 128;
+			$i['cpu'] = 1;
+		}
 		
 		for( $j = $count; $j < $instances; $j++ )
 			$newinstances[] = array('port' => $i['port'], 'memory' => $i['memory'], 'cpu' => $i['cpu']);	
