@@ -186,7 +186,7 @@ $a->setExecute(function() use ($a)
 	$user = $a->getParam('user');
 
 	if( $cache == '1' || $cache == 'yes' || $cache == 'true' || $cache === true || $cache === 1 ) $cache = 1;
-	else $cache = 0;
+	else if( $cache !== null ) $cache = 0;
 	
 	// =================================
 	// GET APP DN
