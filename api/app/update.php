@@ -311,7 +311,7 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
 	
-	if( $hostname !== null && $instance !== null && $branch != null )
+	if( $hostname !== null && $instance !== null && $branch !== null )
 	{
 		$extra = json_decode($data['description'], true);
 		
