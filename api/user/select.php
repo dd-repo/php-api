@@ -161,6 +161,14 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT RECORDS
 	// =================================
+	if( $count === true )
+	{
+		$sql = "SELECT COUNT(user_id) as count FROM users WHERE 1";
+		$result = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+		
+		responder::send($result);
+	}
+	
 	if( $quota )
 	{
 		$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_status, u.user_iban, u.user_bic, u.user_date, u.user_last, q.quota_id, q.quota_name, uq.quota_max, uq.quota_used
@@ -214,9 +222,6 @@ $a->setExecute(function() use ($a)
 	// =================================
 	try
 	{	
-		if( $count === true )
-			responder::send(array('count'=>count($ids)));
-		
 		$remote = $users;
 		$i = 0;
 		foreach( $remote as $r )
