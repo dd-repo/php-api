@@ -124,13 +124,16 @@ $a->setExecute(function() use ($a)
 		
 		$result = $GLOBALS['ldap']->read($dn);
 		
-		if( is_array($result['owner']) )
-			$result['owner'] = $result['owner'][0];
+		if( $user != null )
+		{
+			if( is_array($result['owner']) )
+				$result['owner'] = $result['owner'][0];
+				
+			$ownerdn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
 			
-		$ownerdn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
-		
-		if( $ownerdn != $result['owner'] )
-			throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the app {$app}");
+			if( $ownerdn != $result['owner'] )
+				throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the app {$app}");
+		}
 	}
 	elseif( $user !== null )
 	{
