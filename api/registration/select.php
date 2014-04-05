@@ -16,14 +16,6 @@ $a->setReturn(array(array(
 	'date'=>'the date of the ticket'
 	)));
 $a->addParam(array(
-	'name'=>array('name', 'user_name', 'username', 'login', 'user'),
-	'description'=>'The name of the target user.',
-	'optional'=>true,
-	'minlength'=>3,
-	'maxlength'=>50,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT
-	));
-$a->addParam(array(
 	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
 	'description'=>'The email of the user.',
 	'optional'=>true,
@@ -50,7 +42,6 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET PARAMETERS
 	// =================================
-	$user = $a->getParam('user');
 	$mail = $a->getParam('mail');
 	$code = $a->getParam('code');
 	
@@ -58,8 +49,6 @@ $a->setExecute(function() use ($a)
 	// PREPARE WHERE CLAUSE
 	// =================================
 	$where = '';
-	if( $user !== null )
-		$where .= " AND register_user LIKE '%".security::escape($user)."%'";
 	if( $mail !== null )
 		$where .= " AND register_email LIKE '%".security::escape($mail)."%'";
 	if( $code !== null )
@@ -68,7 +57,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT RECORDS
 	// =================================
-	$sql = "SELECT register_user, register_email, register_date, register_code, register_plan
+	$sql = "SELECT register_email, register_date
 			FROM register
 			WHERE true {$where}";
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
@@ -78,7 +67,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$registrations = array();
 	foreach( $result as $r )
-		$registrations[] = array('user'=>$r['register_user'], 'email'=>$r['register_email'], 'code'=>$r['register_code'], 'plan'=>$r['register_plan'], 'date'=>$r['register_date']);
+		$registrations[] = array('email'=>$r['register_email'], 'date'=>$r['register_date']);
 
 	responder::send($registrations);
 });
