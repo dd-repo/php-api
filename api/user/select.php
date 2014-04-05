@@ -33,6 +33,14 @@ $a->addParam(array(
 	'action'=>true
 	));
 $a->addParam(array(
+	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
+	'description'=>'The email of the user.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>150,
+	'match'=>request::ALL
+	));
+$a->addParam(array(
 	'name'=>array('from'),
 	'description'=>'From subscription date.',
 	'optional'=>true,
@@ -73,6 +81,14 @@ $a->addParam(array(
 	'match'=>"(1|0|yes|no|true|false)"
 	));
 $a->addParam(array(
+	'name'=>array('search'),
+	'description'=>'Activate LIKE % % search.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
 	'name'=>array('order'),
 	'description'=>'Order return.',
 	'optional'=>true,
@@ -88,6 +104,22 @@ $a->addParam(array(
 	'maxlength'=>4,
 	'match'=>"(ASC|DESC)"
 	));
+$a->addParam(array(
+	'name'=>array('group'),
+	'description'=>'Group by?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>request::UPPER
+	));
+$a->addParam(array(
+	'name'=>array('limit'),
+	'description'=>'Limit response.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>11,
+	'match'=>request::NUMBER
+	));
 
 $a->setExecute(function() use ($a)
 {
@@ -100,13 +132,17 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$user = $a->getParam('user');
+	$mail = $a->getParam('mail');
 	$from = $a->getParam('from');
 	$to = $a->getParam('to');
 	$count = $a->getParam('count');
 	$fast = $a->getParam('fast');
 	$quota = $a->getParam('quota');
+	$search = $a->getParam('search');
 	$order = $a->getParam('order');
 	$order_type = $a->getParam('order_type');
+	$group = $a->getParam('group');
+	$limit = $a->getParam('limit');
 	
 	// =================================
 	// PROCESS PARAMETERS
@@ -124,7 +160,27 @@ $a->setExecute(function() use ($a)
 		$quota = true;
 	else
 		$quota = false;
+
+	if( $search == '1' || $search == 'yes' || $search == 'true' || $search === true || $search === 1 )
+		$search = true;
+	else
+		$search = false;
 	
+	if( $limit === null )
+		$limit = 100;
+		
+	// =================================
+	// SEARCH IN LDAP
+	// =================================	
+	if( $mail !== null && count($user) == 0 )
+	{
+		$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::USER, "(mailForwardingAddress=*{$mail}*)"));
+		
+		$user = array();
+		foreach( $result as $r )
+			$user[] = $r['uid'];
+	}
+
 	// =================================
 	// PREPARE WHERE CLAUSE
 	// =================================
@@ -142,7 +198,11 @@ $a->setExecute(function() use ($a)
 			else
 			{
 				if( strlen($where_name) == 0 ) $where_name = '';
-				$where_name .= " OR u.user_name LIKE '%".security::escape($u)."%'";
+				
+				if( $search === true )
+					$where_name .= " OR u.user_name LIKE '%".security::escape($u)."%'";
+				else
+					$where_name .= " OR u.user_name = '".security::escape($u)."'";
 			}
 		}
 		if( strlen($where_id) > 0 ) $where_id .= ')';
@@ -154,6 +214,12 @@ $a->setExecute(function() use ($a)
 		$order = 'u.' . $order;
 	else
 		$order = 'u.user_name';
+	
+	$where = '';
+	if( $from !== null )
+		$where .= " AND user_date > {$from}";
+	if( $to !== null )
+		$where .= " AND user_date < {$to}";
 	
 	if( $order_type === null )
 		$order_type = 'ASC';
@@ -169,24 +235,34 @@ $a->setExecute(function() use ($a)
 		responder::send($result);
 	}
 	
-	if( $quota )
+	if( $quota === true )
 	{
-		$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_status, u.user_iban, u.user_bic, u.user_date, u.user_last, q.quota_id, q.quota_name, uq.quota_max, uq.quota_used
+		$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_status, u.user_date, u.user_last_update, q.quota_id, q.quota_name, uq.quota_max, uq.quota_used
 				FROM users u
 				LEFT JOIN user_quota uq ON(u.user_id = uq.user_id)
 				LEFT JOIN quotas q ON(uq.quota_id = q.quota_id)
-				WHERE false {$where_name} {$where_id}
-				ORDER BY {$order} {$order_type}";
+				WHERE false {$where_name} {$where_id} {$where}
+				ORDER BY {$order} {$order_type}
+				LIMIT 0,{$limit}";
+	}
+	else if( $group !== null )
+	{
+		$sql = "SELECT COUNT(user_id) as count, {$group} (FROM_UNIXTIME(user_date)) as {$group} FROM users
+				WHERE false {$where_name} {$where_id} {$where} GROUP BY {$group} (FROM_UNIXTIME(user_date))";
 	}
 	else
 	{
-		$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_date, u.user_status, u.user_iban, u.user_bic, u.user_last
+		$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_date, u.user_last_update, u.user_status
 				FROM users u
-				WHERE false {$where_name} {$where_id}
-				ORDER BY {$order} {$order_type}";
+				WHERE false {$where_name} {$where_id} {$where}
+				ORDER BY {$order} {$order_type}
+				LIMIT 0,{$limit}";
 	}
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
-
+		
+	if( $group !== null )
+		responder::send($result);
+	
 	// =================================
 	// FORMAT RESULT
 	// =================================
@@ -199,7 +275,7 @@ $a->setExecute(function() use ($a)
 			if( $current != null )
 				$users[] = $current;
 			
-			$current = array('name'=>$r['user_name'], 'id'=>$r['user_id'], 'uid'=>$r['user_ldap'], 'firstname'=>'', 'lastname'=>'', 'email'=>'', 'iban'=>$r['user_iban'], 'bic'=>$r['user_bic'], 'status'=>$r['user_status'], 'date'=>$r['user_date'], 'ip'=>'', 'last'=>$r['user_last']);
+			$current = array('name'=>$r['user_name'], 'id'=>$r['user_id'], 'uid'=>$r['user_ldap'], 'firstname'=>'', 'lastname'=>'', 'email'=>'', 'status'=>$r['user_status'], 'date'=>$r['user_date'], 'ip'=>'', 'last'=>$r['user_last_update']);
 			
 			if( $quota )
 				$current['quotas'] = array();
@@ -210,7 +286,7 @@ $a->setExecute(function() use ($a)
 	}
 	if( $current != null )
 		$users[] = $current;
-
+			
 	if( $fast )
 	{
 		responder::send($users);
@@ -221,7 +297,7 @@ $a->setExecute(function() use ($a)
 	// RETREIVE INFO FROM REMOTE USER
 	// =================================
 	try
-	{	
+	{		
 		$remote = $users;
 		$i = 0;
 		foreach( $remote as $r )
@@ -231,12 +307,17 @@ $a->setExecute(function() use ($a)
 				$dn = $GLOBALS['ldap']->getDNfromUID($r['uid']);
 				$result = $GLOBALS['ldap']->read($dn);
 				
+				$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$result['homeDirectory']}'";
+				$storage = $GLOBALS['db']->query($sql);
+			
 				$users[$i]['firstname'] = $result['givenName'];
 				$users[$i]['lastname'] = $result['sn'];
+				$users[$i]['language'] = $result['gecos'];
 				$users[$i]['ip'] = $result['ipHostNumber'];
 				$users[$i]['address'] = $result['postalAddress'];
 				$users[$i]['description'] = $result['description'];
-				$users[$i]['email'] = (isset($result['mailForwardingAddress'])?$result['mailForwardingAddress']:$result['mail']);			
+				$users[$i]['email'] = (isset($result['mailForwardingAddress'])?$result['mailForwardingAddress']:$result['mail']);
+				$users[$i]['size'] = $storage['storage_size'];
 			}
 			$i++;
 		}
