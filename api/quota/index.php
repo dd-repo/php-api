@@ -28,6 +28,8 @@ switch($action)
 	case 'remove':
 	case 'destroy':
 		request::forward('/quota/delete'); break;
+	case 'nearlimit':
+		request::forward('/quota/nearlimit'); break;
 	case 'user':
 	case 'users':
 		request::forward('/quota/user/index'); break;
@@ -40,6 +42,7 @@ switch($action)
 	<li><h2><a href=\"/quota/select/help\">select</a></h2> (alias : list, view, search)</li>
 	<li><h2><a href=\"/quota/update/help\">update</a></h2> (alias : modify, change, rename)</li>
 	<li><h2><a href=\"/quota/delete/help\">delete</a></h2> (alias : del, remove, destroy)</li>
+	<li><h2><a href=\"/quota/nearlimit/help\">nearlimit</a></h2> (alias : nearlimit)</li>
 	<li><h2><a href=\"/quota/user/help\">user</a></h2> (alias : users)</li>
 </ul>";
 		responder::help($body);
