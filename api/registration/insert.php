@@ -25,7 +25,7 @@ $a->addParam(array(
 $a->addParam(array(
 	'name'=>array('plan'),
 	'description'=>'The name of the target user.',
-	'optional'=>false,
+	'optional'=>true,
 	'minlength'=>1,
 	'maxlength'=>2,
 	'match'=>request::NUMBER
@@ -53,6 +53,9 @@ $a->setExecute(function() use ($a)
 	$plan = $a->getParam('plan');
 	$mail = $a->getParam('mail');
 	
+	if( $plan === null )
+		$plan = 0;
+		
 	// =================================
 	// CLEANUP TOO OLD REQUESTS
 	// =================================
