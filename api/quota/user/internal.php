@@ -168,17 +168,17 @@ function syncQuota($type, $user)
 			foreach( $services as $s )
 			{
 				$u = 0;
-				$u = $GLOBALS['system']->getservicesize($d['database_name'], $d['database_type'], $d['database_server']);
+				$u = $GLOBALS['system']->getservicesize($s['service_name'], $s['service_type'], $s['service_host']);
 				$u = round($u/1024);
-				if( $d['database_type'] == 'pgsql' )
+				if( $s['service_type'] == 'pgsql' )
 					$u = round($u/1024);
 
-				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/databases/{$d['database_name']}'";
+				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/services/{$s['service_name']}'";
 				$store = $GLOBALS['db']->query($sql);
 				if( $store['storage_id'] )
 					$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
 				else
-					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/databases/{$d['database_name']}', {$u})";
+					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/services/{$s['service_name']}', {$u})";
 				$GLOBALS['db']->query($sql, mysql::NO_ROW);
 				
 				$usage = $usage+$u;
