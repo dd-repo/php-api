@@ -66,7 +66,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$where = '';
 	if( $service !== null )
-		$where .= " AND s.service_name = '".secusity::escape($service)."'";
+		$where .= " AND s.service_name = '".security::escape($service)."'";
 	if( $user !== null )
 	{
 		if( is_numeric($user) )
