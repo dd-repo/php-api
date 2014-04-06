@@ -126,12 +126,12 @@ $a->setExecute(function() use ($a)
 		break;
 		case 'pgsql':
 			$server = 'pgsql.anotherservice.com';
-			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$base} {$pass} {$server}";
+			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$service} {$pass} {$server}";
 			$GLOBALS['system']->exec($commands);
 		break;
 		case 'mongodb':
 			$server = 'mongo.anotherservice.com';
-			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$base} {$pass} {$server}";
+			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$service} {$pass} {$server}";
 			$GLOBALS['system']->exec($commands);
 		break;
 	}
