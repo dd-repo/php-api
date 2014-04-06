@@ -131,6 +131,7 @@ $a->setExecute(function() use ($a)
 	$bic = $a->getParam('bic');
 	$address = $a->getParam('address');
 	$status = $a->getParam('status');
+	$language = $a->getParam('language');
 	
 	if( $status == '0' || $status == 'no' || $status == 'false' || $status === false || $status === 0 ) $status = 0;
 	else if( $status !== null ) $status = 1;
