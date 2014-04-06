@@ -84,7 +84,15 @@ $a->setExecute(function() use ($a)
 			mysql_query("DROP USER '{$service}'", $link);
 			mysql_query("DROP DATABASE `{$service}`", $link);
 			mysql_close($link);
-		break;	
+		break;
+		case 'pgsql':
+			$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$service}";
+			$GLOBALS['system']->exec($commands);
+		break;
+		case 'mongodb':
+			$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$service}";
+			$GLOBALS['system']->exec($commands);
+		break;
 	}
 
 	// =================================

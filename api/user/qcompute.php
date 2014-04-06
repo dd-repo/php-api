@@ -70,6 +70,9 @@ $a->setExecute(function() use ($a)
 		// SYNC APPS QUOTA
 		// =================================
 		syncQuota('APPS', $r['user_id']);
+		
+		$sql = "UPDATE users SET user_last_update = UNIX_TIMESTAMP() WHERE user_id = {$r['user_id']}";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	}
 	
 	responder::send("OK");
