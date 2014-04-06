@@ -123,16 +123,22 @@ $a->setExecute(function() use ($a)
 			mysql_query("FLUSH PRIVILEGES", $link);
 			mysql_close($link);
 		break;
-		case 'postgresql':
-		
+		case 'pgsql':
+			$server = 'pgsql.olympe.in';
+			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$base} {$pass} {$server}";
+			$GLOBALS['system']->exec($commands);
 		break;
-		
+		case 'mongodb':
+			$server = 'mongo.olympe.in';
+			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$base} {$pass} {$server}";
+			$GLOBALS['system']->exec($commands);
+		break;
 	}
 	
 	// =================================
 	// INSERT LOCAL SERVICE
 	// =================================
-	$sql = "INSERT INTO `services` (service_name, service_description, service_type, service_user, service_desc) VALUE ('{$service}', '".security::escape($desc)."', '{$vendor}', {$userdata['user_id']}, '{$version}')";
+	$sql = "INSERT INTO `services` (service_name, service_description, service_type, service_user, service_desc, service_host) VALUE ('{$service}', '".security::escape($desc)."', '{$vendor}', {$userdata['user_id']}, '{$version}', '{$server}')";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 
 	// =================================
