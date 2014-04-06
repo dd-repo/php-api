@@ -78,7 +78,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT RECORDS
 	// =================================
-	$sql = "SELECT s.service_name, s.service_type, s.service_desc, s.service_description, u.user_id, u.user_name 
+	$sql = "SELECT s.service_name, s.service_type, s.service_desc, s.service_description, s.service_host, u.user_id, u.user_name 
 			FROM `services` s
 			LEFT JOIN users u ON(u.user_id = s.service_user)
 			WHERE true {$where}";
@@ -93,6 +93,7 @@ $a->setExecute(function() use ($a)
 		$s['name'] = $r['service_name'];
 		$s['vendor'] = $r['service_type'];
 		$s['version'] = $r['service_desc'];
+		$s['host'] = $r['service_host'];
 		$s['description'] = $r['service_description'];
 		$s['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name']);
 		
