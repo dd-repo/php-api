@@ -106,7 +106,7 @@ function syncQuota($type, $user)
 			if( $store['storage_id'] )
 				$sql = "UPDATE storages SET storage_size = {$usage} WHERE storage_id = {$store['storage_id']}";
 			else
-				$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/dns/in/olympe/Users/{$userdata['user_name']}', {$usage})";
+				$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/dns/com/anotherservice/Users/{$userdata['user_name']}', {$usage})";
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 			
 			$apps = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::APP, "(owner={$user_dn})"));
