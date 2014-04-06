@@ -90,6 +90,11 @@ $a->setExecute(function() use ($a)
 	$services = array();
 	foreach( $result as $r )
 	{
+		$sql = "SELECT storage_size FROM storages WHERE storage_path = '/services/{$r['service_name']}'";
+		$storage = $GLOBALS['db']->query($sql);
+		$sql = "SELECT COUNT(service_name) as count FROM `services` WHERE service_host = '{$r['service_host']}'";
+		$stats = $GLOBALS['db']->query($sql);
+		
 		$s['name'] = $r['service_name'];
 		$s['vendor'] = $r['service_type'];
 		$s['version'] = $r['service_desc'];
