@@ -101,6 +101,14 @@ function syncQuota($type, $user)
 			$usage = $GLOBALS['system']->getquota($userdata['user_ldap']);
 			$usage = round($usage/1024);
 			
+			$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/dns/com/anotherservice/Users/{$userdata['user_name']}'";
+			$store = $GLOBALS['db']->query($sql);
+			if( $store['storage_id'] )
+				$sql = "UPDATE storages SET storage_size = {$usage} WHERE storage_id = {$store['storage_id']}";
+			else
+				$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/dns/in/olympe/Users/{$userdata['user_name']}', {$usage})";
+			$GLOBALS['db']->query($sql, mysql::NO_ROW);
+			
 			$apps = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::APP, "(owner={$user_dn})"));
 			foreach( $apps as $a )
 			{
@@ -154,6 +162,28 @@ function syncQuota($type, $user)
 				
 				$usage = $usage+$u;
 			}
+			
+			$sql = "SELECT * FROM services WHERE service_user = {$userdata['user_id']}";
+			$services = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+			foreach( $services as $s )
+			{
+				$u = 0;
+				$u = $GLOBALS['system']->getservicesize($d['database_name'], $d['database_type'], $d['database_server']);
+				$u = round($u/1024);
+				if( $d['database_type'] == 'pgsql' )
+					$u = round($u/1024);
+
+				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/databases/{$d['database_name']}'";
+				$store = $GLOBALS['db']->query($sql);
+				if( $store['storage_id'] )
+					$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
+				else
+					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/databases/{$d['database_name']}', {$u})";
+				$GLOBALS['db']->query($sql, mysql::NO_ROW);
+				
+				$usage = $usage+$u;
+			}
+			
 			
 			$count = $usage;
 		break;
