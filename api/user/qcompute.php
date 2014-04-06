@@ -19,6 +19,14 @@ $a->addParam(array(
 	'maxlength'=>50,
 	'match'=>request::UPPER
 	));
+$a->addParam(array(
+	'name'=>array('user', 'user_id', 'id'),
+	'description'=>'The user name or id',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	));
 
 $a->setExecute(function() use ($a)
 {
@@ -31,13 +39,29 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$type = $a->getParam('type');
+	$user = $a->getParam('user');
 
 	// =================================
 	// GET USERS
-	// =================================	
-	$sql = "SELECT user_id FROM users u WHERE user_id != 1";
+	// =================================
+	$day = date('j');
+	if( $day%2 == 1 )
+		$limits = 'LIMIT 0,20000';
+	else
+		$limits = 'LIMIT 20000,20000';
+		
+	if( $user !== null )
+	{
+		if( is_numeric($user) )
+			$sql = "SELECT user_id FROM users u WHERE user_id = {$user}";
+		else
+			$sql = "SELECT user_id FROM users u WHERE user_name = '{$user}'";
+	}
+	else
+		$sql = "SELECT user_id FROM users u WHERE user_id != 1 {$limits}";
+		
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
-
+	
 	// =================================
 	// INIT QUOTAS
 	// =================================		
