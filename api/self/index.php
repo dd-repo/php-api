@@ -58,6 +58,8 @@ $i->addEntry('account', array('account', 'accounts'));
 $i->addEntry('team', array('team', 'teams'));
 $i->addEntry('repo', array('repo', 'repos'));
 $i->addEntry('bill', array('bill', 'bills'));
+$i->addEntry('log', array('log', 'logs'));
+$i->addEntry('backup', array('backup', 'backups'));
 
 return $i;
 
