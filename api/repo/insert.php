@@ -135,6 +135,11 @@ $a->setExecute(function() use ($a)
 	}
 	$GLOBALS['system']->exec($commands);
 
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('repo/insert', $a->getParams(), $userdata['user_id']);
+	
 	responder::send(array("name"=>$repo));
 });
 

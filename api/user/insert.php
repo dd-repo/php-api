@@ -157,6 +157,11 @@ $a->setExecute(function() use ($a)
 	$commands[] = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:{$data['gidNumber']} {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']}";
 	$GLOBALS['system']->exec($commands);
 	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('usert/insert', $a->getParams(), $uid);
+	
 	responder::send(array("name"=>$user, "id"=>$uid));
 });
 
