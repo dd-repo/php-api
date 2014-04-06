@@ -147,6 +147,11 @@ $a->setExecute(function() use ($a)
 	// =================================
 	syncQuota('SERVICES', $user);
 
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('service/insert', $a->getParams(), $userdata['user_id']);
+	
 	responder::send(array("name"=>$service));
 });
 

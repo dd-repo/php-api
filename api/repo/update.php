@@ -88,7 +88,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $user !== null )
 	{
-		$sql = "SELECT user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 		$userdata = $GLOBALS['db']->query($sql);
 		
 		if( $userdata == null || $userdata['user_ldap'] == null )
@@ -130,6 +130,11 @@ $a->setExecute(function() use ($a)
 		$mod['member'] = $group_dn;
 		$GLOBALS['ldap']->replace($dn, $mod, ldap::DELETE);		
 	}
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('repo/update', $a->getParams(), $userdata['user_id']);
 	
 	responder::send("OK");
 });

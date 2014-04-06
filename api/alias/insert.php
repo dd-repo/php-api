@@ -155,6 +155,11 @@ $a->setExecute(function() use ($a)
 	$data = $handler->build($params);
 	$GLOBALS['ldap']->create($dn, $data);
 	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('alias/insert', $a->getParams(), $userdata['user_id']);
+	
 	responder::send(array("domain"=>$domain, "id"=>$data['uidNumber']));
 });
 

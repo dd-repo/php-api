@@ -217,7 +217,7 @@ $a->setExecute(function() use ($a)
 		// =================================
 		// GET USERS
 		// =================================
-		$sql = "SELECT user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 		$userdata = $GLOBALS['db']->query($sql);
 		if( $userdata == null || $userdata['user_ldap'] == null )
 			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -547,6 +547,11 @@ $a->setExecute(function() use ($a)
 		$commands[] = "/dns/tm/sys/usr/local/bin/app-reload {$data['uid']}";
 		$GLOBALS['system']->exec($commands);
 	}
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('app/update', $a->getParams(), $userdata['user_id']);
 	
 	responder::send("OK");	
 });

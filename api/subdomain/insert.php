@@ -107,6 +107,11 @@ $a->setExecute(function() use ($a)
 	//$commands[] = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:{$data['gidNumber']} {$data['homeDirectory']} && chmod 751 {$data['homeDirectory']}";
 	//$GLOBALS['system']->exec($commands);
 	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('subdomain/insert', $a->getParams(), $userdata['user_id']);
+	
 	responder::send(array("name"=>$subdomain, "id"=>$result['uidNumber']));
 });
 

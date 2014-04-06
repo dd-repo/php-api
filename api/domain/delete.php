@@ -88,6 +88,11 @@ $a->setExecute(function() use ($a)
 	request::forward('/quota/user/internal');
 	syncQuota('DOMAINS', $userdata['user_id']);
 
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('domain/delete', $a->getParams(), $userdata['user_id']);
+	
 	responder::send("OK");
 });
 

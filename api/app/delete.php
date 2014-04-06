@@ -54,7 +54,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET USER DATA
 	// =================================
-	$sql = "SELECT user_ldap, user_name FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+	$sql = "SELECT user_ldap, user_name, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 	$userdata = $GLOBALS['db']->query($sql);
 	if( $userdata == null || $userdata['user_ldap'] == null )
 		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -146,6 +146,11 @@ $a->setExecute(function() use ($a)
 	request::forward('/quota/user/internal');
 	syncQuota('APPS', $user);
 	syncQuota('MEMORY', $user);
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('app/delete', $a->getParams(), $userdata['user_id']);
 	
 	responder::send("OK");
 });

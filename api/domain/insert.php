@@ -159,6 +159,11 @@ $a->setExecute(function() use ($a)
 	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=UsersManager.setUserAccess&userLogin={$userdata['user_name']}&access=admin&idSites={$json['value']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
 	@file_get_contents($url);
 	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('domain/insert', $a->getParams(), $userdata['user_id']);
+	
 	responder::send(array("domain"=>$domain, "id"=>$result['uidNumber']));
 });
 

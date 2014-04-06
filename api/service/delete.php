@@ -46,7 +46,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $user !== null )
 	{
-		$sql = "SELECT s.service_name, s.service_user, s.service_type
+		$sql = "SELECT s.service_name, s.service_user, s.service_type, s.service_user
 				FROM users u
 				LEFT JOIN services s ON(s.service_user = u.user_id)
 				WHERE service_name = '".security::escape($service)."'
@@ -58,7 +58,7 @@ $a->setExecute(function() use ($a)
 	}
 	else
 	{
-		$sql = "SELECT s.service_name, s.service_user, s.service_type
+		$sql = "SELECT s.service_name, s.service_user, s.service_type, s.service_user
 				FROM services s
 				LEFT JOIN users u ON(u.user_id = s.service_user)
 				WHERE service_name = '".security::escape($service)."'";
@@ -94,6 +94,11 @@ $a->setExecute(function() use ($a)
 	request::forward('/quota/user/internal');
 	syncQuota('SERVICES', $result['service_user']);
 
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('service/delete', $a->getParams(), $result['service_user']);
+	
 	responder::send("OK");
 });
 
