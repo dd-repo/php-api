@@ -115,6 +115,7 @@ $a->setExecute(function() use ($a)
 	switch( $vendor )
 	{
 		case 'mysql':
+			$server = 'sql.anotherservice.com';
 			$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
 			mysql_query("CREATE USER '{$service}'@'%' IDENTIFIED BY '{$pass}'", $link);
 			mysql_query("CREATE DATABASE `{$service}` CHARACTER SET utf8 COLLATE utf8_unicode_ci", $link);
@@ -124,12 +125,12 @@ $a->setExecute(function() use ($a)
 			mysql_close($link);
 		break;
 		case 'pgsql':
-			$server = 'pgsql.olympe.in';
+			$server = 'pgsql.anotherservice.com';
 			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$base} {$pass} {$server}";
 			$GLOBALS['system']->exec($commands);
 		break;
 		case 'mongodb':
-			$server = 'mongo.olympe.in';
+			$server = 'mongo.anotherservice.com';
 			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$base} {$pass} {$server}";
 			$GLOBALS['system']->exec($commands);
 		break;
