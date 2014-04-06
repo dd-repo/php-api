@@ -94,6 +94,14 @@ $a->addParam(array(
 	'match'=>request::PHRASE|request::SPECIAL|request::PUNCT
 	));
 $a->addParam(array(
+	'name'=>array('language', 'lang'),
+	'description'=>'The user language.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>2,
+	'match'=>request::UPPER
+	));
+$a->addParam(array(
 	'name'=>array('status', 'user_status'),
 	'description'=>'The user status.',
 	'optional'=>true,
@@ -123,6 +131,7 @@ $a->setExecute(function() use ($a)
 	$bic = $a->getParam('bic');
 	$address = $a->getParam('address');
 	$status = $a->getParam('status');
+	$language = $a->getParam('language');
 	
 	if( $status == '0' || $status == 'no' || $status == 'false' || $status === false || $status === 0 ) $status = 0;
 	else if( $status !== null ) $status = 1;
@@ -223,7 +232,9 @@ $a->setExecute(function() use ($a)
 		$params['mailForwardingAddress'] = $mail;
 	if( $address !== null )
 		$params['postalAddress'] = $address;	
-	
+	if( $language !== null )
+		$params['gecos'] = $language;	
+		
 	$GLOBALS['ldap']->replace($dn, $params);
 		
 	try
