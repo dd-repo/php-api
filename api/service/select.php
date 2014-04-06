@@ -100,9 +100,9 @@ $a->setExecute(function() use ($a)
 		$s['version'] = $r['service_desc'];
 		$s['host'] = $r['service_host'];
 		$s['description'] = $r['service_description'];
-		$d['size'] = $storage['storage_size'];
-		$d['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name']);
-		$d['stats'] = array("{$r['database_server']}" => $stats['count']);
+		$s['size'] = $storage['storage_size'];
+		$s['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name']);
+		$s['stats'] = array("{$r['database_server']}" => $stats['count']);
 
 		
 		$services[] = $s;		
