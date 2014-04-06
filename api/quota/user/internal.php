@@ -168,7 +168,7 @@ function syncQuota($type, $user)
 			foreach( $services as $s )
 			{
 				if( $s['service_type'] == 'mysql' )
-					$s['service_name'] = str_replace('-', '@002', $s['service_name']);
+					$s['service_name'] = str_replace('-', '@002d', $s['service_name']);
 					
 				$u = 0;
 				$u = $GLOBALS['system']->getservicesize($s['service_name'], $s['service_type'], $s['service_host']);
