@@ -139,7 +139,7 @@ $a->setExecute(function() use ($a)
 	else
 		$where = "u.user_name = '".security::escape($user)."'";
 
-	$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_cf_token FROM users u WHERE {$where}";
+	$sql = "SELECT u.user_id, u.user_name, u.user_ldap FROM users u WHERE {$where}";
 	$result = $GLOBALS['db']->query($sql);
 	if( $result == null || $result['user_id'] == null )
 		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
