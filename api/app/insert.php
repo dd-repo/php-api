@@ -167,7 +167,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$commands[] = "/dns/tm/sys/usr/local/bin/app-create {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime} ".strtolower($app)." \"".security::encode($binary)."\"";
 	$commands[] = "cd {$userinfo['homeDirectory']} && ln -s ".str_replace("Apps/{$app}", "var/git/{$app}", $data['homeDirectory'])." {$app}.git";
-	$GLOBALS['system']->exec($commands);
+	$GLOBALS['gearman']->sendAsync($commands);
 	
 	// =================================
 	// SYNC QUOTA
