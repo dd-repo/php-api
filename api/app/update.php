@@ -278,8 +278,7 @@ $a->setExecute(function() use ($a)
 		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']} \"{$texturls}\"";
 		$GLOBALS['gearman']->sendAsync($commands);
 	}
-	
-	if( $branch !== null && $mode == 'add' )
+	else if( $branch !== null && $mode == 'add' )
 	{
 		$extra = json_decode($data['description'], true);
 		$command = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language} \"{$appresult['app_binary']}\"";

@@ -102,8 +102,8 @@ $a->setExecute(function() use ($a)
 	{
 		$branches = '';
 		foreach( $extra['branches'] as $k => $v )
-		{	
-			$branches = $branches . " {$k}";
+		{
+			$branches = $branches . "{$k} ";
 			if( count($v['urls']) > 0 )
 			{
 				foreach( $v['urls'] as $u )
@@ -111,6 +111,14 @@ $a->setExecute(function() use ($a)
 					$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
 					$data2 = $GLOBALS['ldap']->read($dn2);
 					$commands[] = "rm {$data2['homeDirectory']}";
+				}
+			}
+			if( count($v['instances']) > 0 )
+			{
+				foreach( $v['instances'] as $i )
+				{
+					$sql = "UPDATE ports SET used = 0 WHERE port = {$i['port']}";
+					$GLOBALS['db']->query($sql, mysql::NO_ROW);				
 				}
 			}
 		}
