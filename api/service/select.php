@@ -21,8 +21,8 @@ $a->setReturn(array(array(
 	),
 	)));
 $a->addParam(array(
-	'name'=>array('service', 'name', 'service_name'),
-	'description'=>'The name of the service',
+	'name'=>array('app', 'app_name', 'app_id', 'id'),
+	'description'=>'The name or the id of the app',
 	'optional'=>true,
 	'minlength'=>3,
 	'maxlength'=>100,

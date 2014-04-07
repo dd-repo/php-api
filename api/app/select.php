@@ -49,7 +49,7 @@ $a->addParam(array(
 	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
-	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
+	'name'=>array('user', 'user_name', 'username', 'login', 'user_id'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
 	'minlength'=>0,
