@@ -102,7 +102,7 @@ $a->setExecute(function() use ($a)
 		$s['description'] = $r['service_description'];
 		$s['size'] = $storage['storage_size'];
 		$s['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name']);
-		$s['stats'] = array("{$r['database_server']}" => $stats['count']);
+		$s['stats'] = array("{$r['service_host']}" => $stats['count']);
 
 		
 		$services[] = $s;		
