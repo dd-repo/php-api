@@ -75,9 +75,8 @@ $a->setExecute(function() use ($a)
 				
 				$GLOBALS['ldap']->delete($a['dn']);
 				
-				$commands = array();
-				$commands[] = "/dns/tm/sys/usr/local/bin/app-delete {$data['uid']} {$data['homeDirectory']} ".strtolower($data['uid'])." \"{$branches}\"";
-				$GLOBALS['system']->exec($commands);
+				$command = "/dns/tm/sys/usr/local/bin/app-delete {$data['uid']} {$data['homeDirectory']} ".strtolower($data['uid'])." \"{$branches}\"";
+				$GLOBALS['gearman']->sendAsync($command);
 			}
 		}
 		
@@ -92,9 +91,8 @@ $a->setExecute(function() use ($a)
 			if( $d['dn'] ) 
 			{
 				$GLOBALS['ldap']->delete($d['dn']);
-				$commands = array();
-				$commands[] = "rm -Rf {$data['homeDirectory']}";
-				$GLOBALS['system']->exec($commands);
+				$command = "rm -Rf {$data['homeDirectory']}";
+				$GLOBALS['gearman']->sendAsync($command);
 			}
 		}
 		
@@ -119,10 +117,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
-	$commands = array();
-	$commands[] = "rm -Rf {$data['homeDirectory']}";
-	
-	$GLOBALS['system']->exec($commands);
+	$command = "rm -Rf {$data['homeDirectory']}";
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	responder::send("OK");
 });

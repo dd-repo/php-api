@@ -86,12 +86,12 @@ $a->setExecute(function() use ($a)
 			mysql_close($link);
 		break;
 		case 'pgsql':
-			$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$service}";
-			$GLOBALS['system']->exec($commands);
+			$command = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$service}";
+			$GLOBALS['gearman']->sendAsync($command);
 		break;
 		case 'mongodb':
-			$commands[] = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$service}";
-			$GLOBALS['system']->exec($commands);
+			$command = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$service}";
+			$GLOBALS['gearman']->sendAsync($command);
 		break;
 	}
 
