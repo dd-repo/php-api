@@ -66,6 +66,7 @@ $a->setExecute(function() use ($a)
 	$app = $a->getParam('app');
 	$branch = $a->getParam('branch');
 	$memory = $a->getParam('memory');
+	$instances = $a->getParam('instances');
 	$user = $a->getParam('user');
 
 	// =================================
