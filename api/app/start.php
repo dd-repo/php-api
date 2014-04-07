@@ -92,6 +92,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// START APP
 	// =================================	
+	$extra = json_decode($data['description'], true);
 	if( $extra['branches'][$branch]['instances'] )
 	{
 		foreach( $extra['branches'][$branch]['instances'] as $key => $value )
