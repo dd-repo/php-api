@@ -29,46 +29,6 @@ $a->addParam(array(
 	'match'=>request::NUMBER
 	));	
 $a->addParam(array(
-	'name'=>array('memory'),
-	'description'=>'The app memory (in MB)',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>30,
-	'match'=>request::NUMBER
-	));
-$a->addParam(array(
-	'name'=>array('start'),
-	'description'=>'Start the application',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>5,
-	'match'=>"(1|yes|true)"
-	));	
-$a->addParam(array(
-	'name'=>array('stop'),
-	'description'=>'Stop the application',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>5,
-	'match'=>"(1|yes|true)"
-	));
-$a->addParam(array(
-	'name'=>array('restart'),
-	'description'=>'Restart the application',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>5,
-	'match'=>"(1|yes|true)"
-	));
-$a->addParam(array(
-	'name'=>array('rebuild'),
-	'description'=>'Rebuild the application',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>5,
-	'match'=>"(1|yes|true)"
-	));
-$a->addParam(array(
 	'name'=>array('reassign'),
 	'description'=>'Reassign all ports of the app',
 	'optional'=>true,
@@ -168,11 +128,6 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$app = $a->getParam('app');
 	$instances = $a->getParam('instances');
-	$memory = $a->getParam('memory');
-	$start = $a->getParam('start');
-	$stop = $a->getParam('stop');
-	$restart = $a->getParam('restart');
-	$rebuild = $a->getParam('rebuild');
 	$reassign = $a->getParam('reassign');
 	$service = $a->getParam('service');
 	$url = $a->getParam('url');
@@ -340,28 +295,7 @@ $a->setExecute(function() use ($a)
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
-	if( $memory !== null && $branch !== null )
-	{
-		checkQuota('MEMORY', $user);
 
-		$extra = json_decode($data['description'], true);
-		
-		$newinstances = array();
-		if( $extra['branches'][$branch]['instances'] )
-		{
-			foreach( $extra['branches'][$branch]['instances'] as $i )
-				$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
-
-			$extra['branches'][$branch]['instances'] = $newinstances;
-		
-			$params = array('description'=>json_encode($extra));
-			$GLOBALS['ldap']->replace($dn, $params);
-		}
-	
-		syncQuota('MEMORY', $user);
-		
-		$docker = true;
-	}
 	
 	if( $instances !== null && $branch !== null )
 	{
@@ -412,45 +346,6 @@ $a->setExecute(function() use ($a)
 		syncQuota('MEMORY', $user);
 		
 		$docker = true;
-	}
-	
-	if( $start !== null && $branch !== null )
-	{
-		$commands = array();
-		$extra = json_decode($data['description'], true);
-		if( $extra['branches'][$branch]['instances'] )
-		{
-			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
-				$commands[] = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} start";
-		}
-		
-		$GLOBALS['system']->exec($commands);
-	}
-	else if( $stop !== null && $branch !== null )
-	{
-		$commands = array();
-		$extra = json_decode($data['description'], true);
-		if( $extra['branches'][$branch]['instances'] )
-		{
-			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
-				$commands[] = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} stop ".strtolower($data['uid'])." {$branch}";
-		}
-		
-		$GLOBALS['system']->exec($commands);
-	}
-	else if( $restart !== null && $branch !== null )
-	{
-		$extra = json_decode($data['description'], true);
-		if( $extra['branches'][$branch]['instances'] )
-		{
-			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
-			{
-				$commands = array();
-				$commands[] = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} stop ".strtolower($data['uid'])." {$branch}";
-				$commands[] = "sleep 2 && /dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} start";
-				$GLOBALS['system']->exec($commands);
-			}
-		}
 	}
 	if( $rebuild !== null && $branch !== null )
 	{
@@ -540,14 +435,6 @@ $a->setExecute(function() use ($a)
 	
 	if( $user !== null )
 		syncQuota('MEMORY', $user);
-	
-	if( $docker === true )
-	{
-		$commands = array();
-		$commands[] = "/dns/tm/sys/usr/local/bin/app-reload {$data['uid']}";
-		$GLOBALS['system']->exec($commands);
-	}
-	
 	// =================================
 	// LOG ACTION
 	// =================================	
