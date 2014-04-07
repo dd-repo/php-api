@@ -128,7 +128,6 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$app = $a->getParam('app');
 	$instances = $a->getParam('instances');
-	$reassign = $a->getParam('reassign');
 	$service = $a->getParam('service');
 	$url = $a->getParam('url');
 	$mode = $a->getParam('mode');
@@ -208,8 +207,6 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// UPDATE REMOTE APP
 	// =================================
-	$params = array();
-	$docker = false;
 	if( $tag !== null )
 	{
 		if( !$appresult['app_id'] )
@@ -223,46 +220,10 @@ $a->setExecute(function() use ($a)
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 	}
+	
 	if( $pass !== null )
 	{
-		$params['userPassword'] = $pass;
-		$GLOBALS['ldap']->replace($dn, $params);
-	}
-	if( $reassign !== null )
-	{
-		$extra = json_decode($data['description'], true);
-		
-		$newinstances = array();
-		if( is_array($extra['branches']) )
-		{
-			foreach( $extra['branches'] as $k => $v )
-			{
-				$sql = "SELECT port, used FROM ports WHERE used = 0";
-				$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
-				if( !$portresult['port'] )
-				{
-					$sql = "INSERT INTO ports (used) VALUES (1)";
-					$GLOBALS['db']->query($sql, mysql::NO_ROW);
-					$port = $GLOBALS['db']->last_id();
-				}
-				else
-				{
-					$port = $portresult['port'];
-					$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
-					$GLOBALS['db']->query($sql, mysql::NO_ROW);
-				}
-				
-				if( is_array($v['instances']) )
-				{
-					foreach( $v['instances'] as $key => $value )
-						$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => $value['memory'], 'cpu' => $value['cpu']);
-						
-					$extra['branches'][$k]['instances'] = $newinstances;
-				}
-			}
-		}
-		
-		$params = array('description'=>json_encode($extra));
+		$params = array('userPassword' => $pass);
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
 	
@@ -282,11 +243,11 @@ $a->setExecute(function() use ($a)
 			}
 		
 			$extra['branches'][$branch]['instances'] = $newinstances;
-		
 			$params = array('description'=>json_encode($extra));
 			$GLOBALS['ldap']->replace($dn, $params);
 		}
 	}
+
 	if( $cache !== null )
 	{
 		$extra = json_decode($data['description'], true);
@@ -295,58 +256,7 @@ $a->setExecute(function() use ($a)
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
-
 	
-	if( $instances !== null && $branch !== null )
-	{
-		checkQuota('MEMORY', $user);
-		
-		$extra = json_decode($data['description'], true);
-		
-		$newinstances = array();
-		$count = 0;
-		if( $extra['branches'][$branch]['instances'] )
-		{
-			foreach( $extra['branches'][$branch]['instances'] as $i )
-			{
-				if( $count < $instances )
-					$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $i['memory'], 'cpu' => $i['cpu']);	
-				
-				$count++;
-			}
-		}
-		else
-		{
-			$sql = "SELECT port, used FROM ports WHERE used = 0";
-			$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
-			if( !$portresult['port'] )
-			{
-				$sql = "INSERT INTO ports (used) VALUES (1)";
-				$GLOBALS['db']->query($sql, mysql::NO_ROW);
-				$i['port'] = $GLOBALS['db']->last_id();
-			}
-			else
-			{
-				$i['port'] = $portresult['port'];
-				$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
-				$GLOBALS['db']->query($sql, mysql::NO_ROW);
-			}
-			$i['memory'] = 128;
-			$i['cpu'] = 1;
-		}
-		
-		for( $j = $count; $j < $instances; $j++ )
-			$newinstances[] = array('port' => $i['port'], 'memory' => $i['memory'], 'cpu' => $i['cpu']);	
-		
-		$extra['branches'][$branch]['instances'] = $newinstances;
-	
-		$params = array('description'=>json_encode($extra));
-		$GLOBALS['ldap']->replace($dn, $params);
-
-		syncQuota('MEMORY', $user);
-		
-		$docker = true;
-	}
 	if( $rebuild !== null && $branch !== null )
 	{
 		$commands = array();

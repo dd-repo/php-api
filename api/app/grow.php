@@ -8,7 +8,7 @@ if( !defined('PROPER_START') )
 
 $a = new action();
 $a->addAlias(array('grow'));
-$a->setDescription("Grow memory of an app");
+$a->setDescription("Grow an app");
 $a->addGrant(array('ACCESS', 'APP_UPDATE'));
 $a->setReturn("OK");
 
@@ -29,9 +29,17 @@ $a->addParam(array(
 	'match'=>request::LOWER,
 	));	
 $a->addParam(array(
+	'name'=>array('instances', 'number'),
+	'description'=>'The number of instances',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>30,
+	'match'=>request::NUMBER
+	));	
+$a->addParam(array(
 	'name'=>array('memory'),
 	'description'=>'The app memory (in MB)',
-	'optional'=>false,
+	'optional'=>true,
 	'minlength'=>1,
 	'maxlength'=>30,
 	'match'=>request::NUMBER
@@ -120,29 +128,79 @@ $a->setExecute(function() use ($a)
 	checkQuota('MEMORY', $userdata['user_id']);
 	
 	$extra = json_decode($data['description'], true);
-	$newinstances = array();
-	if( $extra['branches'][$branch]['instances'] )
+	
+	if( $memory !== null )
 	{
-		foreach( $extra['branches'][$branch]['instances'] as $i )
+		$newinstances = array();
+		if( $extra['branches'][$branch]['instances'] )
 		{
-			if( $i['memory'] >= $memory )
-				throw new ApiException("Not growing", 500, "Your are not growing the app {$app}!");
-				
-			$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
+			foreach( $extra['branches'][$branch]['instances'] as $i )
+			{
+				if( $i['memory'] >= $memory )
+					throw new ApiException("Not growing", 500, "Your are not growing the app {$app}!");
+					
+				$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
+			}
+			$extra['branches'][$branch]['instances'] = $newinstances;
+		
+			$params = array('description'=>json_encode($extra));
+			$GLOBALS['ldap']->replace($dn, $params);
 		}
+	}
+	if( $instances !== null )
+	{		
+		$newinstances = array();
+		$count = 0;
+		if( $extra['branches'][$branch]['instances'] )
+		{
+			if( count($extra['branches'][$branch]['instances']) >= $instances )
+				throw new ApiException("Not growing", 500, "Your are not growing the app {$app}!");
+					
+			foreach( $extra['branches'][$branch]['instances'] as $i )
+			{
+				if( $count < $instances )
+					$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $i['memory'], 'cpu' => $i['cpu']);	
+				
+				$count++;
+			}
+		}
+		else
+		{
+			$sql = "SELECT port, used FROM ports WHERE used = 0";
+			$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+			if( !$portresult['port'] )
+			{
+				$sql = "INSERT INTO ports (used) VALUES (1)";
+				$GLOBALS['db']->query($sql, mysql::NO_ROW);
+				$i['port'] = $GLOBALS['db']->last_id();
+			}
+			else
+			{
+				$i['port'] = $portresult['port'];
+				$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
+				$GLOBALS['db']->query($sql, mysql::NO_ROW);
+			}
+			$i['memory'] = 128;
+			$i['cpu'] = 1;
+		}
+		
+		for( $j = $count; $j < $instances; $j++ )
+			$newinstances[] = array('port' => $i['port'], 'memory' => $i['memory'], 'cpu' => $i['cpu']);	
+		
 		$extra['branches'][$branch]['instances'] = $newinstances;
 	
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
+	
 	syncQuota('MEMORY', $user);
 	$command = "/dns/tm/sys/usr/local/bin/app-reload {$data['uid']}";
 	$GLOBALS['gearman']->sendAsync($command);
 	
 	// =================================
-	// RESTART APP
+	// RESTART APP IF MEMORY GROWING
 	// =================================			
-	if( $extra['branches'][$branch]['instances'] )
+	if( $extra['branches'][$branch]['instances'] && $memory !== null )
 	{
 		foreach( $extra['branches'][$branch]['instances'] as $key => $value )
 		{
