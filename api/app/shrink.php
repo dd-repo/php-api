@@ -29,9 +29,17 @@ $a->addParam(array(
 	'match'=>request::LOWER,
 	));	
 $a->addParam(array(
+	'name'=>array('instances', 'number'),
+	'description'=>'The number of instances',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>30,
+	'match'=>request::NUMBER
+	));	
+$a->addParam(array(
 	'name'=>array('memory'),
 	'description'=>'The app memory (in MB)',
-	'optional'=>false,
+	'optional'=>true,
 	'minlength'=>1,
 	'maxlength'=>30,
 	'match'=>request::NUMBER
@@ -161,7 +169,7 @@ $a->setExecute(function() use ($a)
 		$extra['branches'][$branch]['instances'] = $newinstances;
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
-	}	
+	}
 	
 	syncQuota('MEMORY', $userdata['user_id']);
 	$command = "/dns/tm/sys/usr/local/bin/app-reload {$data['uid']}";
