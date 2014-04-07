@@ -78,8 +78,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "rm -Rf {$data['homeDirectory']}";
-	$GLOBALS['system']->exec($commands);
+	$command = "rm -Rf {$data['homeDirectory']}";
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	// =================================
 	// SYNC QUOTA

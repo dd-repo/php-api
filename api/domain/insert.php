@@ -110,8 +110,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "mkdir -p {$data['homeDirectory']} && chown root:{$data['gidNumber']} {$data['homeDirectory']} && chmod 751 {$data['homeDirectory']} && cd {$data['homeDirectory']} && echo \"RewriteEngine On\" > .htaccess  && echo \"RewriteCond %{HTTP_HOST} ^".str_replace(".", "\\.", $data['associatedDomain'])."\$\" [NC]  >> .htaccess && echo \"RewriteRule ^(.*)$ http://www.{$data['associatedDomain']}/\\\$1 [QSA,L,R=301]\" >> .htaccess";
-	$GLOBALS['system']->exec($commands);
+	$command = "mkdir -p {$data['homeDirectory']} && chown root:{$data['gidNumber']} {$data['homeDirectory']} && chmod 751 {$data['homeDirectory']} && cd {$data['homeDirectory']} && echo \"RewriteEngine On\" > .htaccess  && echo \"RewriteCond %{HTTP_HOST} ^".str_replace(".", "\\.", $data['associatedDomain'])."\$\" [NC]  >> .htaccess && echo \"RewriteRule ^(.*)$ http://www.{$data['associatedDomain']}/\\\$1 [QSA,L,R=301]\" >> .htaccess";
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	// =================================
 	// INSERT REMOTE CONTAINERS

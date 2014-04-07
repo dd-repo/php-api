@@ -133,7 +133,7 @@ $a->setExecute(function() use ($a)
 			$commands[] = "cd {$userinfo['homeDirectory']} && ln -s {$data['homeDirectory']} {$data['uid']}.hg";
 		break;
 	}
-	$GLOBALS['system']->exec($commands);
+	$GLOBALS['gearman']->sendAsync($commands);
 
 	// =================================
 	// LOG ACTION
