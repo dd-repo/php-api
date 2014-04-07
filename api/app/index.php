@@ -19,7 +19,6 @@ $i->addEntry('restart', array('restart', 'reboot'));
 $i->addEntry('rebuild', array('rebuild'));
 $i->addEntry('grow', array('grow'));
 $i->addEntry('shrink', array('shrink'));
-$i->addEntry('branch', array('branch', 'branches'));
 
 return $i;
 
