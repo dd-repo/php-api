@@ -85,8 +85,8 @@ $a->setExecute(function() use ($a)
 		// =================================	
 		$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
 	
-		if( $result['owner'] != $user_dn )
-			throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the subdomain {$subdomain}");
+		if( $data['owner'] != $user_dn )
+			throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the app {$app}");
 	}
 	
 	// =================================
