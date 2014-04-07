@@ -92,7 +92,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// REBUILD APP
 	// =================================	
-	$command= "/dns/tm/sys/usr/local/bin/app-rebuild {$data['uid']} {$data['homeDirectory']} {$branch} ".strtolower($data['uid']);
+	$command = "/dns/tm/sys/usr/local/bin/app-rebuild {$data['uid']} {$data['homeDirectory']} {$branch} ".strtolower($data['uid']);
 	$GLOBALS['gearman']->sendAsync($command);
 
 	// =================================

@@ -163,7 +163,7 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['ldap']->replace($dn, $params);
 	}	
 	
-	syncQuota('MEMORY', $user);
+	syncQuota('MEMORY', $userdata['user_id']);
 	$command = "/dns/tm/sys/usr/local/bin/app-reload {$data['uid']}";
 	$GLOBALS['gearman']->sendAsync($command);
 

@@ -21,22 +21,6 @@ $a->addParam(array(
 	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
-	'name'=>array('instances', 'number'),
-	'description'=>'The number of instances',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>30,
-	'match'=>request::NUMBER
-	));	
-$a->addParam(array(
-	'name'=>array('reassign'),
-	'description'=>'Reassign all ports of the app',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>5,
-	'match'=>"(1|yes|true)"
-	));
-$a->addParam(array(
 	'name'=>array('url', 'uri'),
 	'description'=>'The url of the app',
 	'optional'=>true,
@@ -45,21 +29,13 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));	
 $a->addParam(array(
-	'name'=>array('service'),
-	'description'=>'The service of the app',
-	'optional'=>true,
-	'minlength'=>3,
-	'maxlength'=>100,
-	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
-	));		
-$a->addParam(array(
 	'name'=>array('branch', 'env', 'environment'),
 	'description'=>'The environement of the app',
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>150,
 	'match'=>request::LOWER,
-	));	
+	));
 $a->addParam(array(
 	'name'=>array('host', 'hostname'),
 	'description'=>'The host of the instance',
@@ -78,7 +54,7 @@ $a->addParam(array(
 	));	
 $a->addParam(array(
 	'name'=>array('mode'),
-	'description'=>'Mode for application address, services and environment (can be add/delete).',
+	'description'=>'Mode for application and environment (can be add/delete).',
 	'optional'=>true,
 	'minlength'=>2,
 	'maxlength'=>6,
@@ -127,8 +103,6 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$app = $a->getParam('app');
-	$instances = $a->getParam('instances');
-	$service = $a->getParam('service');
 	$url = $a->getParam('url');
 	$mode = $a->getParam('mode');
 	$branch = $a->getParam('branch');
@@ -257,13 +231,6 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
 	
-	if( $rebuild !== null && $branch !== null )
-	{
-		$commands = array();
-		$commands[] = "/dns/tm/sys/usr/local/bin/app-rebuild {$data['uid']} {$data['homeDirectory']} {$branch} ".strtolower($data['uid'])." {$file}";
-		$GLOBALS['system']->exec($commands);
-	}
-	
 	if( $url !== null && $branch != null && $mode == 'add' )
 	{
 		$extra = json_decode($data['description'], true);
@@ -281,7 +248,7 @@ $a->setExecute(function() use ($a)
 		$commands = array();
 		$commands[] = "ln -s {$data['homeDirectory']}/{$branch} {$data['data2']['homeDirectory']}";
 		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']} \"{$texturls}\"";
-		$GLOBALS['system']->exec($commands);
+		$GLOBALS['gearman']->sendAsync($commands);
 	}
 	else if( $url !== null && $mode == 'delete' && $branch != null )
 	{
@@ -309,14 +276,14 @@ $a->setExecute(function() use ($a)
 		$commands = array();
 		$commands[] = "rm {$data['data2']['homeDirectory']}";			
 		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']} \"{$texturls}\"";
-		$GLOBALS['system']->exec($commands);
+		$GLOBALS['gearman']->sendAsync($commands);
 	}
-	else if( $branch !== null && $mode == 'add' )
+	
+	if( $branch !== null && $mode == 'add' )
 	{
 		$extra = json_decode($data['description'], true);
-		$commands = array();
-		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language} \"{$appresult['app_binary']}\"";
-		$GLOBALS['system']->exec($commands);
+		$command = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language} \"{$appresult['app_binary']}\"";
+		$GLOBALS['gearman']->sendAsync($command);
 	
 		$sql = "SELECT port, used FROM ports WHERE used = 0";
 		$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
@@ -343,8 +310,6 @@ $a->setExecute(function() use ($a)
 		// todo
 	}
 	
-	if( $user !== null )
-		syncQuota('MEMORY', $user);
 	// =================================
 	// LOG ACTION
 	// =================================	
