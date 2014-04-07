@@ -43,6 +43,33 @@ switch($action)
 		request::addParam('user', security::getUser());
 		grantStore::add('APP_DELETE');
 		request::forward('/app/delete'); break;
+	case 'start':
+	case 'boot':
+		security::requireGrants(array('ACCESS', 'SELF_APP_UPDATE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('APP_UPDATE');
+		request::forward('/app/start'); break;
+	case 'stop':
+	case 'end':
+		security::requireGrants(array('ACCESS', 'SELF_APP_UPDATE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('APP_UPDATE');
+		request::forward('/app/stop'); break;
+	case 'restart':
+	case 'reboot':
+		security::requireGrants(array('ACCESS', 'SELF_APP_UPDATE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('APP_UPDATE');
+		request::forward('/app/restart'); break;
+	case 'rebuild':
+		security::requireGrants(array('ACCESS', 'SELF_APP_UPDATE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('APP_UPDATE');
+		request::forward('/app/rebuild'); break;
 	case 'help':
 	case 'doc':
 		$body = "
