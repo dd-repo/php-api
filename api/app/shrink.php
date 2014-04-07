@@ -118,29 +118,59 @@ $a->setExecute(function() use ($a)
 	// SHRINK APP
 	// =================================	
 	$extra = json_decode($data['description'], true);
-	$newinstances = array();
-	if( $extra['branches'][$branch]['instances'] )
-	{
-		foreach( $extra['branches'][$branch]['instances'] as $i )
-		{
-			if( $i['memory'] <= $memory )
-				throw new ApiException("Not growing", 500, "Your are not shrinking the app {$app}!");
-				
-			$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
-		}
-		$extra['branches'][$branch]['instances'] = $newinstances;
 	
+	if( $memory !== null )
+	{
+		$newinstances = array();
+		if( $extra['branches'][$branch]['instances'] )
+		{
+			foreach( $extra['branches'][$branch]['instances'] as $i )
+			{
+				if( $i['memory'] <= $memory || $memory < 64 )
+					throw new ApiException("Not growing", 500, "Your are not shrinking the app {$app} or the app can not be shrink!");
+					
+				$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
+			}
+			$extra['branches'][$branch]['instances'] = $newinstances;
+		
+			$params = array('description'=>json_encode($extra));
+			$GLOBALS['ldap']->replace($dn, $params);
+		}
+	}
+	if( $instances !== null )
+	{		
+		$newinstances = array();
+		$count = 0;
+		if( $extra['branches'][$branch]['instances'] )
+		{
+			if( count($extra['branches'][$branch]['instances']) <= $instances || $instances < 0 )
+				throw new ApiException("Not growing", 500, "Your are not shrinking the app {$app} or the app can not be shrink!");
+					
+			foreach( $extra['branches'][$branch]['instances'] as $i )
+			{
+				if( $count < $instances )
+					$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $i['memory'], 'cpu' => $i['cpu']);	
+				
+				$count++;
+			}
+		}
+
+		for( $j = $count; $j < $instances; $j++ )
+			$newinstances[] = array('port' => $i['port'], 'memory' => $i['memory'], 'cpu' => $i['cpu']);	
+		
+		$extra['branches'][$branch]['instances'] = $newinstances;
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
-	}
+	}	
+	
 	syncQuota('MEMORY', $user);
 	$command = "/dns/tm/sys/usr/local/bin/app-reload {$data['uid']}";
 	$GLOBALS['gearman']->sendAsync($command);
-	
+
 	// =================================
-	// RESTART APP
+	// RESTART APP IF MEMORY SHRINKING
 	// =================================			
-	if( $extra['branches'][$branch]['instances'] )
+	if( $extra['branches'][$branch]['instances'] && $memory !== null )
 	{
 		foreach( $extra['branches'][$branch]['instances'] as $key => $value )
 		{

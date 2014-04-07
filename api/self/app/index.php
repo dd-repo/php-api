@@ -70,6 +70,18 @@ switch($action)
 		request::addParam('user', security::getUser());
 		grantStore::add('APP_UPDATE');
 		request::forward('/app/rebuild'); break;
+	case 'grow':
+		security::requireGrants(array('ACCESS', 'SELF_APP_UPDATE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('APP_UPDATE');
+		request::forward('/app/grow'); break;
+	case 'shrink':
+		security::requireGrants(array('ACCESS', 'SELF_APP_UPDATE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('APP_UPDATE');
+		request::forward('/app/shrink'); break;
 	case 'help':
 	case 'doc':
 		$body = "
