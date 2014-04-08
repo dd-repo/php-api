@@ -183,7 +183,9 @@ $a->setExecute(function() use ($a)
 						{
 							if( $extended == true )
 							{
-								$info = $GLOBALS['system']->getdockerstats($i['host'], $result['uid'] . '-' . $key . '-' . $j, $i['port']);
+								$command = "/usr/local/bin/docker-json {$result['uid']}-{$key}-{$j} {$i['port']}";
+								$info = $GLOBALS['gearman']->sendSync($command, $i['host']);
+								print_r($info);
 								$info = json_decode($info, true);
 							}
 							else
