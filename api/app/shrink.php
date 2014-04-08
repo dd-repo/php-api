@@ -161,6 +161,13 @@ $a->setExecute(function() use ($a)
 				
 				$count++;
 			}
+			
+			// FREE PORT
+			if( $instances == 0 )
+			{
+				$sql = "UPDATE ports SET used = 0 WHERE port = {$i['port']}";
+				$GLOBALS['db']->query($sql, mysql::NO_ROW);		
+			}
 		}
 
 		for( $j = $count; $j < $instances; $j++ )
