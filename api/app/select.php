@@ -185,7 +185,6 @@ $a->setExecute(function() use ($a)
 							{
 								$command = "/usr/local/bin/docker-json {$result['uid']}-{$key}-{$j} {$i['port']}";
 								$info = $GLOBALS['gearman']->sendSync($command, $i['host']);
-								print_r($info);
 								$info = json_decode($info, true);
 							}
 							else
@@ -247,7 +246,6 @@ $a->setExecute(function() use ($a)
 								{
 									$command = "/usr/local/bin/docker-json {$r['uid']}-{$key}-{$j} {$i['port']}";
 									$info = $GLOBALS['gearman']->sendSync($command, $i['host']);
-									print_r($info);
 									$info = json_decode($info, true);
 								}
 								else
