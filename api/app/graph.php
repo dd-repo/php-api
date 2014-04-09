@@ -25,6 +25,22 @@ $a->addParam(array(
 	'match'=>request::NUMBER
 	));
 $a->addParam(array(
+	'name'=>array('branch', 'graph_branch'),
+	'description'=>'The app branch.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>20,
+	'match'=>request::LOWER
+	));
+$a->addParam(array(
+	'name'=>array('graph', 'graph_type', 'type'),
+	'description'=>'The graph type.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>40,
+	'match'=>request::LOWER
+	));
+$a->addParam(array(
 	'name'=>array('from'),
 	'description'=>'From date.',
 	'optional'=>true,
@@ -109,6 +125,8 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$id = $a->getParam('id');
+	$branch = $a->getParam('branch');
+	$graph = $a->getParam('graph');
 	$from = $a->getParam('from');
 	$to = $a->getParam('to');
 	$count = $a->getParam('count');
@@ -131,6 +149,10 @@ $a->setExecute(function() use ($a)
 	$where = '';
 	if( $id !== null )
 		$where .= " AND value_app = {$id}";
+	if( $branch !== null )
+		$where .= " AND value_branch = '{$branch}'";
+	if( $graph !== null )
+		$where .= " AND value_graph = '{$graph}'";
 	if( $from !== null )
 		$where .= " AND value_date >= {$from}";
 	if( $to !== null )
