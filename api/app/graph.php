@@ -17,7 +17,7 @@ $a->setReturn(array(array(
 	'value'=>'the value'
 	)));
 $a->addParam(array(
-	'name'=>array('app', 'app_id', 'id'),
+	'name'=>array('app', 'app_name', 'name'),
 	'description'=>'The app name.',
 	'optional'=>false,
 	'minlength'=>3,
@@ -132,7 +132,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET PARAMETERS
 	// =================================
-	$id = $a->getParam('id');
+	$app = $a->getParam('app');
 	$branch = $a->getParam('branch');
 	$graph = $a->getParam('graph');
 	$instance = $a->getParam('instance');
@@ -156,8 +156,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$limitation = '';
 	$where = '';
-	if( $id !== null )
-		$where .= " AND value_app = {$id}";
+	if( $app !== null )
+		$where .= " AND value_app = '{$app}'";
 	if( $branch !== null )
 		$where .= " AND value_branch = '{$branch}'";
 	if( $graph !== null )
