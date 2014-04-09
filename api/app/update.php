@@ -307,15 +307,33 @@ $a->setExecute(function() use ($a)
 	else if( $branch !== null && $mode == 'delete' )
 	{
 		$extra = json_decode($data['description'], true);
-		// FREE PORT
-		foreach( $extra['branches'][$branch]['instances'] as $i )
+		
+		
+		foreach( $extra['branches'][$branch] as $key => $value )
 		{
-			if( $i['port'] )
+			// FREE PORT
+			foreach( $value['instances'] as $i )
 			{
-				$sql = "UPDATE ports SET used = 0 WHERE port = {$i['port']}";
-				$GLOBALS['db']->query($sql, mysql::NO_ROW);		
+				if( $i['port'] )
+				{
+					$sql = "UPDATE ports SET used = 0 WHERE port = {$i['port']}";
+					$GLOBALS['db']->query($sql, mysql::NO_ROW);		
+				}
 			}
+			
+			// DELETE SYMLINKS
+			if( count($value['urls']) > 0 )
+			{
+				foreach( $value['urls'] as $u )
+				{
+					$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
+					$data2 = $GLOBALS['ldap']->read($dn2);
+					$commands[] = "rm {$data2['homeDirectory']}";
+				}
+			}
+			$GLOBALS['gearman']->sendAsync($commands);
 		}	
+		
 		unset($extra['branches'][$branch]);
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);		
