@@ -306,7 +306,22 @@ $a->setExecute(function() use ($a)
 	}
 	else if( $branch !== null && $mode == 'delete' )
 	{
-		// todo
+		$extra = json_decode($data['description'], true);
+		// FREE PORT
+		foreach( $extra['branches'][$branch]['instances'] as $i )
+		{
+			if( $i['port'] )
+			{
+				$sql = "UPDATE ports SET used = 0 WHERE port = {$i['port']}";
+				$GLOBALS['db']->query($sql, mysql::NO_ROW);		
+			}
+		}	
+		unset($extra['branches'][$branch]);
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);		
+		
+		$command = "/dns/tm/sys/usr/local/bin/delete-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language}";
+		$GLOBALS['gearman']->sendAsync($command);
 	}
 	
 	// =================================
