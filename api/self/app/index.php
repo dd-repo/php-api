@@ -88,7 +88,7 @@ switch($action)
 		security::requireGrants(array('ACCESS', 'SELF_APP_SELECT'));
 		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
 		request::addParam('user', security::getUser());
-		grantStore::add('APP_UPDATE');
+		grantStore::add('APP_SELECT');
 		request::forward('/app/graph'); break;
 	case 'help':
 	case 'doc':
