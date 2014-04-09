@@ -33,6 +33,14 @@ $a->addParam(array(
 	'match'=>request::LOWER
 	));
 $a->addParam(array(
+	'name'=>array('instance', 'instance_id'),
+	'description'=>'The instance name',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>40,
+	'match'=>request::LOWER
+	));
+$a->addParam(array(
 	'name'=>array('graph', 'graph_type', 'type'),
 	'description'=>'The graph type.',
 	'optional'=>true,
@@ -127,6 +135,7 @@ $a->setExecute(function() use ($a)
 	$id = $a->getParam('id');
 	$branch = $a->getParam('branch');
 	$graph = $a->getParam('graph');
+	$instance = $a->getParam('instance');
 	$from = $a->getParam('from');
 	$to = $a->getParam('to');
 	$count = $a->getParam('count');
@@ -153,6 +162,8 @@ $a->setExecute(function() use ($a)
 		$where .= " AND value_branch = '{$branch}'";
 	if( $graph !== null )
 		$where .= " AND value_graph = '{$graph}'";
+	if( $instance !== null )
+		$where .= " AND value_instance = '{$instance}'";
 	if( $from !== null )
 		$where .= " AND value_date >= {$from}";
 	if( $to !== null )
