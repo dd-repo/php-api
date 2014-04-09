@@ -178,7 +178,7 @@ $a->setExecute(function() use ($a)
 			else
 			{
 				$i['port'] = $portresult['port'];
-				$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
+				$sql = "UPDATE ports SET used = 1 WHERE port = {$i['port']}";
 				$GLOBALS['db']->query($sql, mysql::NO_ROW);
 			}
 			$i['memory'] = 128;
