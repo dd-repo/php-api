@@ -19,7 +19,7 @@ $a->setReturn(array(array(
 $a->addParam(array(
 	'name'=>array('app', 'app_id', 'id'),
 	'description'=>'The app id.',
-	'optional'=>true,
+	'optional'=>false,
 	'minlength'=>0,
 	'maxlength'=>11,
 	'match'=>request::NUMBER
