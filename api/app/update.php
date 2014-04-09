@@ -307,9 +307,8 @@ $a->setExecute(function() use ($a)
 	else if( $branch !== null && $mode == 'delete' )
 	{
 		$extra = json_decode($data['description'], true);
-		
-		
-		foreach( $extra['branches'][$branch] as $key => $value )
+
+		foreach( $extra['branches'] as $key => $value )
 		{
 			// FREE PORT
 			foreach( $value['instances'] as $i )
