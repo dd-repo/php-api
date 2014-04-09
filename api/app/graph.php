@@ -18,11 +18,11 @@ $a->setReturn(array(array(
 	)));
 $a->addParam(array(
 	'name'=>array('app', 'app_id', 'id'),
-	'description'=>'The app id.',
+	'description'=>'The app name.',
 	'optional'=>false,
-	'minlength'=>0,
-	'maxlength'=>11,
-	'match'=>request::NUMBER
+	'minlength'=>3,
+	'maxlength'=>100,
+	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
 	'name'=>array('branch', 'graph_branch'),
