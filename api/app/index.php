@@ -19,6 +19,7 @@ $i->addEntry('restart', array('restart', 'reboot'));
 $i->addEntry('rebuild', array('rebuild'));
 $i->addEntry('grow', array('grow'));
 $i->addEntry('shrink', array('shrink'));
+$i->addEntry('graph', array('graph', 'graphs', 'values', 'value'));
 
 return $i;
 
