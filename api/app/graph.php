@@ -37,8 +37,8 @@ $a->addParam(array(
 	'description'=>'The instance name',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>40,
-	'match'=>request::LOWER
+	'maxlength'=>11,
+	'match'=>request::NUMBER
 	));
 $a->addParam(array(
 	'name'=>array('graph', 'graph_type', 'type'),
