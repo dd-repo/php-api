@@ -72,6 +72,14 @@ $a->addParam(array(
 	'maxlength'=>5,
 	'match'=>"(1|0|yes|no|true|false)"
 	));
+$a->addParam(array(
+	'name'=>array('log'),
+	'description'=>'Whether or not to show log. Default is false.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -87,11 +95,14 @@ $a->setExecute(function() use ($a)
 	$user = $a->getParam('user');
 	$count = $a->getParam('count');
 	$extended = $a->getParam('extended');
+	$log = $a->getParam('log');
 	
 	if( $count == '1' || $count == 'yes' || $count == 'true' || $count === true || $count === 1 ) $count = true;
 	else $count = false;
 	if( $extended == '1' || $extended == 'yes' || $extended == 'true' || $extended === true || $extended === 1 ) $extended = true;
 	else $extended = false;
+	if( $log == '1' || $log == 'yes' || $log == 'true' || $log === true || $log === 1 ) $log = true;
+	else $log = false;
 	
 	// =================================
 	// GET USER DATA
