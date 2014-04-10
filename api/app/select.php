@@ -218,6 +218,71 @@ $a->setExecute(function() use ($a)
 			}
 		}
 		
+		$apps = array();
+		$groups = array();
+		$users = array();
+		if( is_array($result['member']) )
+		{
+			foreach( $result['member'] as $m )
+			{
+				if( strpos($m, 'ou=Apps') !== false )
+				{
+					try
+					{
+						$app = $GLOBALS['ldap']->read($m);
+						$apps2[] = array('name'=>$app['uid'],'id'=>$app['uidNumber']);
+					} catch(Exception $e) { }
+				}
+				if( strpos($m, 'ou=Groups') !== false )
+				{
+					try
+					{
+						$group = $GLOBALS['ldap']->read($m);
+						$groups[] = array('name'=>$group['uid'],'id'=>$group['uidNumber']);
+					} catch(Exception $e) { }
+				}
+				if( strpos($m, 'ou=Users') !== false )
+				{
+					try
+					{
+						$user = $GLOBALS['ldap']->read($m);
+						$users[] = array('name'=>$user['uid'],'id'=>$user['uidNumber']);
+					} catch(Exception $e) { }
+				}
+			}
+		}
+		elseif( $result['member'] )
+		{
+			if( strpos($result['member'], 'ou=Apps') !== false )
+			{
+				try
+				{
+					$app = $GLOBALS['ldap']->read($result['member']);
+					$apps2[] = array('name'=>$app['uid'],'id'=>$app['uidNumber']);
+				} catch(Exception $e) { }
+			}
+			if( strpos($result['member'], 'ou=Groups') !== false )
+			{
+				try
+				{
+					$group = $GLOBALS['ldap']->read($result['member']);
+					$groups[] = array('name'=>$group['uid'],'id'=>$group['uidNumber']);
+				} catch(Exception $e) { }
+			}
+			if( strpos($result['member'], 'ou=Users') !== false )
+			{
+				try
+				{
+					$user = $GLOBALS['ldap']->read($result['member']);
+					$users[] = array('name'=>$user['uid'],'id'=>$user['uidNumber']);
+				} catch(Exception $e) { }
+			}
+		}
+		
+		$infos['users'] = $users;
+		$infos['apps'] = $apps2;
+		$infos['groups'] = $groups;
+		
 		$apps[] = $infos;
 	}
 	else
