@@ -200,13 +200,20 @@ $a->setExecute(function() use ($a)
 							}
 							else
 								$info = array();
-														
+							if( $log == true )
+							{
+								$command = "cat /var/log/{$result['uid']}-{$key}-{$j}/current";
+								$logs = $GLOBALS['gearman']->sendSync($command, $i['host']);
+							}
+							else
+								$logs = '';						
 							$infos['branches'][$key]['instances'][$j]['id'] = $j;
 							$infos['branches'][$key]['instances'][$j]['host'] = $i['host'];
 							$infos['branches'][$key]['instances'][$j]['port'] = $i['port'];
 							$infos['branches'][$key]['instances'][$j]['status'] = $info['status'];
 							$infos['branches'][$key]['instances'][$j]['docker'] = $info['docker'];
 							$infos['branches'][$key]['instances'][$j]['uptime'] = $info['uptime'];
+							$infos['branches'][$key]['instances'][$j]['log'] = $logs;
 							$infos['branches'][$key]['instances'][$j]['memory']['quota'] = $i['memory'];
 							$infos['branches'][$key]['instances'][$j]['memory']['usage'] = round($info['memory']/1024);
 							$infos['branches'][$key]['instances'][$j]['cpu']['quota'] = $i['cpu'];
@@ -326,17 +333,25 @@ $a->setExecute(function() use ($a)
 								}
 								else
 									$info = array();
-															
+								if( $log == true )
+								{
+									$command = "cat /var/log/{$r['uid']}-{$key}-{$j}/current";
+									$logs = $GLOBALS['gearman']->sendSync($command, $i['host']);
+								}
+								else
+									$logs = '';
+									
 								$infos['branches'][$key]['instances'][$j]['id'] = $j;
 								$infos['branches'][$key]['instances'][$j]['host'] = $i['host'];
 								$infos['branches'][$key]['instances'][$j]['port'] = $i['port'];
 								$infos['branches'][$key]['instances'][$j]['status'] = $info['status'];
 								$infos['branches'][$key]['instances'][$j]['docker'] = $info['docker'];
 								$infos['branches'][$key]['instances'][$j]['uptime'] = $info['uptime'];
+								$infos['branches'][$key]['instances'][$j]['log'] = $logs;
 								$infos['branches'][$key]['instances'][$j]['memory']['quota'] = $i['memory'];
 								$infos['branches'][$key]['instances'][$j]['memory']['usage'] = round($info['memory']/1024);
 								$infos['branches'][$key]['instances'][$j]['cpu']['quota'] = $i['cpu'];
-								$infos['branches'][$key]['instances'][$j]['cpu']['usage'] = $info['cpu']*100;		
+								$infos['branches'][$key]['instances'][$j]['cpu']['usage'] = $info['cpu']*100;
 								$j++;
 							}
 						}
