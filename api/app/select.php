@@ -178,6 +178,7 @@ $a->setExecute(function() use ($a)
 		$infos['name'] = $result['uid'];
 		$infos['services'] = $service;
 		$infos['id'] = $result['uidNumber'];
+		$infos['email'] = $result['mailForwardingAddress'];
 		$infos['certificate'] = $result['gecos'];
 		$infos['binary'] = $appinfo['app_binary'];
 		$infos['tag'] = $appinfo['app_tag'];
@@ -317,6 +318,7 @@ $a->setExecute(function() use ($a)
 			$infos['name'] = $r['uid'];
 			$infos['id'] = $r['uidNumber'];
 			$infos['homeDirectory'] = $r['homeDirectory'];
+			$infos['email'] = $r['mailForwardingAddress'];
 			$infos['binary'] = $appinfo['app_binary'];
 			$infos['tag'] = $appinfo['app_tag'];
 			$infos['certificate'] = $r['gecos'];
