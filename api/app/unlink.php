@@ -158,7 +158,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// DELETE SUBSERVICE
 	// =================================			
-	$sql = "DELETE FROM service_branch WHERE  = '{$result['service_name']}' AND branch_name = '".security::escape($branch)."' AND app_id = '{$data['uidNumber']}'";
+	$sql = "DELETE FROM service_branch WHERE service_name = '{$result['service_name']}' AND branch_name = '".security::escape($branch)."' AND app_id = '{$data['uidNumber']}'";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	// =================================
