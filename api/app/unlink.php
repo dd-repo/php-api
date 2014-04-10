@@ -135,31 +135,37 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// DELETE SERVICE
 	// =================================	
-	$new_service = $result['service_name'] . '-' . security::encode($branch);
+	$sql = "UPDATE services SET service_app = '' WHERE service_name = '".security::escape($service)."'";
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);		
 	
-	switch( $result['service_type'] )
+	if( $branch != 'master' )
 	{
-		case 'mysql':
-			$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-			mysql_query("DROP USER '{$new_service}'", $link);
-			mysql_query("DROP DATABASE `{$new_service}`", $link);
-			mysql_close($link);
-		break;
-		case 'pgsql':
-			$command = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$new_service}";
-			$GLOBALS['gearman']->sendAsync($command);
-		break;
-		case 'mongodb':
-			$command = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$new_service}";
-			$GLOBALS['gearman']->sendAsync($command);
-		break;
+		$new_service = $result['service_name'] . '-' . security::encode($branch);
+		
+		switch( $result['service_type'] )
+		{
+			case 'mysql':
+				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+				mysql_query("DROP USER '{$new_service}'", $link);
+				mysql_query("DROP DATABASE `{$new_service}`", $link);
+				mysql_close($link);
+			break;
+			case 'pgsql':
+				$command = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$new_service}";
+				$GLOBALS['gearman']->sendAsync($command);
+			break;
+			case 'mongodb':
+				$command = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$new_service}";
+				$GLOBALS['gearman']->sendAsync($command);
+			break;
+		}
+
+		// =================================
+		// DELETE SUBSERVICE
+		// =================================			
+		$sql = "DELETE FROM service_branch WHERE service_name = '{$result['service_name']}' AND branch_name = '".security::escape($branch)."' AND app_id = '{$data['uidNumber']}'";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	}
-	
-	// =================================
-	// DELETE SUBSERVICE
-	// =================================			
-	$sql = "DELETE FROM service_branch WHERE service_name = '{$result['service_name']}' AND branch_name = '".security::escape($branch)."' AND app_id = '{$data['uidNumber']}'";
-	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	// =================================
 	// LOG ACTION
