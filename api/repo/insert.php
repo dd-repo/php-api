@@ -39,6 +39,14 @@ $a->addParam(array(
 	'match'=>"(git|svn|hg)"
 	));
 $a->addParam(array(
+	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
+	'description'=>'The email of the user.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>150,
+	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>false,
@@ -60,6 +68,7 @@ $a->setExecute(function() use ($a)
 	$domain = $a->getParam('domain');
 	$desc = $a->getParam('desc');
 	$type = $a->getParam('type');
+	$mail = $a->getParam('mail');
 	$user = $a->getParam('user');
 	
 	// =================================
@@ -103,7 +112,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$dir = $result['homeDirectory'] . '/var/' . $type . '/' . $repo;
 	$dn = ldap::buildDN(ldap::REPO, $domain, $repo);
-	$params = array('dn' => $dn, 'uid' => $repo, 'domain' => $domain, 'owner' => $user_dn, 'homeDirectory' => $dir, 'description' => $desc, 'gecos' => $type);
+	$params = array('dn' => $dn, 'uid' => $repo, 'domain' => $domain, 'owner' => $user_dn, 'homeDirectory' => $dir, 'description' => $desc, 'gecos' => $type, 'mailForwardingAddress' => $mail);
 	
 	$handler = new repo();
 	$data = $handler->build($params);

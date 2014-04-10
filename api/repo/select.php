@@ -110,6 +110,7 @@ $a->setExecute(function() use ($a)
 		$re['type'] = $r['gecos'];
 		$re['description'] = $r['description'];
 		$re['dir'] = $r['homeDirectory'];
+		$re['email'] = $r['mailForwardingAddress'];
 		$re['size'] = $storage['storage_size'];
 		
 		$apps = array();
