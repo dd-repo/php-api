@@ -259,13 +259,9 @@ $a->setExecute(function() use ($a)
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
 		
-		$texturls = '';
-		foreach( $extra['branches'][$branch]['urls'] as $uri )
-			$texturls .= ' ' . $key;
-
 		$commands = array();
 		$commands[] = "ln -s {$data['homeDirectory']}/{$branch} {$data['data2']['homeDirectory']}";
-		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']} \"{$texturls}\"";
+		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']}";
 		$GLOBALS['gearman']->sendAsync($commands);
 	}
 	else if( $url !== null && $mode == 'delete' && $branch != null )
@@ -286,14 +282,10 @@ $a->setExecute(function() use ($a)
 		
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);		
-		
-		$texturls = '';
-		foreach( $extra['branches'][$branch]['urls'] as $key => $value )
-			$texturls .= ' ' . $key;
 
 		$commands = array();
 		$commands[] = "rm {$data['data2']['homeDirectory']}";			
-		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']} \"{$texturls}\"";
+		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']}";
 		$GLOBALS['gearman']->sendAsync($commands);
 	}
 	else if( $branch !== null && $mode == 'add' )
