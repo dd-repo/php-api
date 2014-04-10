@@ -338,10 +338,7 @@ $a->setExecute(function() use ($a)
 		{
 			foreach( $extra['branches'][$branch]['instances'] as $i )
 			{
-				$command = "sv stop {$data['uid']}-".security::escape($branch)."-{$i['id']} && rm /etc/service/{$data['uid']}-".security::escape($branch)."-{$i['id']}";
-				$GLOBALS['gearman']->sendSync($command, $i['host']);
-		
-				$command = "docker rmi registry:5000/".strtolower($data['uid'])."-".security::escape($branch);
+				$command = "sv stop {$data['uid']}-".security::escape($branch)."-{$i['id']}; rm /etc/service/{$data['uid']}-".security::escape($branch)."-{$i['id']}; docker rmi registry:5000/".strtolower($data['uid'])."-".security::escape($branch);
 				$GLOBALS['gearman']->sendSync($command, $i['host']);
 			
 				if( $i['port'] )

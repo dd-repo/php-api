@@ -97,14 +97,8 @@ $a->setExecute(function() use ($a)
 	{
 		foreach( $extra['branches'][$branch]['instances'] as $key => $value )
 		{
-			$command = "sv stop {$data['uid']}-{$branch}-{$key}";
-			$GLOBALS['gearman']->sendSync($command, $value['host']);
-			
-			$command = "docker rmi registry:5000/".strtolower($data['uid'])."-{$branch}";
-			$GLOBALS['gearman']->sendSync($command, $value['host']);
-			
-			$command = "sv start {$data['uid']}-{$branch}-{$key}";
-			$GLOBALS['gearman']->sendSync($command, $value['host']);			
+			$command = "sv stop {$data['uid']}-{$branch}-{$key}; docker rmi registry:5000/".strtolower($data['uid'])."-{$branch}; sv start {$data['uid']}-{$branch}-{$key}";
+			$GLOBALS['gearman']->sendSync($command, $value['host']);		
 		}
 	}
 
