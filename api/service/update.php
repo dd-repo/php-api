@@ -105,6 +105,14 @@ $a->setExecute(function() use ($a)
 				mysql_close($link);
 			break;	
 		}
+		case 'pgsql':
+			$commands[] = "/dns/tm/sys/usr/local/bin/update-db-pgsql {$service} ".security::escape($pass)."";
+			$GLOBALS['system']->exec($commands);
+		break;
+		case 'mongodb':
+			$commands[] = "/dns/tm/sys/usr/local/bin/update-db-mongodb {$service} ".security::escape($pass)."";
+			$GLOBALS['system']->exec($commands);
+		break;
 	}
 
 	// =================================
