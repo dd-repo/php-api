@@ -202,7 +202,7 @@ $a->setExecute(function() use ($a)
 								$info = array();
 							if( $log == true )
 							{
-								$command = "cat /var/log/{$result['uid']}-{$key}-{$j}/current";
+								$command = "tail -n 100 /var/log/{$result['uid']}-{$key}-{$j}/current";
 								$logs = $GLOBALS['gearman']->sendSync($command, $i['host']);
 							}
 							else
@@ -335,7 +335,7 @@ $a->setExecute(function() use ($a)
 									$info = array();
 								if( $log == true )
 								{
-									$command = "cat /var/log/{$r['uid']}-{$key}-{$j}/current";
+									$command = "tail -n 100 /var/log/{$r['uid']}-{$key}-{$j}/current";
 									$logs = $GLOBALS['gearman']->sendSync($command, $i['host']);
 								}
 								else
