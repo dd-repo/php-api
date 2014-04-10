@@ -100,7 +100,7 @@ $a->setExecute(function() use ($a)
 			$command = "sv stop {$data['uid']}-{$branch}-{$key}";
 			$GLOBALS['gearman']->sendSync($command, $value['host']);
 			
-			$command = "docker pull registry:5000/".strtolower($data['uid'])."-{$branch}";
+			$command = "docker rmi registry:5000/".strtolower($data['uid'])."-{$branch}";
 			$GLOBALS['gearman']->sendSync($command, $value['host']);
 			
 			$command = "sv start {$data['uid']}-{$branch}-{$key}";
