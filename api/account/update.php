@@ -87,6 +87,14 @@ $a->addParam(array(
 	'match'=>request::NUMBER
 	));
 $a->addParam(array(
+	'name'=>array('key', 'ssh'),
+	'description'=>'The SSH key',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>500,
+	'match'=>request::ALL
+	));
+$a->addParam(array(
 	'name'=>array('join'),
 	'description'=>'Mode team join (can be add/delete).',
 	'optional'=>true,
@@ -124,6 +132,7 @@ $a->setExecute(function() use ($a)
 	$mode = $a->getParam('mode');
 	$team = $a->getParam('team');
 	$join = $a->getParam('join');
+	$key = $a->getParam('key');
 	$user = $a->getParam('user');
 	
 	// =================================

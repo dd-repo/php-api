@@ -117,7 +117,7 @@ $a->setExecute(function() use ($a)
 		case 'mysql':
 			$server = 'sql.anotherservice.com';
 			$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-			mysql_query("CREATE USER '{$service}'@'%' IDENTIFIED BY '{$pass}'", $link);
+			mysql_query("CREATE USER '{$service}'@'%' IDENTIFIED BY '".security::encode($pass)."'", $link);
 			mysql_query("CREATE DATABASE `{$service}` CHARACTER SET utf8 COLLATE utf8_unicode_ci", $link);
 			mysql_query("GRANT USAGE ON * . * TO '{$service}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0", $link);
 			mysql_query("GRANT ALL PRIVILEGES ON `{$service}` . * TO '{$service}'@'%'", $link);
@@ -126,12 +126,12 @@ $a->setExecute(function() use ($a)
 		break;
 		case 'pgsql':
 			$server = 'pgsql.anotherservice.com';
-			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$service} {$pass} {$server}";
+			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$service} ".security::encode($pass)." {$server}";
 			$GLOBALS['system']->exec($commands);
 		break;
 		case 'mongodb':
 			$server = 'mongo.anotherservice.com';
-			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$service} {$pass} {$server}";
+			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$service} ".security::encode($pass)." {$server}";
 			$GLOBALS['system']->exec($commands);
 		break;
 	}
@@ -139,7 +139,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// INSERT LOCAL SERVICE
 	// =================================
-	$sql = "INSERT INTO `services` (service_name, service_description, service_type, service_user, service_desc, service_host) VALUE ('{$service}', '".security::escape($desc)."', '{$vendor}', {$userdata['user_id']}, '{$version}', '{$server}')";
+	$sql = "INSERT INTO services (service_name, service_description, service_type, service_user, service_desc, service_host) VALUE ('{$service}', '".security::escape($desc)."', '{$vendor}', {$userdata['user_id']}, '{$version}', '{$server}')";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 
 	// =================================
