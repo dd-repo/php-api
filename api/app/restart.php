@@ -97,8 +97,14 @@ $a->setExecute(function() use ($a)
 	{
 		foreach( $extra['branches'][$branch]['instances'] as $key => $value )
 		{
-			$command = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} stop ".strtolower($data['uid'])." {$branch} && sleep 3 && /dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} start";
-			$GLOBALS['gearman']->sendAsync($command);
+			$command = "sv stop {$data['uid']}-{$branch}-{$key}";
+			$GLOBALS['gearman']->sendSync($command, $value['host']);
+			
+			$command = "docker pull registry:5000/".strtolower($data['uid'])."-{$branch}";
+			$GLOBALS['gearman']->sendSync($command, $value['host']);
+			
+			$command = "sv start {$data['uid']}-{$branch}-{$key}";
+			$GLOBALS['gearman']->sendSync($command, $value['host']);			
 		}
 	}
 
