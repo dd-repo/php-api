@@ -92,8 +92,10 @@ $a->setExecute(function() use ($a)
 	{
 		$sql = "SELECT storage_size FROM storages WHERE storage_path = '/services/{$r['service_name']}'";
 		$storage = $GLOBALS['db']->query($sql);
-		$sql = "SELECT COUNT(service_name) as count FROM `services` WHERE service_host = '{$r['service_host']}'";
+		$sql = "SELECT COUNT(service_name) as count FROM services WHERE service_host = '{$r['service_host']}'";
 		$stats = $GLOBALS['db']->query($sql);
+		$sql = "SELECT b.branch_name, b.app_id, b.app_name, a.app_tag FROM service_branch b LEFT JOIN apps a ON(a.app_id = b.app_id) WHERE service_name = '{$r['service_name']}'";
+		$branches = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 		
 		$s['name'] = $r['service_name'];
 		$s['vendor'] = $r['service_type'];
@@ -103,7 +105,7 @@ $a->setExecute(function() use ($a)
 		$s['size'] = $storage['storage_size'];
 		$s['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name']);
 		$s['stats'] = array("{$r['service_host']}" => $stats['count']);
-
+		$s['branches'] = $branches;
 		
 		$services[] = $s;		
 	}

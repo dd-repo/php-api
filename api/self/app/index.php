@@ -82,6 +82,18 @@ switch($action)
 		request::addParam('user', security::getUser());
 		grantStore::add('APP_UPDATE');
 		request::forward('/app/shrink'); break;
+	case 'link':
+		security::requireGrants(array('ACCESS', 'SELF_SERVICE_INSERT'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('SERVICE_INSERT');
+		request::forward('/app/link'); break;
+	case 'unlink':
+		security::requireGrants(array('ACCESS', 'SELF_SERVICE_DELETE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('SERVICE_DELETE');
+		request::forward('/app/unlink'); break;
 	case 'graph':
 	case 'value':
 	case 'values':
