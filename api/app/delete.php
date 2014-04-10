@@ -63,6 +63,7 @@ $a->setExecute(function() use ($a)
 	// GET REMOTE USER DN
 	// =================================	
 	$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
+	$userinfo = $GLOBALS['ldap']->read($user_dn);
 	
 	// =================================
 	// GET APP DN
@@ -84,15 +85,14 @@ $a->setExecute(function() use ($a)
 	
 	// =================================
 	// CHECK OWNER
-	// =================================
-	$ownerdn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
-	
+	// =================================	
 	if( is_array($data['owner']) )
 		$data['owner'] = $data['owner'][0];
 			
-	if( $ownerdn != $data['owner'] )
+	if( $user_dn != $data['owner'] )
 		throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the app {$app}");
 
+	
 	// =================================
 	// DELETE OTHERS
 	// =================================
@@ -146,6 +146,12 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$mod['member'] = $dn;
 	$GLOBALS['ldap']->replace($user_dn, $mod, ldap::DELETE);
+
+	// =================================
+	// DELETEE SYMLINK
+	// =================================
+	$command = "rm {$userinfo['homeDirectory']}/{$data['uid']}.git";
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	// =================================
 	// SYNC QUOTA

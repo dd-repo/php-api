@@ -62,6 +62,7 @@ $a->setExecute(function() use ($a)
 	// GET REMOTE USER DN
 	// =================================	
 	$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
+	$userinfo = $GLOBALS['ldap']->read($user_dn);
 	
 	// =================================
 	// GET REPO DN
@@ -96,8 +97,14 @@ $a->setExecute(function() use ($a)
 	// DELETE REMOTE REPO
 	// =================================
 	$GLOBALS['ldap']->delete($dn);
-	$commands[] = "rm -Rf {$data['homeDirectory']}";
-	$GLOBALS['system']->exec($commands);
+	$command = "rm -Rf {$data['homeDirectory']}";
+	$GLOBALS['gearman']->sendAsync($command);
+
+	// =================================
+	// DELETEE SYMLINK
+	// =================================
+	$command = "rm {$userinfo['homeDirectory']}/{$data['uid']}.git";
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	// =================================
 	// UPDATE REMOTE USER
