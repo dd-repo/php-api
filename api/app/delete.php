@@ -117,6 +117,12 @@ $a->setExecute(function() use ($a)
 			{
 				foreach( $v['instances'] as $i )
 				{
+					$command = "sv stop {$data['uid']}-{$k}-{$i['id']} && rm /etc/service/{$data['uid']}-{$k}-{$i['id']}";
+					$GLOBALS['gearman']->sendAsync($command, $i['host']);
+			
+					$command = "docker rmi registry:5000/".strtolower($data['uid'])."-{$k}";
+					$GLOBALS['gearman']->sendAsync($command, $i['host']);
+					
 					$sql = "UPDATE ports SET used = 0 WHERE port = {$i['port']}";
 					$GLOBALS['db']->query($sql, mysql::NO_ROW);				
 				}

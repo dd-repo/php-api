@@ -333,36 +333,42 @@ $a->setExecute(function() use ($a)
 	{
 		$extra = json_decode($data['description'], true);
 
-		foreach( $extra['branches'] as $key => $value )
+		// FREE PORT AND STOP DOCKER
+		if( count($extra['branches'][$branch]['instances']) > 0 )
 		{
-			// FREE PORT
-			foreach( $value['instances'] as $i )
+			foreach( $extra['branches'][$branch]['instances'] as $i )
 			{
+				$command = "sv stop {$data['uid']}-".security::escape($branch)."-{$i['id']} && rm /etc/service/{$data['uid']}-".security::escape($branch)."-{$i['id']}";
+				$GLOBALS['gearman']->sendSync($command, $i['host']);
+		
+				$command = "docker rmi registry:5000/".strtolower($data['uid'])."-".security::escape($branch);
+				$GLOBALS['gearman']->sendSync($command, $i['host']);
+			
 				if( $i['port'] )
 				{
 					$sql = "UPDATE ports SET used = 0 WHERE port = {$i['port']}";
 					$GLOBALS['db']->query($sql, mysql::NO_ROW);		
 				}
 			}
+		}
 			
-			// DELETE SYMLINKS
-			if( count($value['urls']) > 0 )
+		// DELETE SYMLINKS
+		if( count($extra['branches'][$branch]['urls']) > 0 )
+		{
+			foreach( $extra['branches'][$branch]['urls'] as $u )
 			{
-				foreach( $value['urls'] as $u )
-				{
-					$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
-					$data2 = $GLOBALS['ldap']->read($dn2);
-					$commands[] = "rm {$data2['homeDirectory']}";
-				}
+				$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
+				$data2 = $GLOBALS['ldap']->read($dn2);
+				$commands[] = "rm {$data2['homeDirectory']}";
 			}
-			$GLOBALS['gearman']->sendAsync($commands);
-		}	
+		}
+		$GLOBALS['gearman']->sendAsync($commands);
 		
 		unset($extra['branches'][$branch]);
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);		
 		
-		$command = "/dns/tm/sys/usr/local/bin/delete-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language}";
+		$command = "rm -Rf {$data['homeDirectory']}/".security::escape($branch);
 		$GLOBALS['gearman']->sendAsync($command);
 	}
 	
