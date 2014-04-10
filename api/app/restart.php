@@ -97,7 +97,7 @@ $a->setExecute(function() use ($a)
 	{
 		foreach( $extra['branches'][$branch]['instances'] as $key => $value )
 		{
-			$command = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} stop ".strtolower($data['uid'])." {$branch} && /dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} start";
+			$command = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} stop ".strtolower($data['uid'])." {$branch} && sleep 3 && /dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} start";
 			$GLOBALS['gearman']->sendAsync($command);
 		}
 	}

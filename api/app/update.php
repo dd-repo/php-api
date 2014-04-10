@@ -84,6 +84,22 @@ $a->addParam(array(
 	'match'=>"(1|0|yes|no|true|false)"
 	));
 $a->addParam(array(
+	'name'=>array('member', 'member_id'),
+	'description'=>'The id of the member.',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>100,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
+	'name'=>array('join'),
+	'description'=>'Mode team join (can be add/delete).',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>6,
+	'match'=>"(add|delete)"
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -111,6 +127,8 @@ $a->setExecute(function() use ($a)
 	$pass = $a->getParam('pass');
 	$tag = $a->getParam('tag');
 	$cache = $a->getParam('cache');
+	$member = $a->getParam('member');
+	$join = $a->getParam('join');
 	$user = $a->getParam('user');
 
 	if( $cache == '1' || $cache == 'yes' || $cache == 'true' || $cache === true || $cache === 1 ) $cache = 1;
@@ -339,6 +357,22 @@ $a->setExecute(function() use ($a)
 		
 		$command = "/dns/tm/sys/usr/local/bin/delete-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language}";
 		$GLOBALS['gearman']->sendAsync($command);
+	}
+	
+	// =================================
+	// MEMBERSHIP
+	// =================================
+	if( $join == 'add' && $member !== null )
+	{
+		$group_dn = $GLOBALS['ldap']->getDNfromUID($member);
+		$mod['member'] = $group_dn;
+		$GLOBALS['ldap']->replace($dn, $mod, ldap::ADD);
+	}
+	elseif( $join == 'delete' && $member !== null )
+	{
+		$group_dn = $GLOBALS['ldap']->getDNfromUID($member);
+		$mod['member'] = $group_dn;
+		$GLOBALS['ldap']->replace($dn, $mod, ldap::DELETE);		
 	}
 	
 	// =================================
