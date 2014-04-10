@@ -132,6 +132,7 @@ $a->setExecute(function() use ($a)
 		case 'git':
 			$commands[] = "mkdir -p {$data['homeDirectory']} && cd {$data['homeDirectory']} && cp -a {$GLOBALS['CONFIG']['GIT_TEMPLATE']}/* {$data['homeDirectory']}/ && chown -R {$data['uidNumber']}:{$data['uidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod -R g+w {$data['homeDirectory']} && find {$data['homeDirectory']} -type d -exec chmod g+s {} \;";
 			$commands[] = "cd {$userinfo['homeDirectory']} && ln -s {$data['homeDirectory']} {$data['uid']}.git";
+			$commands[] = "cd {$data['homeDirectory']} && sed \"s/template@anotherservice.com/{$repo}@".security::escape($domain)."/g;s#SYS/TPL#{$repo}#g;\" config > config";
 		break;
 		case 'svn':
 			$commands[] = "mkdir -p {$data['homeDirectory']} && rmdir {$data['homeDirectory']} && svnadmin create {$data['homeDirectory']} && chown -R {$data['uidNumber']}:{$data['uidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod -R g+w {$data['homeDirectory']} && find {$data['homeDirectory']} -type d -exec chmod g+s {} \; && cd {$data['homeDirectory']}";
