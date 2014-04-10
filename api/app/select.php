@@ -291,7 +291,7 @@ $a->setExecute(function() use ($a)
 						try
 						{
 							$app = $GLOBALS['ldap']->read($m);
-							$apps[] = array('name'=>$app['uid'],'id'=>$app['uidNumber']);
+							$apps2[] = array('name'=>$app['uid'],'id'=>$app['uidNumber']);
 						} catch(Exception $e) { }
 					}
 					if( strpos($m, 'ou=Groups') !== false )
