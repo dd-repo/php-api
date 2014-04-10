@@ -37,14 +37,6 @@ $a->addParam(array(
 	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
-	'name'=>array('pass', 'password'),
-	'description'=>'The password of the service.',
-	'optional'=>false,
-	'minlength'=>3,
-	'maxlength'=>50,
-	'match'=>request::PHRASE|request::SPECIAL
-	));
-$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -66,7 +58,6 @@ $a->setExecute(function() use ($a)
 	$app = $a->getParam('app');
 	$branch = $a->getParam('branch');
 	$service = $a->getParam('service');
-	$pass = $a->getParam('pass');
 	$user = $a->getParam('user');
 
 	// =================================
@@ -164,12 +155,12 @@ $a->setExecute(function() use ($a)
 			break;
 			case 'pgsql':
 				$server = 'pgsql.anotherservice.com';
-				$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$new_service} ".security::escape($pass)." {$server}";
+				$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql-branch {$new_service} {$result['service_name']} {$server}";
 				$GLOBALS['system']->exec($commands);
 			break;
 			case 'mongodb':
 				$server = 'mongo.anotherservice.com';
-				$commands[] = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$new_service} ".security::escape($pass)." {$server}";
+				$commands[] = "/dns/tm/sys/usr/local/bin/create-db-mongodb-branch {$new_service} {$result['service_name']} {$server}";
 				$GLOBALS['system']->exec($commands);
 			break;
 		}
