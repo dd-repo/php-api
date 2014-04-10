@@ -96,9 +96,11 @@ $a->setExecute(function() use ($a)
 	if( $extra['branches'][$branch]['instances'] )
 	{
 		foreach( $extra['branches'][$branch]['instances'] as $key => $value )
-			$commands[] = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} start";
+		{
+			$command = "sv start {$data['uid']}-{$branch}-{$key}";
+			$GLOBALS['gearman']->sendSync($command, $value['host']);
+		}
 	}
-	$GLOBALS['gearman']->sendAsync($commands);
 	
 	// =================================
 	// LOG ACTION
