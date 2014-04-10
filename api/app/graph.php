@@ -182,7 +182,7 @@ $a->setExecute(function() use ($a)
 	// SELECT RECORDS
 	// =================================
 	if( $group !== null )
-		$sql = "SELECT AVG(value_number) as average, {$group} (FROM_UNIXTIME(value_date)) as {$group} FROM graphs_value WHERE 1 {$where} GROUP BY {$group} (FROM_UNIXTIME(value_date))";
+		$sql = "SELECT AVG(value_number) as average, {$group} (FROM_UNIXTIME(value_date)) as {$group} FROM graphs_value WHERE 1 {$where} GROUP BY {$group} (FROM_UNIXTIME(value_date)) ORDER BY {$order} {$ordered}";
 	if( $count === true )
 		$sql = "SELECT COUNT(value_id) as count FROM graphs_value WHERE 1 {$where} ORDER BY {$order} {$ordered} LIMIT {$limitation}";	
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
