@@ -97,6 +97,61 @@ $a->setExecute(function() use ($a)
 		}
 		
 		// =================================
+		// SERVICES
+		// =================================
+		$sql = "SELECT * FROM services WHERE service_user = {$result['user_id']}";
+		$services = $GLOBALS['db']->query($sql, mysql::NO_ROW);
+
+		foreach( $services as $s )
+		{
+			switch( $s['service_type'] )
+			{
+				case 'mysql':
+					$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+					mysql_query("DROP USER '{$s['service_name']}'", $link);
+					mysql_query("DROP DATABASE `{$s['service_name']}`", $link);
+					mysql_close($link);
+				break;
+				case 'pgsql':
+					$command = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$s['service_name']}";
+					$GLOBALS['gearman']->sendAsync($command);
+				break;
+				case 'mongodb':
+					$command = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$s['service_name']}";
+					$GLOBALS['gearman']->sendAsync($command);
+				break;
+			}
+
+			// =================================
+			// DELETE SUBSERVICES
+			// =================================
+			$sql = "SELECT * FROM service_branch WHERE service_name = '".security::escape($s['service_name'])."'";
+			$subservices = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+
+			foreach( $subservices as $sub )
+			{
+				$subservice = $service . '-' . $sub['branch_name'];
+				switch( $s['service_type'] )
+				{
+					case 'mysql':
+						$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+						mysql_query("DROP USER '{$subservice}'", $link);
+						mysql_query("DROP DATABASE `{$subservice}`", $link);
+						mysql_close($link);
+					break;
+					case 'pgsql':
+						$command = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$subservice}";
+						$GLOBALS['gearman']->sendAsync($command);
+					break;
+					case 'mongodb':
+						$command = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$subservice}";
+						$GLOBALS['gearman']->sendAsync($command);
+					break;
+				}
+			}
+		}
+		
+		// =================================
 		// DELETE REMOTE USER
 		// =================================
 		$GLOBALS['ldap']->delete($dn);
