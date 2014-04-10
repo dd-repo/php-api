@@ -170,7 +170,7 @@ $a->setExecute(function() use ($a)
 		$storage = $GLOBALS['db']->query($sql);
 		$sql = "SELECT app_binary, app_tag FROM apps WHERE app_id = '{$result['uidNumber']}'";
 		$appinfo = $GLOBALS['db']->query($sql);
-		$sql = "SELECT service_name, service_type, service_description FROM services WHERE service_app = '{$result['uidNumber']}'";
+		$sql = "SELECT service_name, service_type, service_description, service_host FROM services WHERE service_app = '{$result['uidNumber']}'";
 		$service = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 		
 		$extra = json_decode($result['description'], true);
@@ -190,7 +190,7 @@ $a->setExecute(function() use ($a)
 		{
 			foreach( $extra['branches'] as $key => $value )
 			{
-				$sql = "SELECT b.branch_name, b.app_id, b.app_name, s.service_name, s.service_type, s.service_description FROM service_branch b LEFT JOIN services s ON(s.service_name = b.service_name) WHERE b.app_id = '{$result['uidNumber']}' AND b.branch_name = '{$key}'";
+				$sql = "SELECT b.branch_name, b.app_id, b.app_name, s.service_name, s.service_type, s.service_host, s.service_description FROM service_branch b LEFT JOIN services s ON(s.service_name = b.service_name) WHERE b.app_id = '{$result['uidNumber']}' AND b.branch_name = '{$key}'";
 				$services = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 				
 				$infos['branches'][$key]['services'] = $services;
@@ -328,7 +328,7 @@ $a->setExecute(function() use ($a)
 			{
 				foreach( $extra['branches'] as $key => $value )
 				{
-					$sql = "SELECT b.branch_name, b.app_id, b.app_name, s.service_name, s.service_type, s.service_description FROM service_branch b LEFT JOIN services s ON(s.service_name = b.service_name) WHERE b.app_id = '{$r['uidNumber']}' AND b.branch_name = '{$key}'";
+					$sql = "SELECT b.branch_name, b.app_id, b.app_name, s.service_name, s.service_type, s.service_host, s.service_description FROM service_branch b LEFT JOIN services s ON(s.service_name = b.service_name) WHERE b.app_id = '{$r['uidNumber']}' AND b.branch_name = '{$key}'";
 					$services = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 				
 					$infos['branches'][$key]['services'] = $services;
