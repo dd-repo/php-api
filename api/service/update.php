@@ -29,6 +29,14 @@ $a->addParam(array(
 	'match'=>request::PHRASE|request::SPECIAL,
 	));
 $a->addParam(array(
+	'name'=>array('branch', 'env', 'environment'),
+	'description'=>'The environement of the app',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>150,
+	'match'=>request::LOWER,
+	));	
+$a->addParam(array(
 	'name'=>array('pass', 'password'),
 	'description'=>'The password of the service.',
 	'optional'=>true,
@@ -59,6 +67,7 @@ $a->setExecute(function() use ($a)
 	$service = $a->getParam('service');
 	$pass = $a->getParam('pass');
 	$desc = $a->getParam('desc');
+	$branch = $a->getParam('branch');
 	$user = $a->getParam('user');
 	
 	// =================================
@@ -91,6 +100,9 @@ $a->setExecute(function() use ($a)
 		$sql = "UPDATE `services` SET service_description = '".security::escape($desc)."' WHERE service_name = '".security::escape($service)."'";
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	}
+	
+	if( $branch !== null )
+		$service = $service . '-' . $branch;
 	
 	// =================================
 	// UPDATE REMOTE SERVICE
