@@ -103,7 +103,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// DELETEE SYMLINK
 	// =================================
-	$command = "rm {$userinfo['homeDirectory']}/{$data['uid']}.git";
+	$command = "rm {$userinfo['homeDirectory']}/{$data['uid']}.{$data['gecos']}";
 	$GLOBALS['gearman']->sendAsync($command);
 	
 	// =================================
