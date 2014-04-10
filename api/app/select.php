@@ -170,10 +170,13 @@ $a->setExecute(function() use ($a)
 		$storage = $GLOBALS['db']->query($sql);
 		$sql = "SELECT app_binary, app_tag FROM apps WHERE app_id = '{$result['uidNumber']}'";
 		$appinfo = $GLOBALS['db']->query($sql);
+		$sql = "SELECT service_name, service_type, service_description FROM services WHERE service_app = '{$result['uidNumber']}'";
+		$service = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 		
 		$extra = json_decode($result['description'], true);
 		
 		$infos['name'] = $result['uid'];
+		$infos['services'] = $service;
 		$infos['id'] = $result['uidNumber'];
 		$infos['certificate'] = $result['gecos'];
 		$infos['binary'] = $appinfo['app_binary'];
