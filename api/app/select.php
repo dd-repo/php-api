@@ -218,7 +218,7 @@ $a->setExecute(function() use ($a)
 			}
 		}
 		
-		$apps = array();
+		$apps2 = array();
 		$groups = array();
 		$users = array();
 		if( is_array($result['member']) )
@@ -344,7 +344,7 @@ $a->setExecute(function() use ($a)
 				}
 			}
 			
-			$apps = array();
+			$apps2 = array();
 			$groups = array();
 			$users = array();
 			if( is_array($r['member']) )
