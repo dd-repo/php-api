@@ -173,7 +173,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// INSERT NEW SUBSERVICE
 	// =================================			
-	$sql = "INSERT INTO service_branch (service_name, branch_name, app_id) VALUE ('{$result['service_name']}', '".security::escape($branch)."', '{$data['uidNumber']}')";
+	$sql = "INSERT INTO service_branch (service_name, branch_name, app_id, app_name) VALUE ('{$result['service_name']}', '".security::escape($branch)."', '{$data['uidNumber']}', '{$data['uid']}')";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	// =================================
