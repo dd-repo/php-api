@@ -100,6 +100,14 @@ $a->addParam(array(
 	'match'=>"(add|delete)"
 	));
 $a->addParam(array(
+	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
+	'description'=>'The email of the user.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>150,
+	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -129,6 +137,7 @@ $a->setExecute(function() use ($a)
 	$cache = $a->getParam('cache');
 	$member = $a->getParam('member');
 	$join = $a->getParam('join');
+	$email = $a->getParam('email');
 	$user = $a->getParam('user');
 
 	if( $cache == '1' || $cache == 'yes' || $cache == 'true' || $cache === true || $cache === 1 ) $cache = 1;
@@ -216,6 +225,12 @@ $a->setExecute(function() use ($a)
 	if( $pass !== null )
 	{
 		$params = array('userPassword' => $pass);
+		$GLOBALS['ldap']->replace($dn, $params);
+	}
+
+	if( $email !== null )
+	{
+		$params = array('mailForwardingAddress' => $email);
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
 	

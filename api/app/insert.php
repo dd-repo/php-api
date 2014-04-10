@@ -40,14 +40,6 @@ $a->addParam(array(
 	'action'=>true
 	));
 $a->addParam(array(
-	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
-	'description'=>'The name or id of the target user.',
-	'optional'=>false,
-	'minlength'=>0,
-	'maxlength'=>30,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
-	));
-$a->addParam(array(
 	'name'=>array('binary', 'app_binary'),
 	'description'=>'The binary to execute.',
 	'optional'=>true,
@@ -70,6 +62,22 @@ $a->addParam(array(
 	'maxlength'=>5,
 	'match'=>"(1|yes|true)"
 	));
+$a->addParam(array(
+	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
+	'description'=>'The email of the user.',
+	'optional'=>false,
+	'minlength'=>0,
+	'maxlength'=>150,
+	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
+	));
+$a->addParam(array(
+	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
+	'description'=>'The name or id of the target user.',
+	'optional'=>false,
+	'minlength'=>0,
+	'maxlength'=>30,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -87,6 +95,7 @@ $a->setExecute(function() use ($a)
 	$binary = $a->getParam('binary');
 	$tag = $a->getParam('tag');
 	$nodocker = $a->getParam('nodocker');
+	$email = $a->getParam('email');
 	$user = $a->getParam('user');
 	
 	// =================================
@@ -146,7 +155,7 @@ $a->setExecute(function() use ($a)
 		$extra['branches'] = array('master' => array('instances'=>array(array('port'=>$port, 'memory' => '128', 'cpu' => 1))));
 	
 	$dn = ldap::buildDN(ldap::APP, $domain, $app);
-	$params = array('dn' => $dn, 'uid' => $app, 'userPassword' => $pass, 'domain' => $domain, 'description' => json_encode($extra), 'owner' => $user_dn);
+	$params = array('dn' => $dn, 'uid' => $app, 'userPassword' => $pass, 'domain' => $domain, 'description' => json_encode($extra), 'mailForwardingAddress'=>$email, 'owner' => $user_dn);
 	
 	$handler = new app();
 	$data = $handler->build($params);
