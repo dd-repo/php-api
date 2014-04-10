@@ -22,6 +22,14 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
+	'name'=>array('branch'),
+	'description'=>'The target branch',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::LOWER
+	));
+$a->addParam(array(
 	'name'=>array('service', 'name', 'service_name'),
 	'description'=>'The name of the service',
 	'optional'=>true,
@@ -111,7 +119,7 @@ $a->setExecute(function() use ($a)
 			$appinfo = $GLOBALS['db']->query($sql);
 		
 			$identifier = md5($result['homeDirectory'] . time() . rand(11111111, 99999999) ) . '.tar';
-			$command = "/dns/tm/sys/usr/local/bin/dump app {$result['homeDirectory']} {$identifier} {$result['gidNumber']}";
+			$command = "/dns/tm/sys/usr/local/bin/dump app {$result['homeDirectory']}/".security::encode($branch)." {$identifier} {$result['gidNumber']}";
 			$GLOBALS['gearman']->sendAsync($command);
 			
 			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date) VALUES ('{$identifier}', 'Backup {$result['uid']} ({$appinfo['app_tag']})', {$userdata['user_id']}, 'site', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP())";
