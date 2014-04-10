@@ -145,7 +145,7 @@ $a->setExecute(function() use ($a)
 	// ADD SERVICE
 	// =================================
 	$sql = "UPDATE services SET service_app = '{$data['uidNumber']}' WHERE service_name = '".security::escape($service)."'";
-	$GLOBALS['db']->query($sql, mysql::NO_ROW);		
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 
 	if( $branch != 'master' )
 	{
