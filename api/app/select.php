@@ -187,7 +187,7 @@ $a->setExecute(function() use ($a)
 		{
 			foreach( $extra['branches'] as $key => $value )
 			{
-				$sql = "SELECT b.branch_name, b.app_id, b.app_name, s.service_name, s.service_description FROM service_branch b LEFT JOIN services s ON(s.service_name = b.service_name) WHERE b.app_id = '{$result['uidNumber']}' AND b.branch_name = '{$key}'";
+				$sql = "SELECT b.branch_name, b.app_id, b.app_name, s.service_name, s.database_type, s.service_description FROM service_branch b LEFT JOIN services s ON(s.service_name = b.service_name) WHERE b.app_id = '{$result['uidNumber']}' AND b.branch_name = '{$key}'";
 				$services = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 				
 				$infos['branches'][$key]['services'] = $services;
@@ -325,7 +325,7 @@ $a->setExecute(function() use ($a)
 			{
 				foreach( $extra['branches'] as $key => $value )
 				{
-					$sql = "SELECT b.branch_name, b.app_id, b.app_name, s.service_name, s.service_description FROM service_branch b LEFT JOIN services s ON(s.service_name = b.service_name) WHERE b.app_id = '{$r['uidNumber']}' AND b.branch_name = '{$key}'";
+					$sql = "SELECT b.branch_name, b.app_id, b.app_name, s.service_name, s.database_type, s.service_description FROM service_branch b LEFT JOIN services s ON(s.service_name = b.service_name) WHERE b.app_id = '{$r['uidNumber']}' AND b.branch_name = '{$key}'";
 					$services = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 				
 					$infos['branches'][$key]['services'] = $services;
