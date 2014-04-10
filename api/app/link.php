@@ -136,9 +136,9 @@ $a->setExecute(function() use ($a)
 			FROM services s
 			LEFT JOIN users u ON(u.user_id = s.service_user)
 			WHERE true {$where}";
-	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+	$result = $GLOBALS['db']->query($sql);
 	
-	if( count($result) == 0 )
+	if( !$result['service_name'] )
 		throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the service {$service}");
 		
 	// =================================
