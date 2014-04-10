@@ -156,10 +156,9 @@ $a->setExecute(function() use ($a)
 			case 'mysql':
 				$server = 'sql.anotherservice.com';
 				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-				mysql_query("CREATE USER '{$new_service}'@'%' IDENTIFIED BY '".security::escape($pass)."'", $link);
 				mysql_query("CREATE DATABASE `{$new_service}` CHARACTER SET utf8 COLLATE utf8_unicode_ci", $link);
-				mysql_query("GRANT USAGE ON * . * TO '{$new_service}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0", $link);
-				mysql_query("GRANT ALL PRIVILEGES ON `{$new_service}` . * TO '{$new_service}'@'%'", $link);
+				mysql_query("GRANT USAGE ON * . * TO '{$result['service_name']}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0", $link);
+				mysql_query("GRANT ALL PRIVILEGES ON `{$new_service}` . * TO '{$result['service_name']}'@'%'", $link);
 				mysql_query("FLUSH PRIVILEGES", $link);
 				mysql_close($link);
 			break;
