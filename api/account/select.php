@@ -154,6 +154,7 @@ $a->setExecute(function() use ($a)
 		$ac['alternate'] = $result['mailAlternateAddress'];
 		$ac['mail'] = $result['mail'];
 		$ac['user'] = array('id'=>$info['user_id'], 'name'=>$info['user_name']);
+		$ac['keys'] = $result['sshPublicKey'];
 		
 		$groups = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $domain), ldap::buildFilter(ldap::GROUP, "(member={$dn})"));
 		
