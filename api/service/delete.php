@@ -69,12 +69,6 @@ $a->setExecute(function() use ($a)
 	}
 
 	// =================================
-	// DELETE LOCAL SERVICE
-	// =================================
-	$sql = "DELETE FROM services WHERE service_name = '".security::escape($service)."'";
-	$GLOBALS['db']->query($sql, mysql::NO_ROW);
-
-	// =================================
 	// DELETE REMOTE DATABASE
 	// =================================
 	switch( $result['service_type'] )
@@ -121,7 +115,10 @@ $a->setExecute(function() use ($a)
 		}
 	}
 	
-	$sql = "DELETE FROM service_branch WHERE service_name = ".security::escape($service)."'";
+	// =================================
+	// DELETE LOCAL SERVICE
+	// =================================
+	$sql = "DELETE FROM services WHERE service_name = '".security::escape($service)."'";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	// =================================
