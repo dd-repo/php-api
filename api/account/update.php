@@ -198,12 +198,18 @@ $a->setExecute(function() use ($a)
 
 	if( $key !== null && $mode == 'delete')
 	{
+		$newkeys = array();
 		if( is_array($result['sshPublicKey']) )
-			unset($result['sshPublicKey'][$key]);
-		else
-			$params3['sshPublicKey'] = '';
+		{
+			$i = 0;
+			foreach( $result['sshPublicKey'] as $k )
+			{
+				if( $i != $key )
+					$newkeys[] = $k;
+			}
+		}
 		
-		$params3['sshPublicKey'] = $result['sshPublicKey'];
+		$params3['sshPublicKey'] = $newkeys;
 		$GLOBALS['ldap']->replace($dn, $params3);
 	}
 	
