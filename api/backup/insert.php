@@ -175,12 +175,18 @@ $a->setExecute(function() use ($a)
 			$identifier = md5($result['homeDirectory'] . time() . rand(11111111, 99999999) ) . '.tar';
 			if( $branch !== null && $database === true )
 			{
-				$sql = "SELECT b.branch_name, b.app_id, b.app_name, s.service_name, s.service_type, s.service_host, s.service_description FROM service_branch b LEFT JOIN services s ON(s.service_name = b.service_name) WHERE b.app_id = '{$result['uidNumber']}' AND b.branch_name = '{$branch}'";
+				if( $branch != 'master' )
+					$sql = "SELECT b.branch_name, b.app_id, b.app_name, s.service_name, s.service_type, s.service_host, s.service_description FROM service_branch b LEFT JOIN services s ON(s.service_name = b.service_name) WHERE b.app_id = '{$result['uidNumber']}' AND b.branch_name = '{$branch}'";
+				else
+					$sql = "SELECT service_name, service_type, service_host, service_description FROM services WHERE service_app = {$result['uidNumber']}";
 				$services = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 				
 				foreach( $services as $s )
 				{
-					$command = "/dns/tm/sys/usr/local/bin/dump-partial {$s['service_type']} {$s['service_name']} {$identifier} {$userinfo['uidNumber']} {$s['service_host']} {$userinfo['uid']}";
+					if( $branch != 'master' )
+						$command = "/dns/tm/sys/usr/local/bin/dump-partial {$s['service_type']} {$s['service_name']}-{$branch} {$identifier} {$userinfo['uidNumber']} {$s['service_host']} {$userinfo['uid']}";
+					else
+						$command = "/dns/tm/sys/usr/local/bin/dump-partial {$s['service_type']} {$s['service_name']} {$identifier} {$userinfo['uidNumber']} {$s['service_host']} {$userinfo['uid']}";
 					$GLOBALS['gearman']->sendSync($command);
 				}
 			}
@@ -191,14 +197,14 @@ $a->setExecute(function() use ($a)
 			$type = "app";
 			if( $branch !== null )
 			{
-				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['uid']}-{$branch} {$result['homeDirectory']}/".security::escape($branch)." {$identifier} {$result['gidNumber']}";
+				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['uid']}-{$branch} {$result['homeDirectory']}/".security::escape($branch)." {$identifier} {$result['gidNumber']} {$result['uid']}";
 				$title = "Backup {$result['uid']}-{$branch} ({$appinfo['app_tag']})";
 				if( $database === true )
 					$type = "full";	
 			}
 			else
 			{
-				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['uid']} {$result['homeDirectory']} {$identifier} {$result['gidNumber']}";
+				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['uid']} {$result['homeDirectory']} {$identifier} {$result['gidNumber']} {$result['uid']}";
 				$title = "Backup {$result['uid']} ({$appinfo['app_tag']})";
 			}
 			$GLOBALS['gearman']->sendAsync($command);
