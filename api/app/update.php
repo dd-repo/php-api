@@ -392,7 +392,7 @@ $a->setExecute(function() use ($a)
 		$sql = "INSERT INTO permissions (permission_object, permission_directory, permission_right) VALUES ({$memberinfo['uidNumber']}, '{$data['homeDirectory']}', '{$permission}')";
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		
-		if( strpos('ou=Groups', $memberdn) !== false )
+		if( strpos($memberdn, 'ou=Groups') !== false )
 			$command = "setfacl -Rm g:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}";
 		else
 			$command = "setfacl -Rm u:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}";
@@ -409,7 +409,7 @@ $a->setExecute(function() use ($a)
 		$sql = "DELETE FROM permissions  WHERE permission_object = {$memberinfo['uidNumber']} AND permission_directory = '{$data['homeDirectory']}'";
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		
-		if( strpos('ou=Groups', $memberdn) !== false )
+		if( strpos($memberdn, 'ou=Groups') !== false )
 			$command = "setfacl -Rx g:{$memberinfo['gidNumber']} {$data['homeDirectory']}";
 		else
 			$command = "setfacl -Rx u:{$memberinfo['uidNumber']} {$data['homeDirectory']}";
