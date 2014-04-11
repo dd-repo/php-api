@@ -227,7 +227,7 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['gearman']->sendAsync($command);
 	}
 	
-	$sql = "SELECT user_name FROM users WHERE 1"
+	$sql = "SELECT user_name FROM users WHERE 1";
 	$users = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 	foreach( $users as $u )
 	{
