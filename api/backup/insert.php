@@ -152,8 +152,10 @@ $a->setExecute(function() use ($a)
 		if( is_numeric($app) )
 			$dn = $GLOBALS['ldap']->getDNfromUID($app);
 		else
-			$dn = ldap::buildDN(ldap::APP, $app);
-		
+		{
+			$result = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::APP, "(uid={$app})"));
+			$dn = $result[0]['dn'];
+		}
 		$result = $GLOBALS['ldap']->read($dn);
 		
 		if( is_array($result['owner']) )
