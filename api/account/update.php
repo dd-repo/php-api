@@ -90,7 +90,7 @@ $a->addParam(array(
 	'name'=>array('key', 'ssh'),
 	'description'=>'The SSH key',
 	'optional'=>true,
-	'minlength'=>3,
+	'minlength'=>0,
 	'maxlength'=>500,
 	'match'=>request::ALL
 	));
