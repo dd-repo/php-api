@@ -199,18 +199,6 @@ $a->setExecute(function() use ($a)
 	$GLOBALS['gearman']->sendSync($command);
 	
 	// =================================
-	// RESTART APP IF MEMORY GROWING
-	// =================================			
-	if( $extra['branches'][$branch]['instances'] && $memory !== null )
-	{
-		foreach( $extra['branches'][$branch]['instances'] as $key => $value )
-		{
-			$command = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} stop ".strtolower($data['uid'])." {$branch} && /dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} start";
-			$GLOBALS['gearman']->sendAsync($command);
-		}
-	}
-	
-	// =================================
 	// LOG ACTION
 	// =================================	
 	logger::insert('app/grow', $a->getParams(), $userdata['user_id']);
