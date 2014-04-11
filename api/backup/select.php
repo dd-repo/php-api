@@ -69,7 +69,7 @@ $a->setExecute(function() use ($a)
 	$sql = "SELECT b.backup_identifier, b.backup_id, b.backup_title, b.backup_date, b.backup_type, b.backup_url, u.user_id, u.user_name 
 			FROM backups b
 			LEFT JOIN users u ON(u.user_id = b.backup_user)
-			WHERE true {$where} ORDER BY backup_date";
+			WHERE true {$where} ORDER BY backup_date DESC";
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 
 	if( $count === true )
