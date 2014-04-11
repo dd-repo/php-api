@@ -206,6 +206,7 @@ $a->setExecute(function() use ($a)
 			{
 				if( $i != $key )
 					$newkeys[] = $k;
+				$i++;
 			}
 		}
 		
