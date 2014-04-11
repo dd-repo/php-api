@@ -38,6 +38,22 @@ $a->addParam(array(
 	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
+	'name'=>array('database'),
+	'description'=>'Include database in app branch backup?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
+	'name'=>array('auto'),
+	'description'=>'Is this an automatic task?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>false,
@@ -58,9 +74,16 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$app = $a->getParam('app');
-	$service = $a->getParam('database');
+	$branch = $a->getParam('branch');
+	$service = $a->getParam('service');
+	$auto = $a->getParam('auto');
 	$user = $a->getParam('user');
 		
+	if( $auto == '1' || $auto == 'yes' || $auto == 'true' || $auto === true || $auto === 1 ) $auto = 1;
+	else $auto = 0;
+	if( $database == '1' || $database == 'yes' || $database == 'true' || $database === true || $database === 1 ) $database = true;
+	else $database = false;
+	
 	// =================================
 	// GET USER DATA
 	// =================================
@@ -76,23 +99,49 @@ $a->setExecute(function() use ($a)
 			throw new ApiException("Bad request", 500, "Please fill one of the params service or app but one at the time");
 
 	// =================================
-	// SELECT RECORDS
-	// =================================			
+	// SERVICE BACKUP
+	// =================================
 	if( $service !== null )
 	{
-		$sql = "SELECT s.service_name, s.service_type, s.service_desc, s.service_description, s.service_host, u.user_id, u.user_name 
+		// =================================
+		// PREPARE WHERE CLAUSE
+		// =================================
+		$where = " AND s.service_name = '".security::escape($service)."'";
+		if( $user !== null )
+		{
+			if( is_numeric($user) )
+				$where .= " AND u.user_id = " . $user;
+			else
+				$where .= " AND u.user_name = '".security::escape($user)."'";
+		}
+	
+		// =================================
+		// SELECT RECORDS
+		// =================================
+		$sql = "SELECT s.service_name, s.service_type, s.service_app, s.service_desc, s.service_description, s.service_host, u.user_id, u.user_name, u.user_ldap 
 			FROM `services` s
 			LEFT JOIN users u ON(u.user_id = s.service_user)
-			WHERE s.service_name = '".security::escape($service)."' AND s.service_user = {$userdata['user_id']}";
-		$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
-		
+			WHERE true {$where}";
+		$result = $GLOBALS['db']->query($sql);
+
+		// =================================
+		// DO BACKUP
+		// =================================		
 		if( $result['service_name'] )
-		{
-			$identifier = md5($result['service_name'] . time() . rand(11111111, 99999999) ) . '.sql';
-			$command = "/dns/tm/sys/usr/local/bin/dump {$result['service_type']} {$result['service_name']} {$identifier} {$userdata['user_ldap']} {$result['service_host']}";
+		{			
+			if( $branch !== null )
+				$result['service_name'] = $result['service_name'] . "-{$branch}";
+			
+			$identifier = md5($result['service_name'] . time() . rand(11111111, 99999999) ) . '.' . $result['service_type'];
+			$command = "/dns/tm/sys/usr/local/bin/dump {$result['service_type']} {$result['service_name']} {$identifier} {$result['user_ldap']} {$result['service_host']} {$result['user_name']}";
 			$GLOBALS['gearman']->sendAsync($command);
 			
-			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date) VALUES ('{$identifier}', 'Backup {$result['service_name']} ({$result['service_desc']})', {$userdata['user_id']}, 'service', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP())";
+			if( $branch !== null )
+				$title = "Backup {$result['service_name']}-{$branch} ({$result['service_desc']})";
+			else
+				$title = "Backup {$result['service_name']} ({$result['service_desc']})";
+			
+			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date, backup_auto) VALUES ('{$identifier}', '{$title}', {$userdata['user_id']}, 'service', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP(), {$auto})";
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 		else
