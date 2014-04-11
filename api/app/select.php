@@ -172,7 +172,7 @@ $a->setExecute(function() use ($a)
 		$appinfo = $GLOBALS['db']->query($sql);
 		$sql = "SELECT service_name, service_type, service_description, service_host FROM services WHERE service_app = '{$result['uidNumber']}'";
 		$service = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
-		$sql = "SELECT permission_object, permission_id, permission_right FROM permissions WHERE permission_directory = '{$r['homeDirectory']}'";
+		$sql = "SELECT permission_object, permission_id, permission_right FROM permissions WHERE permission_directory = '{$result['homeDirectory']}'";
 		$permissions = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 		
 		$extra = json_decode($result['description'], true);
