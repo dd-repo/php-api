@@ -166,7 +166,7 @@ $a->setExecute(function() use ($a)
 		
 		$userinfo = $GLOBALS['ldap']->read($result['owner']);
 		
-		$sql = "SELECT user_id FROM users u WHERE user_ldap = {$userinfo['uidNumber']}");
+		$sql = "SELECT user_id FROM users u WHERE user_ldap = {$userinfo['uidNumber']}";
 		$get = $GLOBALS['db']->query($sql);
 		$result['user_id'] = $get['user_id'];
 		
