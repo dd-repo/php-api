@@ -145,9 +145,8 @@ $a->setExecute(function() use ($a)
 		switch( $result['service_type'] )
 		{
 			case 'mysql':
-				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-				mysql_query("DROP DATABASE `{$new_service}`", $link);
-				mysql_close($link);
+				$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
+				$link->query("DROP DATABASE `{$new_service}`");
 			break;
 			case 'pgsql':
 				$command = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$new_service}";
