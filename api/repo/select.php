@@ -104,6 +104,8 @@ $a->setExecute(function() use ($a)
 	{
 		$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$r['homeDirectory']}'";
 		$storage = $GLOBALS['db']->query($sql);
+		$sql = "SELECT permission_object, permission_id, permission_right FROM permissions WHERE permission_directory = '{$r['homeDirectory']}'";
+		$permissions = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 		
 		$re['name'] = $r['uid'];
 		$re['id'] = $r['uidNumber'];
@@ -112,6 +114,7 @@ $a->setExecute(function() use ($a)
 		$re['dir'] = $r['homeDirectory'];
 		$re['email'] = $r['mailForwardingAddress'];
 		$re['size'] = $storage['storage_size'];
+		$re['permissions'] = $permissions;
 		
 		$apps = array();
 		$groups = array();

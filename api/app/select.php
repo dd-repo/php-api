@@ -172,6 +172,8 @@ $a->setExecute(function() use ($a)
 		$appinfo = $GLOBALS['db']->query($sql);
 		$sql = "SELECT service_name, service_type, service_description, service_host FROM services WHERE service_app = '{$result['uidNumber']}'";
 		$service = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+		$sql = "SELECT permission_object, permission_id, permission_right FROM permissions WHERE permission_directory = '{$r['homeDirectory']}'";
+		$permissions = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 		
 		$extra = json_decode($result['description'], true);
 		
@@ -186,6 +188,7 @@ $a->setExecute(function() use ($a)
 		$infos['branches'] = $extra['branches'];
 		$infos['cache'] = $extra['cache'];
 		$infos['size'] = $storage['storage_size'];
+		$infos['permissions'] = $permissions;
 		
 		if( $extra['branches'] )
 		{
@@ -312,11 +315,16 @@ $a->setExecute(function() use ($a)
 			$storage = $GLOBALS['db']->query($sql);		
 			$sql = "SELECT app_binary, app_tag FROM apps WHERE app_id = '{$r['uidNumber']}'";
 			$appinfo = $GLOBALS['db']->query($sql);
+			$sql = "SELECT service_name, service_type, service_description, service_host FROM services WHERE service_app = '{$r['uidNumber']}'";
+			$service = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+			$sql = "SELECT permission_object, permission_id, permission_right FROM permissions WHERE permission_directory = '{$r['homeDirectory']}'";
+			$permissions = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 		
 			$extra = json_decode($r['description'], true);
 			
 			$infos['name'] = $r['uid'];
 			$infos['id'] = $r['uidNumber'];
+			$infos['services'] = $service;
 			$infos['homeDirectory'] = $r['homeDirectory'];
 			$infos['email'] = $r['mailForwardingAddress'];
 			$infos['binary'] = $appinfo['app_binary'];
@@ -325,6 +333,7 @@ $a->setExecute(function() use ($a)
 			$infos['size'] = $storage['storage_size'];
 			$infos['branches'] = $extra['branches'];
 			$infos['cache'] = $extra['cache'];
+			$infos['permissions'] = $permissions;
 			
 			if( $extra['branches'] )
 			{

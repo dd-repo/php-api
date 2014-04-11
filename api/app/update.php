@@ -108,6 +108,14 @@ $a->addParam(array(
 	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
 	));
 $a->addParam(array(
+	'name'=>array('permission'),
+	'description'=>'Permission for joining.',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>3,
+	'match'=>"(rx|rwx)"
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -137,6 +145,7 @@ $a->setExecute(function() use ($a)
 	$cache = $a->getParam('cache');
 	$member = $a->getParam('member');
 	$join = $a->getParam('join');
+	$permission = $a->getParam('permission');
 	$email = $a->getParam('email');
 	$user = $a->getParam('user');
 
@@ -374,14 +383,39 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $join == 'add' && $member !== null )
 	{
-		$group_dn = $GLOBALS['ldap']->getDNfromUID($member);
-		$mod['member'] = $group_dn;
+		$memberdn = $GLOBALS['ldap']->getDNfromUID($member);
+		$memberinfo = $GLOBALS['ldap']->read($group_dn);
+		
+		if( $permission === null )
+			$permission = 'rwx';
+			
+		$sql = "INSERT INTO permissions (permission_object, permission_directory, permission_right) VALUES ({$memberinfo['uidNumber']}, '{$data['homeDirectory']}', '{$permission}')";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		
+		if( strpos('ou=Groups', $memberdn) !== false )
+			$command = "setfacl -Rm g:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}";
+		else
+			$command = "setfacl -Rm u:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}";
+		$GLOBALS['gearman']->sendAsync($command);
+		
+		$mod['member'] = $memberdn;
 		$GLOBALS['ldap']->replace($dn, $mod, ldap::ADD);
 	}
 	elseif( $join == 'delete' && $member !== null )
 	{
-		$group_dn = $GLOBALS['ldap']->getDNfromUID($member);
-		$mod['member'] = $group_dn;
+		$memberdn = $GLOBALS['ldap']->getDNfromUID($member);
+		$memberinfo = $GLOBALS['ldap']->read($group_dn);
+		
+		$sql = "DELETE FROM permissions  WHERE permission_object = {$memberinfo['uidNumber']} AND permission_directory = '{$data['homeDirectory']}'";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		
+		if( strpos('ou=Groups', $memberdn) !== false )
+			$command = "setfacl -Rx g:{$memberinfo['gidNumber']} {$data['homeDirectory']}";
+		else
+			$command = "setfacl -Rx u:{$memberinfo['uidNumber']} {$data['homeDirectory']}";
+		$GLOBALS['gearman']->sendAsync($command);
+		
+		$mod['member'] = $memberdn;
 		$GLOBALS['ldap']->replace($dn, $mod, ldap::DELETE);		
 	}
 	

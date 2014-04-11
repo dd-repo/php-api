@@ -131,14 +131,39 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $join == 'add' )
 	{
-		$group_dn = $GLOBALS['ldap']->getDNfromUID($member);
-		$mod['member'] = $group_dn;
+		$memberdn = $GLOBALS['ldap']->getDNfromUID($member);
+		$memberinfo = $GLOBALS['ldap']->read($group_dn);
+		
+		if( $permission === null )
+			$permission = 'rwx';
+			
+		$sql = "INSERT INTO permissions (permission_object, permission_directory, permission_right) VALUES ({$memberinfo['uidNumber']}, '{$result['homeDirectory']}', '{$permission}')";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		
+		if( strpos('ou=Groups', $memberdn) !== false )
+			$command = "setfacl -Rm g:{$memberinfo['uidNumber']}:{$permission} {$result['homeDirectory']}";
+		else
+			$command = "setfacl -Rm u:{$memberinfo['uidNumber']}:{$permission} {$result['homeDirectory']}";
+		$GLOBALS['gearman']->sendAsync($command);
+		
+		$mod['member'] = $memberdn;
 		$GLOBALS['ldap']->replace($dn, $mod, ldap::ADD);
 	}
 	elseif( $join == 'delete' )
 	{
-		$group_dn = $GLOBALS['ldap']->getDNfromUID($member);
-		$mod['member'] = $group_dn;
+		$memberdn = $GLOBALS['ldap']->getDNfromUID($member);
+		$memberinfo = $GLOBALS['ldap']->read($group_dn);
+		
+		$sql = "DELETE FROM permissions WHERE permission_object = {$memberinfo['uidNumber']} AND permission_directory = '{$result['homeDirectory']}'";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		
+		if( strpos('ou=Groups', $memberdn) !== false )
+			$command = "setfacl -Rx g:{$memberinfo['gidNumber']} {$result['homeDirectory']}";
+		else
+			$command = "setfacl -Rx u:{$memberinfo['uidNumber']} {$result['homeDirectory']}";
+		$GLOBALS['gearman']->sendAsync($command);
+		
+		$mod['member'] = $memberdn;
 		$GLOBALS['ldap']->replace($dn, $mod, ldap::DELETE);		
 	}
 	
