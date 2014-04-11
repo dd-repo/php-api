@@ -182,7 +182,7 @@ $a->setExecute(function() use ($a)
 		$params['givenName'] = $firstname;
 	if( $lastname !== null )
 		$params['sn'] = $lastname;
-	if( $key !== null  )
+	if( $key !== null && $mode == 'add'  )
 		$params2['sshPublicKey'] = $key;
 	if( $redirection !== null )
 		$params2['mailForwardingAddress'] = $redirection;
@@ -193,9 +193,20 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['ldap']->replace($dn, $params2, ldap::ADD);
 	elseif( $mode == 'delete' )
 		$GLOBALS['ldap']->replace($dn, $params2, ldap::DELETE);	
-
+	
 	$GLOBALS['ldap']->replace($dn, $params);
 
+	if( $key !== null && $mode == 'delete')
+	{
+		if( is_array($result['sshPublicKey']) )
+			unset($result[$key]);
+		else
+			$params3['sshPublicKey'] = '';
+			
+		$params3['sshPublicKey'] = $result['sshPublicKey'];
+		$GLOBALS['ldap']->replace($dn, $params3);
+	}
+	
 	// =================================
 	// TEAM JOIN
 	// =================================
