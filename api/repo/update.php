@@ -53,6 +53,14 @@ $a->addParam(array(
 	'match'=>"(add|delete)"
 	));
 $a->addParam(array(
+	'name'=>array('permission', 'permissions', 'rights'),
+	'description'=>'Permission for joining.',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>3,
+	'match'=>"(rx|rwx)"
+	));
+$a->addParam(array(
 	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
 	'description'=>'The email of the user.',
 	'optional'=>true,
@@ -77,6 +85,7 @@ $a->setExecute(function() use ($a)
 	$member = $a->getParam('member');
 	$join = $a->getParam('join');
 	$mail = $a->getParam('mail');
+	$permission = $a->getParam('permission');
 	$user = $a->getParam('user');
 
 	// =================================

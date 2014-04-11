@@ -108,7 +108,7 @@ $a->addParam(array(
 	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
 	));
 $a->addParam(array(
-	'name'=>array('permission'),
+	'name'=>array('permission', 'permissions', 'rights'),
 	'description'=>'Permission for joining.',
 	'optional'=>true,
 	'minlength'=>2,
