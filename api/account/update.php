@@ -183,7 +183,7 @@ $a->setExecute(function() use ($a)
 	if( $lastname !== null )
 		$params['sn'] = $lastname;
 	if( $key !== null  )
-		$params2['sshPublicKey'] = $key
+		$params2['sshPublicKey'] = $key;
 	if( $redirection !== null )
 		$params2['mailForwardingAddress'] = $redirection;
 	if( $alternate !== null )
