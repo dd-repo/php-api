@@ -137,11 +137,7 @@ $a->setExecute(function() use ($a)
 			$command = "/dns/tm/sys/usr/local/bin/dump {$result['service_type']} {$result['service_name']} {$identifier} {$result['user_ldap']} {$result['service_host']} {$result['user_name']}";
 			$GLOBALS['gearman']->sendSync($command);
 			
-			if( $branch !== null )
-				$title = "Backup {$result['service_name']}-{$branch} ({$result['service_description']})";
-			else
-				$title = "Backup {$result['service_name']} ({$result['service_description']})";
-			
+			$title = "Backup {$result['service_name']} ({$result['service_description']})";
 			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date, backup_auto) VALUES ('{$identifier}', '{$title}', {$result['user_id']}, 'service', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP(), {$auto})";
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
