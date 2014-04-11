@@ -66,7 +66,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT RECORDS
 	// =================================
-	$sql = "SELECT b.backup_identifier, b.backup_id, b.backup_title, b.backup_date, b.backup_type, b.backup_url, u.user_id, u.user_name 
+	$sql = "SELECT b.backup_identifier, b.backup_id, b.backup_title, b.backup_date, b.backup_type, b.backup_auto, b.backup_url, u.user_id, u.user_name 
 			FROM backups b
 			LEFT JOIN users u ON(u.user_id = b.backup_user)
 			WHERE true {$where} ORDER BY backup_date DESC";
@@ -86,6 +86,7 @@ $a->setExecute(function() use ($a)
 		$b['date'] = $r['backup_date'];
 		$b['type'] = $r['backup_type'];
 		$b['url'] = $r['backup_url'];
+		$b['auto'] = $r['backup_auto'];
 		$b['identifier'] = $r['backup_identifier'];
 		$b['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name']);
 		
