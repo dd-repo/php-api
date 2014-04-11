@@ -14,12 +14,12 @@ $a->setReturn(array(array(
 	'url'=>'the URL to the backup'
 	)));
 $a->addParam(array(
-	'name'=>array('app', 'site_id', 'id'),
+	'name'=>array('app', 'app_id', 'id'),
 	'description'=>'The name or id of the target app.',
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>50,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT
+	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
 	'name'=>array('branch'),
@@ -185,14 +185,14 @@ $a->setExecute(function() use ($a)
 			$type = "app";
 			if( $branch !== null )
 			{
-				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['homeDirectory']}/".security::escape($branch)." {$identifier} {$result['gidNumber']}";
+				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['uid']}-{$branch} {$result['homeDirectory']}/".security::escape($branch)." {$identifier} {$result['gidNumber']}";
 				$title = "Backup {$result['uid']}-{$branch} ({$appinfo['app_tag']})";
 				if( $database === true )
-					$type = "full";				
+					$type = "full";	
 			}
 			else
 			{
-				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['homeDirectory']} {$identifier} {$result['gidNumber']}";
+				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['uid']} {$result['homeDirectory']} {$identifier} {$result['gidNumber']}";
 				$title = "Backup {$result['uid']} ({$appinfo['app_tag']})";
 			}
 			$GLOBALS['gearman']->sendAsync($command);
