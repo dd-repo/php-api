@@ -71,7 +71,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// DELETE REMOTE BACKUP
 	// =================================
-	$command = "rm /dns/in/olympe/download/{$result['backup_identifier']}.gz";
+	$command = "rm /dns/com/anotherservice/download/{$result['backup_identifier']}.gz";
 	$GLOBALS['gearman']->sendAsync($command);
 	
 	// =================================
