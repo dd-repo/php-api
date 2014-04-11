@@ -165,7 +165,11 @@ $a->setExecute(function() use ($a)
 			throw new ApiException("Forbidden", 403, "User {$user} ({$userdata['user_ldap']}) does not match owner of the app {$app} ({$result['gidNumber']})");
 		
 		$userinfo = $GLOBALS['ldap']->read($result['owner']);
-					
+		
+		$sql = "SELECT user_id FROM users u WHERE user_ldap = {$userinfo['uidNumber']}");
+		$get = $GLOBALS['db']->query($sql);
+		$result['user_id'] = $get['user_id'];
+		
 		if( $result['homeDirectory'] )
 		{	
 			$identifier = md5($result['homeDirectory'] . time() . rand(11111111, 99999999) ) . '.tar';
