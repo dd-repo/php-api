@@ -199,10 +199,10 @@ $a->setExecute(function() use ($a)
 	if( $key !== null && $mode == 'delete')
 	{
 		if( is_array($result['sshPublicKey']) )
-			unset($result[$key]);
+			unset($result['sshPublicKey'][$key]);
 		else
 			$params3['sshPublicKey'] = '';
-			
+		
 		$params3['sshPublicKey'] = $result['sshPublicKey'];
 		$GLOBALS['ldap']->replace($dn, $params3);
 	}
