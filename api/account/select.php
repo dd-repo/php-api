@@ -204,7 +204,8 @@ $a->setExecute(function() use ($a)
 			$ac['size'] = $storage['storage_size'];
 			$ac['mail'] = $r['mail'];
 			$ac['user'] = array('id'=>'', 'name'=>'');
-	
+			$ac['keys'] = $r['sshPublicKey'];
+			
 			$groups = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $domain), ldap::buildFilter(ldap::GROUP, "(member={$r['dn']})"));
 
 			if( $groups['uid'] )
