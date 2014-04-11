@@ -167,7 +167,7 @@ $a->setExecute(function() use ($a)
 		
 		$userinfo = $GLOBALS['ldap']->read($result['owner']);
 		
-		$sql = "SELECT user_id FROM users u WHERE user_ldap = {$userinfo['uidNumber']}";
+		$sql = "SELECT user_id, user_name FROM users u WHERE user_ldap = {$userinfo['uidNumber']}";
 		$get = $GLOBALS['db']->query($sql);
 		$result['user_id'] = $get['user_id'];
 		
@@ -198,7 +198,7 @@ $a->setExecute(function() use ($a)
 			$type = "app";
 			if( $branch !== null )
 			{
-				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['uid']}-{$branch} {$result['homeDirectory']}/".security::escape($branch)." {$identifier} {$result['gidNumber']} {$result['uid']}";
+				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['uid']}-{$branch} {$result['homeDirectory']}/".security::escape($branch)." {$identifier} {$result['gidNumber']} {$userinfo['uid']}";
 				$title = "Backup {$result['uid']}-{$branch} ({$appinfo['app_tag']})";
 				if( $database === true )
 					$type = "full";	
