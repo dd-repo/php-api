@@ -141,7 +141,7 @@ $a->setExecute(function() use ($a)
 	if( $join == 'add' )
 	{
 		$memberdn = $GLOBALS['ldap']->getDNfromUID($member);
-		$memberinfo = $GLOBALS['ldap']->read($group_dn);
+		$memberinfo = $GLOBALS['ldap']->read($memberdn);
 		
 		if( $permission === null )
 			$permission = 'rwx';
@@ -161,7 +161,7 @@ $a->setExecute(function() use ($a)
 	elseif( $join == 'delete' )
 	{
 		$memberdn = $GLOBALS['ldap']->getDNfromUID($member);
-		$memberinfo = $GLOBALS['ldap']->read($group_dn);
+		$memberinfo = $GLOBALS['ldap']->read($memberdn);
 		
 		$sql = "DELETE FROM permissions WHERE permission_object = {$memberinfo['uidNumber']} AND permission_directory = '{$result['homeDirectory']}'";
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
