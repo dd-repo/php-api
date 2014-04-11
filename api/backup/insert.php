@@ -141,7 +141,7 @@ $a->setExecute(function() use ($a)
 			else
 				$title = "Backup {$result['service_name']} ({$result['service_desc']})";
 			
-			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date, backup_auto) VALUES ('{$identifier}', '{$title}', {$userdata['user_id']}, 'service', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP(), {$auto})";
+			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date, backup_auto) VALUES ('{$identifier}', '{$title}', {$result['user_id']}, 'service', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP(), {$auto})";
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 		else
