@@ -162,16 +162,42 @@ $a->setExecute(function() use ($a)
 		if( $user !== null && $GLOBALS['ldap']->getUIDfromDN($result['owner']) != $userdata['user_ldap'] )
 			throw new ApiException("Forbidden", 403, "User {$user} ({$userdata['user_ldap']}) does not match owner of the app {$app} ({$result['gidNumber']})");
 		
+		$userinfo = $GLOBALS['ldap']->read($result['owner']);
+					
 		if( $result['homeDirectory'] )
-		{			
+		{	
+			$identifier = md5($result['homeDirectory'] . time() . rand(11111111, 99999999) ) . '.tar';
+			if( $branch !== null && $database === true )
+			{
+				$sql = "SELECT b.branch_name, b.app_id, b.app_name, s.service_name, s.service_type, s.service_host, s.service_description FROM service_branch b LEFT JOIN services s ON(s.service_name = b.service_name) WHERE b.app_id = '{$result['uidNumber']}' AND b.branch_name = '{$branch}'";
+				$services = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+				
+				foreach( $services as $s )
+				{
+					$command = "/dns/tm/sys/usr/local/bin/dump-partial {$s['service_type']} {$s['service_name']} {$identifier} {$userinfo['uidNumber']} {$s['service_host']} {$userinfo['uid']}";
+					$GLOBALS['gearman']->sendSync($command);
+				}
+			}
+			
 			$sql = "SELECT app_binary, app_tag FROM apps WHERE app_id = '{$result['uidNumber']}'";
 			$appinfo = $GLOBALS['db']->query($sql);		
-			
-			$identifier = md5($result['homeDirectory'] . time() . rand(11111111, 99999999) ) . '.tar';
-			$command = "/dns/tm/sys/usr/local/bin/dump app {$result['homeDirectory']}/".security::escape($branch)." {$identifier} {$result['gidNumber']}";
+
+			$type = "app";
+			if( $branch !== null )
+			{
+				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['homeDirectory']}/".security::escape($branch)." {$identifier} {$result['gidNumber']}";
+				$title = "Backup {$result['uid']}-{$branch} ({$appinfo['app_tag']})";
+				if( $database === true )
+					$type = "full";				
+			}
+			else
+			{
+				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['homeDirectory']} {$identifier} {$result['gidNumber']}";
+				$title = "Backup {$result['uid']} ({$appinfo['app_tag']})";
+			}
 			$GLOBALS['gearman']->sendAsync($command);
 			
-			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date) VALUES ('{$identifier}', 'Backup {$result['uid']} ({$appinfo['app_tag']})', {$userdata['user_id']}, 'site', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP())";
+			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date, backup_auto) VALUES ('{$identifier}', '{$title}', {$result['user_id']}, '{$type}', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP(), {$auto})";
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 	}
