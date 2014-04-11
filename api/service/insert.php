@@ -116,13 +116,12 @@ $a->setExecute(function() use ($a)
 	{
 		case 'mysql':
 			$server = 'sql.anotherservice.com';
-			$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-			mysql_query("CREATE USER '{$service}'@'%' IDENTIFIED BY '".security::encode($pass)."'", $link);
-			mysql_query("CREATE DATABASE `{$service}` CHARACTER SET utf8 COLLATE utf8_unicode_ci", $link);
-			mysql_query("GRANT USAGE ON * . * TO '{$service}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0", $link);
-			mysql_query("GRANT ALL PRIVILEGES ON `{$service}` . * TO '{$service}'@'%'", $link);
-			mysql_query("FLUSH PRIVILEGES", $link);
-			mysql_close($link);
+			$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
+			$link->query("CREATE USER '{$service}'@'%' IDENTIFIED BY '".security::encode($pass)."'");
+			$link->query("CREATE DATABASE `{$service}` CHARACTER SET utf8 COLLATE utf8_unicode_ci");
+			$link->query("GRANT USAGE ON * . * TO '{$service}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0");
+			$link->query("GRANT ALL PRIVILEGES ON `{$service}` . * TO '{$service}'@'%'");
+			$link->query("FLUSH PRIVILEGES");
 		break;
 		case 'pgsql':
 			$server = 'pgsql.anotherservice.com';

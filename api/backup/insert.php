@@ -163,12 +163,12 @@ $a->setExecute(function() use ($a)
 			throw new ApiException("Forbidden", 403, "User {$user} ({$userdata['user_ldap']}) does not match owner of the app {$app} ({$result['gidNumber']})");
 		
 		if( $result['homeDirectory'] )
-		{
+		{			
 			$sql = "SELECT app_binary, app_tag FROM apps WHERE app_id = '{$result['uidNumber']}'";
-			$appinfo = $GLOBALS['db']->query($sql);
-		
+			$appinfo = $GLOBALS['db']->query($sql);		
+			
 			$identifier = md5($result['homeDirectory'] . time() . rand(11111111, 99999999) ) . '.tar';
-			$command = "/dns/tm/sys/usr/local/bin/dump app {$result['homeDirectory']}/".security::encode($branch)." {$identifier} {$result['gidNumber']}";
+			$command = "/dns/tm/sys/usr/local/bin/dump app {$result['homeDirectory']}/".security::escape($branch)." {$identifier} {$result['gidNumber']}";
 			$GLOBALS['gearman']->sendAsync($command);
 			
 			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date) VALUES ('{$identifier}', 'Backup {$result['uid']} ({$appinfo['app_tag']})', {$userdata['user_id']}, 'site', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP())";

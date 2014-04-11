@@ -112,9 +112,8 @@ $a->setExecute(function() use ($a)
 		switch( $result['service_type'] )
 		{
 			case 'mysql':
-				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-				mysql_query("SET PASSWORD FOR '{$service}'@'%' = PASSWORD('".security::escape($pass)."')", $link);
-				mysql_close($link);
+				$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
+				$link->query("SET PASSWORD FOR '{$service}'@'%' = PASSWORD('".security::escape($pass)."')");
 			break;	
 			case 'pgsql':
 				$commands[] = "/dns/tm/sys/usr/local/bin/update-db-pgsql {$service} ".security::escape($pass)."";
