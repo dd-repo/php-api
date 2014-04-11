@@ -38,8 +38,8 @@ $a->addParam(array(
 	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
-	'name'=>array('database'),
-	'description'=>'Include database in app branch backup?',
+	'name'=>array('database', 'databases', 'full'),
+	'description'=>'Include database(s) in app branch backup?',
 	'optional'=>true,
 	'minlength'=>1,
 	'maxlength'=>5,
@@ -77,6 +77,7 @@ $a->setExecute(function() use ($a)
 	$branch = $a->getParam('branch');
 	$service = $a->getParam('service');
 	$auto = $a->getParam('auto');
+	$database = $a->getParam('database');
 	$user = $a->getParam('user');
 		
 	if( $auto == '1' || $auto == 'yes' || $auto == 'true' || $auto === true || $auto === 1 ) $auto = 1;
