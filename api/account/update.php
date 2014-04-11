@@ -182,11 +182,13 @@ $a->setExecute(function() use ($a)
 		$params['givenName'] = $firstname;
 	if( $lastname !== null )
 		$params['sn'] = $lastname;
+	if( $key !== null  )
+		$params2['sshPublicKey'] = $key
 	if( $redirection !== null )
 		$params2['mailForwardingAddress'] = $redirection;
 	if( $alternate !== null )
-		$params2['mailAlternateAddress'] = $alternate;			
-	
+		$params2['mailAlternateAddress'] = $alternate;
+		
 	if( $mode == 'add' )
 		$GLOBALS['ldap']->replace($dn, $params2, ldap::ADD);
 	elseif( $mode == 'delete' )
