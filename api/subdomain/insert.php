@@ -102,12 +102,6 @@ $a->setExecute(function() use ($a)
 	$result = $GLOBALS['ldap']->create($dn, $data);
 	
 	// =================================
-	// POST-CREATE SYSTEM ACTIONS
-	// =================================
-	//$commands[] = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:{$data['gidNumber']} {$data['homeDirectory']} && chmod 751 {$data['homeDirectory']}";
-	//$GLOBALS['system']->exec($commands);
-	
-	// =================================
 	// LOG ACTION
 	// =================================	
 	logger::insert('subdomain/insert', $a->getParams(), $userdata['user_id']);
