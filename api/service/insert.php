@@ -125,13 +125,13 @@ $a->setExecute(function() use ($a)
 		break;
 		case 'pgsql':
 			$server = 'pgsql.anotherservice.com';
-			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$service} ".security::encode($pass)." {$server}";
-			$GLOBALS['system']->exec($commands);
+			$command = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$service} ".security::encode($pass)." {$server}";
+			$GLOBALS['gearman']->sendAsync($command);
 		break;
 		case 'mongodb':
 			$server = 'mongo.anotherservice.com';
-			$commands[] = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$service} ".security::encode($pass)." {$server}";
-			$GLOBALS['system']->exec($commands);
+			$command = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$service} ".security::encode($pass)." {$server}";
+			$GLOBALS['gearman']->sendAsync($command);
 		break;
 	}
 	
