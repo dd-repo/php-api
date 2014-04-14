@@ -301,6 +301,9 @@ $a->setExecute(function() use ($a)
 				
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
+		
+		$command = "/dns/tm/sys/usr/local/bin/php/zabbix-sync";
+		$GLOBALS['gearman']->sendAsync($command);
 	}
 
 	if( $hostname !== null && $instance !== null && $branch !== null )
