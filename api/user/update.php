@@ -125,6 +125,22 @@ $a->addParam(array(
 	'maxlength'=>5,
 	'match'=>"(1|0|yes|no|true|false)"
 	));
+$a->addParam(array(
+	'name'=>array('key', 'ssh'),
+	'description'=>'The SSH key',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>500,
+	'match'=>request::ALL
+	));
+$a->addParam(array(
+	'name'=>array('mode'),
+	'description'=>'Mode for alternate or redirection email (can be add/delete).',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>6,
+	'match'=>"(add|delete)"
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -150,6 +166,8 @@ $a->setExecute(function() use ($a)
 	$report = $a->getParam('report');
 	$zabbix = $a->getParam('zabbix');
 	$language = $a->getParam('language');
+	$key = $a->getParam('key');
+	$mode = $a->getParam('mode');
 	
 	if( $status == '0' || $status == 'no' || $status == 'false' || $status === false || $status === 0 ) $status = 0;
 	else if( $status !== null ) $status = 1;
@@ -239,7 +257,7 @@ $a->setExecute(function() use ($a)
 	// UPDATE REMOTE USER
 	// =================================
 	$params = array();
-
+	$params2 = array();
 	if( $pass !== null )
 		$params['userPassword'] = $pass;
 	if( $firstname !== null )
@@ -252,9 +270,33 @@ $a->setExecute(function() use ($a)
 		$params['postalAddress'] = $address;	
 	if( $language !== null )
 		$params['gecos'] = $language;	
-		
+	if( $key !== null && $mode == 'add'  )
+		$params2['sshPublicKey'] = $key;
 	$GLOBALS['ldap']->replace($dn, $params);
+
+	if( $mode == 'add' )
+		$GLOBALS['ldap']->replace($dn, $params2, ldap::ADD);
+	elseif( $mode == 'delete' )
+		$GLOBALS['ldap']->replace($dn, $params2, ldap::DELETE);	
+	
+	if( $key !== null && $mode == 'delete')
+	{
+		$newkeys = array();
+		if( is_array($data['sshPublicKey']) )
+		{
+			$i = 0;
+			foreach( $data['sshPublicKey'] as $k )
+			{
+				if( $i != $key )
+					$newkeys[] = $k;
+				$i++;
+			}
+		}
 		
+		$params3['sshPublicKey'] = $newkeys;
+		$GLOBALS['ldap']->replace($dn, $params3);
+	}
+	
 	try
 	{
 		if( $pass !== null )

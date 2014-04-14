@@ -156,6 +156,14 @@ $a->addParam(array(
 	'match'=>request::PHRASE|request::SPECIAL
 	));
 $a->addParam(array(
+	'name'=>array('key', 'ssh'),
+	'description'=>'The SSH key',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>500,
+	'match'=>request::ALL
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -191,6 +199,7 @@ $a->setExecute(function() use ($a)
 	$alert = $a->getParam('alert');
 	$monitor = $a->getParam('monitor');
 	$regex = $a->getParam('regex');
+	$key = $a->getParam('key');
 	$user = $a->getParam('user');
 
 	if( $cache == '1' || $cache == 'yes' || $cache == 'true' || $cache === true || $cache === 1 ) $cache = 1;
@@ -279,6 +288,30 @@ $a->setExecute(function() use ($a)
 		}
 	}
 	
+	if( $key !== null && $mode == 'add'  )
+	{
+		$params['sshPublicKey'] = $key;
+		$GLOBALS['ldap']->replace($dn, $params, ldap::ADD);
+	}
+	
+	if( $key !== null && $mode == 'delete')
+	{
+		$newkeys = array();
+		if( is_array($data['sshPublicKey']) )
+		{
+			$i = 0;
+			foreach( $data['sshPublicKey'] as $k )
+			{
+				if( $i != $key )
+					$newkeys[] = $k;
+				$i++;
+			}
+		}
+		
+		$params3['sshPublicKey'] = $newkeys;
+		$GLOBALS['ldap']->replace($dn, $params3);
+	}	
+		
 	if( $pass !== null )
 	{
 		$params = array('userPassword' => $pass);
