@@ -62,6 +62,14 @@ $a->addParam(array(
 	'match'=>request::NUMBER
 	));
 $a->addParam(array(
+	'name'=>array('zabbix'),
+	'description'=>'The user zabbix id.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
 	'name'=>array('plan_type'),
 	'description'=>'The user plan type (storage || memory).',
 	'optional'=>true,
@@ -131,6 +139,7 @@ $a->setExecute(function() use ($a)
 	$bic = $a->getParam('bic');
 	$address = $a->getParam('address');
 	$status = $a->getParam('status');
+	$zabbix = $a->getParam('zabbix');
 	$language = $a->getParam('language');
 	
 	if( $status == '0' || $status == 'no' || $status == 'false' || $status === false || $status === 0 ) $status = 0;
@@ -176,7 +185,7 @@ $a->setExecute(function() use ($a)
 	else
 		$last = 'user_last';
 		
-	$sql = "UPDATE users SET user_iban = ".($iban?"'{$iban}'":"user_iban").", user_bic = ".($bic?"'{$bic}'":"user_bic").", user_status = {$status}, user_last = {$last} WHERE user_id = {$result['user_id']}";
+	$sql = "UPDATE users SET user_iban = ".($iban?"'{$iban}'":"user_iban").", user_bic = ".($bic?"'{$bic}'":"user_bic").", user_zabbix = ".($zabbix?"'{$zabbix}'":"user_zabbix").", user_status = {$status}, user_last = {$last} WHERE user_id = {$result['user_id']}";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	// =================================
