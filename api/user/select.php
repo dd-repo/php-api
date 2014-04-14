@@ -316,6 +316,7 @@ $a->setExecute(function() use ($a)
 				$users[$i]['ip'] = $result['ipHostNumber'];
 				$users[$i]['address'] = $result['postalAddress'];
 				$users[$i]['description'] = $result['description'];
+				$users[$i]['keys'] = $result['sshPublicKey'];
 				$users[$i]['email'] = (isset($result['mailForwardingAddress'])?$result['mailForwardingAddress']:$result['mail']);
 				$users[$i]['size'] = $storage['storage_size'];
 			}

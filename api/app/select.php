@@ -182,6 +182,7 @@ $a->setExecute(function() use ($a)
 		$infos['id'] = $result['uidNumber'];
 		$infos['email'] = $result['mailForwardingAddress'];
 		$infos['certificate'] = $result['gecos'];
+		$infos['keys'] = $result['sshPublicKey'];
 		$infos['binary'] = $appinfo['app_binary'];
 		$infos['tag'] = $appinfo['app_tag'];
 		$infos['homeDirectory'] = $result['homeDirectory'];
@@ -327,6 +328,7 @@ $a->setExecute(function() use ($a)
 			$infos['services'] = $service;
 			$infos['homeDirectory'] = $r['homeDirectory'];
 			$infos['email'] = $r['mailForwardingAddress'];
+			$infos['keys'] = $r['sshPublicKey'];
 			$infos['binary'] = $appinfo['app_binary'];
 			$infos['tag'] = $appinfo['app_tag'];
 			$infos['certificate'] = $r['gecos'];
