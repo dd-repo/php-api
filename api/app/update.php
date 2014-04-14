@@ -132,6 +132,22 @@ $a->addParam(array(
 	'match'=>"(rx|rwx)"
 	));
 $a->addParam(array(
+	'name'=>array('monitor', 'monitors'),
+	'description'=>'Monitor?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
+	'name'=>array('alert', 'alerts'),
+	'description'=>'Receive alerts?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -164,10 +180,16 @@ $a->setExecute(function() use ($a)
 	$permission = $a->getParam('permission');
 	$email = $a->getParam('email');
 	$certificate = $a->getParam('certificate');
+	$alert = $a->getParam('alert');
+	$monitor = $a->getParam('monitor');
 	$user = $a->getParam('user');
 
 	if( $cache == '1' || $cache == 'yes' || $cache == 'true' || $cache === true || $cache === 1 ) $cache = 1;
 	else if( $cache !== null ) $cache = 0;
+	if( $alert == '1' || $alert == 'yes' || $alert == 'true' || $alert === true || $alert === 1 ) $alert = 1;
+	else if( $alert !== null ) $alert = 0;
+	if( $monitor == '1' || $monitor == 'yes' || $monitor == 'true' || $monitor === true || $monitor === 1 ) $monitor = 1;
+	else if( $monitor !== null ) $monitor = 0;
 	
 	// =================================
 	// GET APP DN
@@ -269,6 +291,24 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['gearman']->sendSync($command);
 	}
 	
+	if( $alert !== null && $branch !== null )
+	{
+		$extra = json_decode($data['description'], true);
+		$extra['branches'][$branch]['alert'] = $alert;
+				
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);
+	}
+
+	if( $monitor !== null && $branch !== null )
+	{
+		$extra = json_decode($data['description'], true);
+		$extra['branches'][$branch]['monitor'] = $monitor;
+				
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);
+	}
+		
 	if( $hostname !== null && $instance !== null && $branch !== null )
 	{
 		$extra = json_decode($data['description'], true);
