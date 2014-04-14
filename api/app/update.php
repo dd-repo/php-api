@@ -256,6 +256,11 @@ $a->setExecute(function() use ($a)
 	{
 		$params = array('gecos' => security::escape($certificate));
 		$GLOBALS['ldap']->replace($dn, $params);
+		
+		$command = "/dns/tm/sys/usr/local/bin/move-certificate {$data['uid']} ".security::escape($certificate)."\"";
+		$GLOBALS['gearman']->sendSync($command);
+		$command = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']}";
+		$GLOBALS['gearman']->sendAsync($command);
 	}
 	
 	if( $hostname !== null && $instance !== null && $branch !== null )
