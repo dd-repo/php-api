@@ -307,7 +307,7 @@ $a->setExecute(function() use ($a)
 			$extra['branches'][$branch]['monitor'] = $monitor;
 		if( $alert !== null )
 			$extra['branches'][$branch]['alert'] = $alert;
-		if( $regex !== null && $regex != 0 )
+		if( $regex !== null && $regex != "0" )
 			$extra['branches'][$branch]['regex'] = $regex;
 		else if( $regex !== null )
 			unset($extra['branches'][$branch]['regex']);
