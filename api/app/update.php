@@ -291,24 +291,18 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['gearman']->sendSync($command);
 	}
 	
-	if( $alert !== null && $branch !== null )
+	if( ($alert !== null || $monitor !== null) && $branch !== null )
 	{
 		$extra = json_decode($data['description'], true);
-		$extra['branches'][$branch]['alert'] = $alert;
+		if( $monitor !== null )
+			$extra['branches'][$branch]['monitor'] = $monitor;
+		if( $alert !== null )
+			$extra['branches'][$branch]['alert'] = $alert;
 				
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
 
-	if( $monitor !== null && $branch !== null )
-	{
-		$extra = json_decode($data['description'], true);
-		$extra['branches'][$branch]['monitor'] = $monitor;
-				
-		$params = array('description'=>json_encode($extra));
-		$GLOBALS['ldap']->replace($dn, $params);
-	}
-		
 	if( $hostname !== null && $instance !== null && $branch !== null )
 	{
 		$extra = json_decode($data['description'], true);
