@@ -89,7 +89,7 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>1,
 	'maxlength'=>200,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	'match'=>request::ALL
 	));
 $a->addParam(array(
 	'name'=>array('member', 'member_id'),
