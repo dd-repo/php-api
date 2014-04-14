@@ -99,7 +99,7 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>2,
 	'maxlength'=>500,
-	'match'=>request::PHRASE|request::SPECIAL|request::PUNCT
+	'match'=>request::ALL
 	));
 $a->addParam(array(
 	'name'=>array('language', 'lang'),
