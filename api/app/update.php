@@ -84,6 +84,14 @@ $a->addParam(array(
 	'match'=>"(1|0|yes|no|true|false)"
 	));
 $a->addParam(array(
+	'name'=>array('certificate'),
+	'description'=>'Path to the certificate',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>200,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	));
+$a->addParam(array(
 	'name'=>array('member', 'member_id'),
 	'description'=>'The id of the member.',
 	'optional'=>true,
@@ -147,6 +155,7 @@ $a->setExecute(function() use ($a)
 	$join = $a->getParam('join');
 	$permission = $a->getParam('permission');
 	$email = $a->getParam('email');
+	$certificate = $a->getParam('certificate');
 	$user = $a->getParam('user');
 
 	if( $cache == '1' || $cache == 'yes' || $cache == 'true' || $cache === true || $cache === 1 ) $cache = 1;
@@ -240,6 +249,12 @@ $a->setExecute(function() use ($a)
 	if( $email !== null )
 	{
 		$params = array('mailForwardingAddress' => $email);
+		$GLOBALS['ldap']->replace($dn, $params);
+	}
+
+	if( $certificate !== null )
+	{
+		$params = array('gecos' => $certificate);
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
 	
