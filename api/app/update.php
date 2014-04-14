@@ -89,7 +89,7 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>1,
 	'maxlength'=>200,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	'match'=>request::ALL
 	));
 $a->addParam(array(
 	'name'=>array('member', 'member_id'),
@@ -248,13 +248,13 @@ $a->setExecute(function() use ($a)
 
 	if( $email !== null )
 	{
-		$params = array('mailForwardingAddress' => $email);
+		$params = array('mailForwardingAddress' => security::escape($email));
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
 
 	if( $certificate !== null )
 	{
-		$params = array('gecos' => $certificate);
+		$params = array('gecos' => security::escape($certificate));
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
 	
