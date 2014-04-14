@@ -259,8 +259,6 @@ $a->setExecute(function() use ($a)
 		
 		$command = "/dns/tm/sys/usr/local/bin/move-certificate {$data['uid']} ".security::escape($certificate)."";
 		$GLOBALS['gearman']->sendSync($command);
-		$command = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']}";
-		$GLOBALS['gearman']->sendAsync($command);
 	}
 	
 	if( $hostname !== null && $instance !== null && $branch !== null )
