@@ -148,6 +148,14 @@ $a->addParam(array(
 	'match'=>"(1|0|yes|no|true|false)"
 	));
 $a->addParam(array(
+	'name'=>array('regex', 'phrase'),
+	'description'=>'The regex for monitoring.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>50,
+	'match'=>request::PHRASE|request::SPECIAL
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -182,6 +190,7 @@ $a->setExecute(function() use ($a)
 	$certificate = $a->getParam('certificate');
 	$alert = $a->getParam('alert');
 	$monitor = $a->getParam('monitor');
+	$regex = $a->getParam('regex');
 	$user = $a->getParam('user');
 
 	if( $cache == '1' || $cache == 'yes' || $cache == 'true' || $cache === true || $cache === 1 ) $cache = 1;
@@ -291,14 +300,18 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['gearman']->sendSync($command);
 	}
 	
-	if( ($alert !== null || $monitor !== null) && $branch !== null )
+	if( ($alert !== null || $monitor !== null || $regex !== null) && $branch !== null )
 	{
 		$extra = json_decode($data['description'], true);
 		if( $monitor !== null )
 			$extra['branches'][$branch]['monitor'] = $monitor;
 		if( $alert !== null )
 			$extra['branches'][$branch]['alert'] = $alert;
-				
+		if( $regex !== null && $regex != 0 )
+			$extra['branches'][$branch]['regex'] = $regex;
+		else if( $regex !== null )
+			unset($extra['branches'][$branch]['regex']);
+			
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
 		
