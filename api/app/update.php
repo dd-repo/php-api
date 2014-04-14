@@ -100,6 +100,14 @@ $a->addParam(array(
 	'match'=>request::NUMBER
 	));
 $a->addParam(array(
+	'name'=>array('zabbix', 'zabbix_id'),
+	'description'=>'The zabbix id.',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>100,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
 	'name'=>array('join'),
 	'description'=>'Mode team join (can be add/delete).',
 	'optional'=>true,
@@ -156,6 +164,7 @@ $a->setExecute(function() use ($a)
 	$permission = $a->getParam('permission');
 	$email = $a->getParam('email');
 	$certificate = $a->getParam('certificate');
+	$zabbix = $a->getParam('zabbix');
 	$user = $a->getParam('user');
 
 	if( $cache == '1' || $cache == 'yes' || $cache == 'true' || $cache === true || $cache === 1 ) $cache = 1;
@@ -240,6 +249,11 @@ $a->setExecute(function() use ($a)
 		}
 	}
 	
+	if( $zabbix !== null )
+	{
+		$sql = "UPDATE apps SET app_zabbix = {$zabbix} WHERE app_id = {$data['uidNumber']}";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	}
 	if( $pass !== null )
 	{
 		$params = array('userPassword' => $pass);
