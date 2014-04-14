@@ -248,13 +248,13 @@ $a->setExecute(function() use ($a)
 
 	if( $email !== null )
 	{
-		$params = array('mailForwardingAddress' => $email);
+		$params = array('mailForwardingAddress' => security::escape($email));
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
 
 	if( $certificate !== null )
 	{
-		$params = array('gecos' => $certificate);
+		$params = array('gecos' => security::escape($certificate));
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
 	
