@@ -29,6 +29,14 @@ $a->addParam(array(
 	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
+	'name'=>array('count'),
+	'description'=>'Return only the number of entries.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -48,8 +56,14 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$service = $a->getParam('service');
+	$count = $a->getParam('count');
 	$user = $a->getParam('user');
 
+	if( $count == '1' || $count == 'yes' || $count == 'true' || $count === true || $count === 1 )
+		$count = true;
+	else
+		$count = false;
+		
 	// =================================
 	// GET USER DATA
 	// =================================
@@ -73,6 +87,18 @@ $a->setExecute(function() use ($a)
 			$where .= " AND u.user_id = " . $user;
 		else
 			$where .= " AND u.user_name = '".security::escape($user)."'";
+	}
+	
+	if( $count === true )
+	{
+		$sql = "SELECT COUNT(service_name) as count
+			FROM `services` s
+			LEFT JOIN users u ON(u.user_id = s.service_user)
+			WHERE true {$where}";
+		
+		$result = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+		
+		responder::send($result);
 	}
 	
 	// =================================
