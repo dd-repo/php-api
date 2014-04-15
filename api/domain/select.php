@@ -153,7 +153,7 @@ $a->setExecute(function() use ($a)
 				$d['mxRecord'] = $r['mxRecord'];
 				$d['nSRecord'] = $r['nSRecord'];
 				$d['mailHost'] = $r['mailHost'];
-				$d['user'] = array('id'=>'', 'name'=>'');
+				$d['user'] = array('id'=>$info['user_id'], 'name'=>$info['user_name']);
 				
 				foreach( $info as $i )
 				{
