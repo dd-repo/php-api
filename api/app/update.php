@@ -117,11 +117,11 @@ $a->addParam(array(
 	));
 $a->addParam(array(
 	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
-	'description'=>'The email of the user.',
+	'description'=>'The emails of the user.',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>150,
-	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
+	'maxlength'=>800,
+	'match'=>request::ALL
 	));
 $a->addParam(array(
 	'name'=>array('permission', 'permissions', 'rights'),
@@ -331,7 +331,16 @@ $a->setExecute(function() use ($a)
 
 	if( $email !== null )
 	{
-		$params = array('mailForwardingAddress' => security::escape($email));
+		if( strpos($email, ',') !== false )
+		{
+			$emails = explode(',', $email);
+			$params['mailForwardingAddress'] = array();
+			foreach( $emails as $e )
+				$params['mailForwardingAddress'][] = $e;
+		}
+		else
+			$params['mailForwardingAddress'] = $email;
+		
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
 
