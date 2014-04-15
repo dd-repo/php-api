@@ -65,8 +65,8 @@ $a->addParam(array(
 	'description'=>'The email of the user.',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>150,
-	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
+	'maxlength'=>800,
+	'match'=>request::ALL
 	));
 $a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
@@ -84,7 +84,7 @@ $a->setExecute(function() use ($a)
 	$desc = $a->getParam('desc');
 	$member = $a->getParam('member');
 	$join = $a->getParam('join');
-	$mail = $a->getParam('mail');
+	$email = $a->getParam('email');
 	$permission = $a->getParam('permission');
 	$user = $a->getParam('user');
 
@@ -130,9 +130,21 @@ $a->setExecute(function() use ($a)
 	$params = array();
 	if( $desc !== null )
 		$params['description'] = $desc;
-	if( $mail !== null )
-		$params['mailForwardingAddress'] = $mail;
+	if( $email !== null )
+	{
+		if( strpos($email, ',') !== false )
+		{
+			$emails = explode(',', $email);
+			$params['mailForwardingAddress'] = array();
+			foreach( $emails as $e )
+				$params['mailForwardingAddress'][] = $e;
+		}
+		else
+			$params['mailForwardingAddress'] = $email;
 		
+		$GLOBALS['ldap']->replace($dn, $params);
+	}
+	
 	$GLOBALS['ldap']->replace($dn, $params);
 
 	// =================================
