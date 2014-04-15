@@ -164,7 +164,7 @@ $a->addParam(array(
 	'match'=>request::ALL
 	));
 $a->addParam(array(
-	'name'=>array('backuo', 'backuo'),
+	'name'=>array('backup', 'backup_status'),
 	'description'=>'Do backups?',
 	'optional'=>true,
 	'minlength'=>1,
