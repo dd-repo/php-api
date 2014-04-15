@@ -160,7 +160,7 @@ $a->addParam(array(
 	'description'=>'The SSH key',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>500,
+	'maxlength'=>1000,
 	'match'=>request::ALL
 	));
 $a->addParam(array(
