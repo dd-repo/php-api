@@ -164,6 +164,14 @@ $a->addParam(array(
 	'match'=>request::ALL
 	));
 $a->addParam(array(
+	'name'=>array('backuo', 'backuo'),
+	'description'=>'Do backups?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -200,6 +208,7 @@ $a->setExecute(function() use ($a)
 	$monitor = $a->getParam('monitor');
 	$regex = $a->getParam('regex');
 	$key = $a->getParam('key');
+	$backup = $a->getParam('backup');
 	$user = $a->getParam('user');
 
 	if( $cache == '1' || $cache == 'yes' || $cache == 'true' || $cache === true || $cache === 1 ) $cache = 1;
@@ -208,6 +217,8 @@ $a->setExecute(function() use ($a)
 	else if( $alert !== null ) $alert = 0;
 	if( $monitor == '1' || $monitor == 'yes' || $monitor == 'true' || $monitor === true || $monitor === 1 ) $monitor = 1;
 	else if( $monitor !== null ) $monitor = 0;
+	if( $backup == '1' || $backup == 'yes' || $backup == 'true' || $backup === true || $backup === 1 ) $backup = 1;
+	else if( $backup !== null ) $backup = 0;
 	
 	// =================================
 	// GET APP DN
@@ -333,9 +344,11 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['gearman']->sendSync($command);
 	}
 	
-	if( ($alert !== null || $monitor !== null || $regex !== null) && $branch !== null )
+	if( ($alert !== null || $monitor !== null || $regex !== null || $backup !== null) && $branch !== null )
 	{
 		$extra = json_decode($data['description'], true);
+		if( $backup !== null )
+			$extra['branches'][$branch]['backup'] = $backup;
 		if( $monitor !== null )
 			$extra['branches'][$branch]['monitor'] = $monitor;
 		if( $alert !== null )
