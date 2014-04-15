@@ -196,7 +196,7 @@ $a->setExecute(function() use ($a)
 	
 	syncQuota('MEMORY', $userdata['user_id']);
 	$command = "/dns/tm/sys/usr/local/bin/app-reload {$data['uid']}";
-	$GLOBALS['gearman']->sendSync($command);
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	// =================================
 	// LOG ACTION
