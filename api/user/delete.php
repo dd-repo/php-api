@@ -100,7 +100,7 @@ $a->setExecute(function() use ($a)
 		// SERVICES
 		// =================================
 		$sql = "SELECT * FROM services WHERE service_user = {$result['user_id']}";
-		$services = $GLOBALS['db']->query($sql, mysql::NO_ROW);
+		$services = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 
 		foreach( $services as $s )
 		{
