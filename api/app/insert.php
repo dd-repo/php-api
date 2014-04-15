@@ -185,6 +185,17 @@ $a->setExecute(function() use ($a)
 	syncQuota('APPS', $user);
 
 	// =================================
+	// INSERT PIWIK APP
+	// =================================
+	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.addSite&siteName={$app}&urls=http://{{$app}.anotherservice.net&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+	$json = json_decode(@file_get_contents($url), true);
+	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=UsersManager.setUserAccess&userLogin={$userdata['user_name']}&access=admin&idSites={$json['value']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+	@file_get_contents($url);
+	
+	$sql = "UPDATE apps SET app_piwik = '{$json['value']}' WHERE app_id = {$data['uidNumber']}";
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	
+	// =================================
 	// LOG ACTION
 	// =================================	
 	logger::insert('app/insert', $a->getParams(), $userdata['user_id']);

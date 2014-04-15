@@ -168,7 +168,7 @@ $a->setExecute(function() use ($a)
 	{		
 		$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$result['homeDirectory']}'";
 		$storage = $GLOBALS['db']->query($sql);
-		$sql = "SELECT app_binary, app_tag FROM apps WHERE app_id = '{$result['uidNumber']}'";
+		$sql = "SELECT app_binary, app_piwik, app_tag FROM apps WHERE app_id = '{$result['uidNumber']}'";
 		$appinfo = $GLOBALS['db']->query($sql);
 		$sql = "SELECT service_name, service_type, service_description, service_host FROM services WHERE service_app = '{$result['uidNumber']}'";
 		$service = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
@@ -185,6 +185,7 @@ $a->setExecute(function() use ($a)
 		$infos['keys'] = $result['sshPublicKey'];
 		$infos['binary'] = $appinfo['app_binary'];
 		$infos['tag'] = $appinfo['app_tag'];
+		$infos['piwik'] = $appinfo['app_piwik'];
 		$infos['homeDirectory'] = $result['homeDirectory'];
 		$infos['branches'] = $extra['branches'];
 		$infos['cache'] = $extra['cache'];
@@ -314,7 +315,7 @@ $a->setExecute(function() use ($a)
 		{			
 			$sql = "SELECT storage_size FROM storages WHERE storage_path = '{$r['homeDirectory']}'";
 			$storage = $GLOBALS['db']->query($sql);		
-			$sql = "SELECT app_binary, app_tag FROM apps WHERE app_id = '{$r['uidNumber']}'";
+			$sql = "SELECT app_binary, app_tag, app_piwik FROM apps WHERE app_id = '{$r['uidNumber']}'";
 			$appinfo = $GLOBALS['db']->query($sql);
 			$sql = "SELECT service_name, service_type, service_description, service_host FROM services WHERE service_app = '{$r['uidNumber']}'";
 			$service = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
@@ -331,6 +332,7 @@ $a->setExecute(function() use ($a)
 			$infos['keys'] = $r['sshPublicKey'];
 			$infos['binary'] = $appinfo['app_binary'];
 			$infos['tag'] = $appinfo['app_tag'];
+			$infos['piwik'] = $appinfo['app_piwik'];
 			$infos['certificate'] = $r['gecos'];
 			$infos['size'] = $storage['storage_size'];
 			$infos['branches'] = $extra['branches'];
