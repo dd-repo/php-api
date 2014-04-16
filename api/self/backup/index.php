@@ -43,6 +43,12 @@ switch($action)
 		request::addParam('user', security::getUser());
 		grantStore::add('BACKUP_DELETE');
 		request::forward('/backup/delete'); break;
+	case 'restore':
+		security::requireGrants(array('ACCESS', 'SELF_BACKUP_INSERT'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('BACKUP_INSERT');
+		request::forward('/backup/restore'); break;
 	case 'help':
 	case 'doc':
 		$body = "

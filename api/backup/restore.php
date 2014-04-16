@@ -7,21 +7,15 @@ if( !defined('PROPER_START') )
 }
 
 $a = new action();
-$a->addAlias(array('list', 'view', 'search'));
-$a->setDescription("Searches for a backup entry");
-$a->addGrant(array('ACCESS', 'BACKUP_SELECT'));
-$a->setReturn(array(array(
-	'id'=>'the id of the backup', 
-	'type'=>'the type', 
-	'user'=>array(array(
-		'id'=>'the user id', 
-		'name'=>'the username')
-	),
-	)));
+$a->addAlias(array('restore'));
+$a->setDescription("Restore a backup");
+$a->addGrant(array('ACCESS', 'BACKUP_INSERT'));
+$a->setReturn("OK");
+
 $a->addParam(array(
 	'name'=>array('backup', 'id', 'backup_id'),
 	'description'=>'The id of the backup.',
-	'optional'=>true,
+	'optional'=>false,
 	'minlength'=>1,
 	'maxlength'=>11,
 	'match'=>request::NUMBER
@@ -52,9 +46,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// PREPARE WHERE CLAUSE
 	// =================================
-	$where = '';
-	if( $id !== null )
-		$where .= " AND backup_id = {$id}";
+	$where = " AND backup_id = {$id}";
 	if( $user !== null )
 	{
 		if( is_numeric($user) )
@@ -66,36 +58,28 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT RECORDS
 	// =================================
-	$sql = "SELECT b.backup_identifier, b.backup_id, b.backup_title, b.backup_date, b.backup_type, b.backup_auto, b.backup_url, b.backup_service_id, b.backup_service_name, u.user_id, u.user_name 
+	$sql = "SELECT b.backup_identifier, b.backup_id, b.backup_title, b.backup_date, b.backup_type, b.backup_auto, b.backup_url, b.backup_service_name, b.backup_service_id, u.user_id, u.user_name , u.user_ldap
 			FROM backups b
 			LEFT JOIN users u ON(u.user_id = b.backup_user)
 			WHERE true {$where} ORDER BY backup_date DESC";
-	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+	$result = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 
-	if( $count === true )
-		responder::send(array('count'=>count($result)));
-	
-	// =================================
-	// FORMAT RESULT
-	// =================================
-	$backups = array();
-	foreach( $result as $r )
-	{		
-		$b['id'] = $r['backup_id'];
-		$b['title'] = $r['backup_title'];
-		$b['date'] = $r['backup_date'];
-		$b['type'] = $r['backup_type'];
-		$b['url'] = $r['backup_url'];
-		$b['auto'] = $r['backup_auto'];
-		$b['identifier'] = $r['backup_identifier'];
-		$b['service_id'] = $r['backup_service_name'];
-		$b['service_name'] = $r['backup_service_name'];
-		$b['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name']);
-		
-		$backups[] = $b;
+	if( $result['backup_type'] == 'full' || $result['backup_type'] == 'app' )
+	{
+		$dn = $GLOBALS['ldap']->getDNfromUID($result['backup_service_id']);
+		$data = $GLOBALS['ldap']->read($dn);
+		$command = "/dns/tm/sys/usr/local/bin/restore app {$result['backup_service_name']} {$data['homeDirectory']} {$result['backup_identifier']} {$data['gidNumber']} {$result['user_name']}";
 	}
-
-	responder::send($backups);
+	else
+	{
+		$sql = "SELECT service_name, service_type, service_host FROM services WHERE service_name = '{$result['service_name']}'";
+		$data = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+		
+		$command = "/dns/tm/sys/usr/local/bin/dump {$result['backup_type']} {$result['backup_service_name']} {$result['backup_identifier']} {$result['user_ldap']} {$data['service_host']} {$result['user_name']}";
+	}
+	$GLOBALS['gearman']->sendSync($command);
+	
+	responder::send("OK");
 });
 
 return $a;

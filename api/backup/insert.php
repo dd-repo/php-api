@@ -138,7 +138,7 @@ $a->setExecute(function() use ($a)
 			$GLOBALS['gearman']->sendSync($command);
 			
 			$title = "{$result['service_description']} ({$result['service_name']})";
-			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date, backup_auto) VALUES ('{$identifier}', '{$title}', {$result['user_id']}, 'service', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP(), {$auto})";
+			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date, backup_auto, backup_service_id, backup_service_name) VALUES ('{$identifier}', '{$title}', {$result['user_id']}, 'service', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP(), {$auto}, '0', '{$result['service_name']}')";
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 		else
@@ -198,15 +198,17 @@ $a->setExecute(function() use ($a)
 				$title = "{$appinfo['app_tag']} - {$branch} ({$result['uid']})";
 				if( $database === true )
 					$type = "full";	
+				$name = "{$result['uid']}-{$branch}";
 			}
 			else
 			{
 				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['uid']} {$result['homeDirectory']} {$identifier} {$result['gidNumber']} {$result['uid']}";
 				$title = "{$appinfo['app_tag']} ({$result['uid']})";
+				$name = "{$result['uid']}";
 			}
 			$GLOBALS['gearman']->sendAsync($command);
 			
-			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date, backup_auto) VALUES ('{$identifier}', '{$title}', {$result['user_id']}, '{$type}', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP(), {$auto})";
+			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date, backup_auto, backup_service_id, backup_service_name) VALUES ('{$identifier}', '{$title}', {$result['user_id']}, '{$type}', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP(), {$auto}, '{$result['uidNumber']}', '{$name})";
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 	}
