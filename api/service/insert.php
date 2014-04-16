@@ -101,12 +101,13 @@ $a->setExecute(function() use ($a)
 			$service .= $chars[$number];
 		}
 		$service = $vendor . '-' . $service . '-master';
+		$username = $vendor . '-' . $service;
 		
 		// check if that service name already exists
 		$sql = "SELECT service_name FROM services WHERE service_name='{$service}'";
 		$exists = $GLOBALS['db']->query($sql);
 		if( $exists == null || $exists['service_name'] == null )
-			break;			
+			break;
 	}
 
 	// =================================
@@ -117,20 +118,20 @@ $a->setExecute(function() use ($a)
 		case 'mysql':
 			$server = 'sql.anotherservice.com';
 			$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
-			$link->query("CREATE USER '{$service}'@'%' IDENTIFIED BY '".security::encode($pass)."'");
+			$link->query("CREATE USER '{$username}'@'%' IDENTIFIED BY '".security::encode($pass)."'");
 			$link->query("CREATE DATABASE `{$service}` CHARACTER SET utf8 COLLATE utf8_unicode_ci");
-			$link->query("GRANT USAGE ON * . * TO '{$service}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0");
-			$link->query("GRANT ALL PRIVILEGES ON `{$service}` . * TO '{$service}'@'%'");
+			$link->query("GRANT USAGE ON * . * TO '{$username}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0");
+			$link->query("GRANT ALL PRIVILEGES ON `{$service}` . * TO '{$username}'@'%'");
 			$link->query("FLUSH PRIVILEGES");
 		break;
 		case 'pgsql':
 			$server = 'pgsql.anotherservice.com';
-			$command = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$service} ".security::encode($pass)." {$server}";
+			$command = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$username} {$service} ".security::encode($pass)." {$server}";
 			$GLOBALS['gearman']->sendAsync($command);
 		break;
 		case 'mongodb':
 			$server = 'mongo.anotherservice.com';
-			$command = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$service} ".security::encode($pass)." {$server}";
+			$command = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$username} {$service} ".security::encode($pass)." {$server}";
 			$GLOBALS['gearman']->sendAsync($command);
 		break;
 	}
