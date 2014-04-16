@@ -61,7 +61,7 @@ $a->setExecute(function() use ($a)
 	$sql = "SELECT b.backup_identifier, b.backup_id, b.backup_title, b.backup_date, b.backup_type, b.backup_auto, b.backup_url, b.backup_service_name, b.backup_service_id, u.user_id, u.user_name , u.user_ldap
 			FROM backups b
 			LEFT JOIN users u ON(u.user_id = b.backup_user)
-			WHERE true {$where} ORDER BY backup_date DESC";
+			WHERE true {$where}";
 	$result = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 
 	if( $result['backup_type'] == 'full' || $result['backup_type'] == 'app' )
@@ -77,7 +77,7 @@ $a->setExecute(function() use ($a)
 		
 		$command = "/dns/tm/sys/usr/local/bin/dump {$result['backup_type']} {$result['backup_service_name']} {$result['backup_identifier']} {$result['user_ldap']} {$data['service_host']} {$result['user_name']}";
 	}
-	$GLOBALS['gearman']->sendSync($command);
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	responder::send("OK");
 });
