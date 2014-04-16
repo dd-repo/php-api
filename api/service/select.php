@@ -126,11 +126,15 @@ $a->setExecute(function() use ($a)
 		{
 			$sql = "SELECT app_tag FROM apps WHERE app_id = '{$result['service_app']}'";
 			$app = $GLOBALS['db']->query($sql);
+			$dn = $GLOBALS['ldap']->getDNfromUID($result['service_app']);
+			$data = $GLOBALS['ldap']->read($dn);
 		}
+		
 		$s['name'] = $r['service_name'];
 		$s['vendor'] = $r['service_type'];
 		$s['app'] = $r['service_app'];
 		$s['app_tag'] = $app['app_tag'];
+		$s['app_name'] = $data['uid'];
 		$s['version'] = $r['service_desc'];
 		$s['host'] = $r['service_host'];
 		$s['description'] = $r['service_description'];
