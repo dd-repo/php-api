@@ -145,7 +145,7 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>1,
 	'maxlength'=>5,
-	'match'=>"(1|0|yes|no|true|false)"
+	'match'=>request::NUMBER
 	));
 $a->addParam(array(
 	'name'=>array('regex', 'phrase'),
@@ -169,7 +169,7 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>1,
 	'maxlength'=>5,
-	'match'=>"(1|0|yes|no|true|false)"
+	'match'=>request::NUMBER
 	));
 $a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
@@ -213,12 +213,8 @@ $a->setExecute(function() use ($a)
 
 	if( $cache == '1' || $cache == 'yes' || $cache == 'true' || $cache === true || $cache === 1 ) $cache = 1;
 	else if( $cache !== null ) $cache = 0;
-	if( $alert == '1' || $alert == 'yes' || $alert == 'true' || $alert === true || $alert === 1 ) $alert = 1;
-	else if( $alert !== null ) $alert = 0;
 	if( $monitor == '1' || $monitor == 'yes' || $monitor == 'true' || $monitor === true || $monitor === 1 ) $monitor = 1;
 	else if( $monitor !== null ) $monitor = 0;
-	if( $backup == '1' || $backup == 'yes' || $backup == 'true' || $backup === true || $backup === 1 ) $backup = 1;
-	else if( $backup !== null ) $backup = 0;
 	
 	// =================================
 	// GET APP DN
