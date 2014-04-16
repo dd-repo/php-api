@@ -71,7 +71,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT RECORDS
 	// =================================
-	$sql = "SELECT * FROM `news` WHERE true {$where} ORDER BY new_date DESC LIMIT 0,{$limit}";
+	$sql = "SELECT * FROM `news` WHERE true {$where} ORDER BY news_date DESC LIMIT 0,{$limit}";
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 
 	// =================================
