@@ -122,11 +122,11 @@ $a->setExecute(function() use ($a)
 		$stats = $GLOBALS['db']->query($sql);
 		$sql = "SELECT b.branch_name, b.app_id, b.app_name, a.app_tag FROM service_branch b LEFT JOIN apps a ON(a.app_id = b.app_id) WHERE service_name = '{$r['service_name']}'";
 		$branches = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
-		if( $result['service_app'] != 0 )
+		if( $r['service_app'] != 0 )
 		{
-			$sql = "SELECT app_tag FROM apps WHERE app_id = '{$result['service_app']}'";
+			$sql = "SELECT app_tag FROM apps WHERE app_id = '{$r['service_app']}'";
 			$app = $GLOBALS['db']->query($sql);
-			$dn = $GLOBALS['ldap']->getDNfromUID($result['service_app']);
+			$dn = $GLOBALS['ldap']->getDNfromUID($r['service_app']);
 			$data = $GLOBALS['ldap']->read($dn);
 		}
 		
