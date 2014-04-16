@@ -100,7 +100,7 @@ $a->setExecute(function() use ($a)
 			$number = mt_rand(0,($number-1));
 			$service .= $chars[$number];
 		}
-		$service = $vendor . '-' . $service;
+		$service = $vendor . '-' . $service . '-master';
 		
 		// check if that service name already exists
 		$sql = "SELECT service_name FROM services WHERE service_name='{$service}'";
