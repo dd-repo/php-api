@@ -122,10 +122,15 @@ $a->setExecute(function() use ($a)
 		$stats = $GLOBALS['db']->query($sql);
 		$sql = "SELECT b.branch_name, b.app_id, b.app_name, a.app_tag FROM service_branch b LEFT JOIN apps a ON(a.app_id = b.app_id) WHERE service_name = '{$r['service_name']}'";
 		$branches = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
-		
+		if( $result['service_app'] != 0 )
+		{
+			$sql = "SELECT app_tag FROM apps WHERE app_id = '{$result['service_app']}'";
+			$app = $GLOBALS['db']->query($sql);
+		}
 		$s['name'] = $r['service_name'];
 		$s['vendor'] = $r['service_type'];
 		$s['app'] = $r['service_app'];
+		$s['app_tag'] = $app['app_tag'];
 		$s['version'] = $r['service_desc'];
 		$s['host'] = $r['service_host'];
 		$s['description'] = $r['service_description'];
