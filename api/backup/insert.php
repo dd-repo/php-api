@@ -208,7 +208,7 @@ $a->setExecute(function() use ($a)
 			}
 			$GLOBALS['gearman']->sendAsync($command);
 			
-			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date, backup_auto, backup_service_id, backup_service_name) VALUES ('{$identifier}', '{$title}', {$result['user_id']}, '{$type}', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP(), {$auto}, '{$result['uidNumber']}', '{$name})";
+			$sql = "INSERT INTO backups (backup_identifier, backup_title, backup_user, backup_type, backup_url, backup_date, backup_auto, backup_service_id, backup_service_name) VALUES ('{$identifier}', '{$title}', {$result['user_id']}, '{$type}', 'https://download.anotherservice.com/{$identifier}.gz', UNIX_TIMESTAMP(), {$auto}, '{$result['uidNumber']}', '{$name}')";
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 	}
