@@ -109,14 +109,14 @@ $a->setExecute(function() use ($a)
 				case 'mysql':
 					$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
 					$link->query("DROP USER '{$s['service_name']}'");
-					$link->query("DROP DATABASE `{$s['service_name']}`");
+					$link->query("DROP DATABASE `{$s['service_name']}-master`");
 				break;
 				case 'pgsql':
-					$command = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$s['service_name']}";
+					$command = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$s['service_name']} {$s['service_name']}-master";
 					$GLOBALS['gearman']->sendAsync($command);
 				break;
 				case 'mongodb':
-					$command = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$s['service_name']}";
+					$command = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$s['service_name']} {$s['service_name']}-master";
 					$GLOBALS['gearman']->sendAsync($command);
 				break;
 			}
