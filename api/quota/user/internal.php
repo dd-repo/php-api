@@ -168,23 +168,52 @@ function syncQuota($type, $user)
 			foreach( $services as $s )
 			{
 				if( $s['service_type'] == 'mysql' )
-					$s['service_name'] = str_replace('-', '@002d', $s['service_name']);
+					$name = str_replace('-', '@002d', $s['service_name'] . '-master');
+				else
+					$name = $s['service_name'] . '-master';
 					
 				$u = 0;
-				$u = $GLOBALS['system']->getservicesize($s['service_name'], $s['service_type'], $s['service_host']);
+				$u = $GLOBALS['system']->getservicesize($name, $s['service_type'], $s['service_host']);
 				$u = round($u/1024);
 				if( $s['service_type'] == 'pgsql' )
 					$u = round($u/1024);
 
-				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/services/{$s['service_name']}'";
+				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/services/{$s['service_name']}-master'";
 				$store = $GLOBALS['db']->query($sql);
 				if( $store['storage_id'] )
 					$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
 				else
-					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/services/{$s['service_name']}', {$u})";
+					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/services/{$s['service_name']}-master', {$u})";
 				$GLOBALS['db']->query($sql, mysql::NO_ROW);
 				
 				$usage = $usage+$u;
+				
+				$sql = "SELECT b.branch_name, b.app_id, b.app_name, a.app_tag FROM service_branch b LEFT JOIN apps a ON(a.app_id = b.app_id) WHERE service_name = '{$s['service_name']}'";
+				$branches = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+				
+				foreach( $branches as $b )
+				{
+					if( $s['service_type'] == 'mysql' )
+						$name = str_replace('-', '@002d', $s['service_name'] . '-' . $b['branch_name']);
+					else
+						$name = $s['service_name'] . '-' . $b['branch_name']);
+						
+					$u = 0;
+					$u = $GLOBALS['system']->getservicesize($name, $s['service_type'], $s['service_host']);
+					$u = round($u/1024);
+					if( $s['service_type'] == 'pgsql' )
+						$u = round($u/1024);
+
+					$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/services/{$s['service_name']}-{$b['branch_name']}'";
+					$store = $GLOBALS['db']->query($sql);
+					if( $store['storage_id'] )
+						$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
+					else
+						$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/services/{$s['service_name']}-{$b['branch_name']}', {$u})";
+					$GLOBALS['db']->query($sql, mysql::NO_ROW);
+					
+					$usage = $usage+$u;
+				}
 			}
 
 			$count = $usage;
