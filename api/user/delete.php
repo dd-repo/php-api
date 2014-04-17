@@ -75,8 +75,16 @@ $a->setExecute(function() use ($a)
 				
 				$GLOBALS['ldap']->delete($a['dn']);
 				
-				$command = "/dns/tm/sys/usr/local/bin/app-delete {$data['uid']} {$data['homeDirectory']} ".strtolower($data['uid'])." \"{$branches}\"";
+				$command = "/dns/tm/sys/usr/local/bin/app-delete {$a['uid']} {$a['homeDirectory']} ".strtolower($a['uid'])." \"{$branches}\"";
 				$GLOBALS['gearman']->sendAsync($command);
+				
+				// =================================
+				// DELETE PIWIK APP
+				// =================================
+				$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.getSitesIdFromSiteUrl&url=http://{$a['uid']}.anotherservice.net&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+				$json = json_decode(@file_get_contents($url), true);
+				$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.deleteSite&idSite={$json[0]['idsite']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+				@file_get_contents($url);
 			}
 		}
 		

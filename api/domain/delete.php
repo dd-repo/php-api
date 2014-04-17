@@ -80,7 +80,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$command = "rm -Rf {$data['homeDirectory']}";
 	$GLOBALS['gearman']->sendAsync($command);
-	
+				
 	// =================================
 	// SYNC QUOTA
 	// =================================
