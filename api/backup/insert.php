@@ -133,7 +133,7 @@ $a->setExecute(function() use ($a)
 			if( $branch !== null )
 				$result['service_name'] = $result['service_name'] . "-{$branch}";
 			
-			if( $result['service_type'] == 'mongo' )
+			if( $result['service_type'] == 'mongodb' )
 				$ext = 'tar';
 			else
 				$ext = $result['service_type'];
