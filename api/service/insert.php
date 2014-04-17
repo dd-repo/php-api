@@ -139,7 +139,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// INSERT LOCAL SERVICE
 	// =================================
-	$sql = "INSERT INTO services (service_name, service_description, service_type, service_user, service_desc, service_host) VALUE ('{$service}', '".security::escape($desc)."', '{$vendor}', {$userdata['user_id']}, '{$version}', '{$server}')";
+	$sql = "INSERT INTO services (service_name, service_description, service_type, service_user, service_desc, service_host) VALUE ('{$username}', '".security::escape($desc)."', '{$vendor}', {$userdata['user_id']}, '{$version}', '{$server}')";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 
 	// =================================

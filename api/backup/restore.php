@@ -23,7 +23,7 @@ $a->addParam(array(
 $a->addParam(array(
 	'name'=>array('branch'),
 	'description'=>'The target branch',
-	'optional'=>false,
+	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>50,
 	'match'=>request::LOWER
@@ -77,14 +77,20 @@ $a->setExecute(function() use ($a)
 	{
 		$dn = $GLOBALS['ldap']->getDNfromUID($result['backup_service_id']);
 		$data = $GLOBALS['ldap']->read($dn);
-		$command = "/dns/tm/sys/usr/local/bin/restore app {$result['backup_service_name']} {$data['homeDirectory']} {$result['backup_identifier']} {$data['gidNumber']} {$result['user_name']} ".security::encode($branch)."";
+		$command = "/dns/tm/sys/usr/local/bin/restore app {$result['backup_service_name']} {$data['homeDirectory']} {$result['backup_identifier']} {$data['gidNumber']} {$result['user_name']}";
 	}
 	else
 	{
 		$sql = "SELECT service_name, service_type, service_host FROM services WHERE service_name = '{$result['service_name']}'";
 		$data = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 		
-		$command = "/dns/tm/sys/usr/local/bin/dump {$result['backup_type']} {$result['backup_service_name']} {$result['backup_identifier']} {$result['user_ldap']} {$data['service_host']} {$result['user_name']} ".security::encode($branch)."";
+		if( $branch !== null )
+		{
+			$result['backup_service_name'] = explode('-', $result['backup_service_name']);
+			$result['backup_service_name'] = "{$result['backup_service_name'][0]}-{$result['backup_service_name'][1]}-" . security::encode($branch);
+		}
+		
+		$command = "/dns/tm/sys/usr/local/bin/restore {$result['backup_type']} {$result['backup_service_name']} {$result['backup_identifier']} {$result['user_ldap']} {$data['service_host']} {$result['user_name']}";
 	}
 	$GLOBALS['gearman']->sendAsync($command);
 	
