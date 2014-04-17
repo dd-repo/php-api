@@ -116,7 +116,7 @@ $a->setExecute(function() use ($a)
 	switch( $vendor )
 	{
 		case 'mysql':
-			$server = 'sql.anotherservice.com';
+			$server = 'mysql.anotherservice.com';
 			$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
 			$link->query("CREATE USER '{$username}'@'%' IDENTIFIED BY '".security::encode($pass)."'");
 			$link->query("CREATE DATABASE `{$service}` CHARACTER SET utf8 COLLATE utf8_unicode_ci");
