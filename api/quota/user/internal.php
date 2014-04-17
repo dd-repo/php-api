@@ -92,7 +92,7 @@ function syncQuota($type, $user)
 			$count = $result['count'];
 		break;
 		case 'DISK':
-			$sql = "SELECT user_ldap, user_id FROM users u WHERE {$where}";
+			$sql = "SELECT user_ldap, user_id, user_name FROM users u WHERE {$where}";
 			$userdata = $GLOBALS['db']->query($sql);
 			if( $userdata == null || $userdata['user_ldap'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -168,12 +168,21 @@ function syncQuota($type, $user)
 			foreach( $services as $s )
 			{
 				if( $s['service_type'] == 'mysql' )
+				{
 					$name = str_replace('-', '@002d', $s['service_name'] . '-master');
+					$name2 = str_replace('-', '@002d', $s['service_name']);
+				}
 				else
+				{
 					$name = $s['service_name'] . '-master';
+					$name2 = $s['service_name'];
+				}
 					
 				$u = 0;
 				$u = $GLOBALS['system']->getservicesize($name, $s['service_type'], $s['service_host']);
+				if( !$u || $u == 0 )
+					$u = $GLOBALS['system']->getservicesize($name2, $s['service_type'], $s['service_host']);
+	
 				$u = round($u/1024);
 				if( $s['service_type'] == 'pgsql' )
 					$u = round($u/1024);
