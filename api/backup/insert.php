@@ -133,7 +133,12 @@ $a->setExecute(function() use ($a)
 			if( $branch !== null )
 				$result['service_name'] = $result['service_name'] . "-{$branch}";
 			
-			$identifier = md5($result['service_name'] . time() . rand(11111111, 99999999) ) . '.' . $result['service_type'];
+			if( $result['service_type'] == 'mongodb' )
+				$ext = 'tar';
+			else
+				$ext = $result['service_type'];
+				
+			$identifier = md5($result['service_name'] . time() . rand(11111111, 99999999) ) . '.' . $ext;
 			$command = "/dns/tm/sys/usr/local/bin/dump {$result['service_type']} {$result['service_name']} {$identifier} {$result['user_ldap']} {$result['service_host']} {$result['user_name']}";
 			$GLOBALS['gearman']->sendSync($command);
 			
