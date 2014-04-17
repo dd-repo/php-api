@@ -116,12 +116,23 @@ $a->setExecute(function() use ($a)
 	$services = array();
 	foreach( $result as $r )
 	{
-		$sql = "SELECT storage_size FROM storages WHERE storage_path = '/services/{$r['service_name']}'";
+		$sql = "SELECT storage_size FROM storages WHERE storage_path = '/services/{$r['service_name']}-master'";
 		$storage = $GLOBALS['db']->query($sql);
 		$sql = "SELECT COUNT(service_name) as count FROM services WHERE service_host = '{$r['service_host']}'";
 		$stats = $GLOBALS['db']->query($sql);
 		$sql = "SELECT b.branch_name, b.app_id, b.app_name, a.app_tag FROM service_branch b LEFT JOIN apps a ON(a.app_id = b.app_id) WHERE service_name = '{$r['service_name']}'";
 		$branches = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+		
+		$bra = array();
+		foreach( $branches as $b )
+		{
+			$sql = "SELECT storage_size FROM storages WHERE storage_path = '/services/{$r['service_name']}-{$b['branch_name']}'";
+			$store = $GLOBALS['db']->query($sql);
+			
+			$b['size'] = $store['storage_size'];
+			$bra[] = $b;
+		}		
+		
 		if( $r['service_app'] != 0 )
 		{
 			$sql = "SELECT app_tag FROM apps WHERE app_id = '{$r['service_app']}'";
@@ -141,7 +152,7 @@ $a->setExecute(function() use ($a)
 		$s['size'] = $storage['storage_size'];
 		$s['user'] = array('id'=>$r['user_id'], 'name'=>$r['user_name']);
 		$s['stats'] = array("{$r['service_host']}" => $stats['count']);
-		$s['branches'] = $branches;
+		$s['branches'] = $bra;
 		
 		$services[] = $s;		
 	}
