@@ -86,11 +86,11 @@ $a->setExecute(function() use ($a)
 		
 		if( $branch !== null )
 		{
-			$result['backup_service_name'] = explode('-', $result['backup_service_name']);
-			$result['backup_service_name'] = "{$result['backup_service_name'][0]}-{$result['backup_service_name'][1]}-" . security::encode($branch);
+			$explode = explode('-', $result['backup_service_name']);
+			$result['backup_service_name'] = "{$explode[0]}-{$explode[1]}-" . security::encode($branch);
 		}
 		
-		$command = "/dns/tm/sys/usr/local/bin/restore {$result['backup_type']} {$result['backup_service_name']} {$result['backup_identifier']} {$result['user_ldap']} {$data['service_host']} {$result['user_name']}";
+		$command = "/dns/tm/sys/usr/local/bin/restore {$explode[0]}} {$result['backup_service_name']} {$result['backup_identifier']} {$result['user_ldap']} {$data['service_host']} {$result['user_name']}";
 	}
 	$GLOBALS['gearman']->sendAsync($command);
 	
