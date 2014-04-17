@@ -28,7 +28,7 @@ $a->addParam(array(
 	'optional'=>false,
 	'minlength'=>1,
 	'maxlength'=>200,
-	'match'=>request::LOWER|request::UPPER|request::NUMBER|request::PUNCT
+	'match'=>request::ALL
 	));
 $a->addParam(array(
 	'name'=>array('type', 'repo_type'),
@@ -112,7 +112,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$dir = $result['homeDirectory'] . '/var/' . $type . '/' . $repo;
 	$dn = ldap::buildDN(ldap::REPO, $domain, $repo);
-	$params = array('dn' => $dn, 'uid' => $repo, 'domain' => $domain, 'owner' => $user_dn, 'homeDirectory' => $dir, 'description' => $desc, 'gecos' => $type, 'mailForwardingAddress' => $mail);
+	$params = array('dn' => $dn, 'uid' => $repo, 'domain' => $domain, 'owner' => $user_dn, 'homeDirectory' => $dir, 'description' => security::encode($desc), 'gecos' => $type, 'mailForwardingAddress' => $mail);
 	
 	$handler = new repo();
 	$data = $handler->build($params);
