@@ -80,15 +80,15 @@ $a->setExecute(function() use ($a)
 		$command = "/dns/tm/sys/usr/local/bin/restore app {$result['backup_service_name']} {$data['homeDirectory']} {$result['backup_identifier']} {$data['gidNumber']} {$result['user_name']}";
 	}
 	else
-	{
-		$sql = "SELECT service_name, service_type, service_host FROM services WHERE service_name = '{$result['backup_service_name']}'";
-		$data = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
-		
+	{		
 		if( $branch !== null )
 		{
 			$explode = explode('-', $result['backup_service_name']);
 			$result['backup_service_name'] = "{$explode[0]}-{$explode[1]}-" . security::encode($branch);
 		}
+		
+		$sql = "SELECT service_name, service_type, service_host FROM services WHERE service_name = '{$explode[0]}-{$explode[1]}'";
+		$data = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 		
 		$command = "/dns/tm/sys/usr/local/bin/restore {$explode[0]} {$result['backup_service_name']} {$result['backup_identifier']} {$result['user_ldap']} {$data['service_host']} {$result['user_name']}";
 	}
