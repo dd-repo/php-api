@@ -195,7 +195,7 @@ $a->setExecute(function() use ($a)
 			if( $branch !== null )
 			{
 				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['uid']}-{$branch} {$result['homeDirectory']}/".security::escape($branch)." {$identifier} {$result['gidNumber']} {$userinfo['uid']}";
-				$title = "{$appinfo['app_tag']} - {$branch} ({$result['uid']})";
+				$title = "{$appinfo['app_tag']} ({$result['uid']}-{$branch})";
 				if( $database === true )
 					$type = "full";	
 				$name = "{$result['uid']}-{$branch}";
@@ -203,7 +203,7 @@ $a->setExecute(function() use ($a)
 			else
 			{
 				$command = "/dns/tm/sys/usr/local/bin/dump app {$result['uid']} {$result['homeDirectory']} {$identifier} {$result['gidNumber']} {$result['uid']}";
-				$title = "{$appinfo['app_tag']} ({$result['uid']})";
+				$title = "{$appinfo['app_tag']} ({$result['uid']}-all)";
 				$name = "{$result['uid']}";
 			}
 			$GLOBALS['gearman']->sendAsync($command);
