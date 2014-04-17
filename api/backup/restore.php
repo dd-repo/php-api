@@ -81,7 +81,7 @@ $a->setExecute(function() use ($a)
 	}
 	else
 	{
-		$sql = "SELECT service_name, service_type, service_host FROM services WHERE service_name = '{$result['service_name']}'";
+		$sql = "SELECT service_name, service_type, service_host FROM services WHERE service_name = '{$result['backup_service_name']}'";
 		$data = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 		
 		if( $branch !== null )
