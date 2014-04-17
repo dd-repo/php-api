@@ -196,7 +196,7 @@ function syncQuota($type, $user)
 					if( $s['service_type'] == 'mysql' )
 						$name = str_replace('-', '@002d', $s['service_name'] . '-' . $b['branch_name']);
 					else
-						$name = $s['service_name'] . '-' . $b['branch_name']);
+						$name = $s['service_name'] . '-' . $b['branch_name'];
 						
 					$u = 0;
 					$u = $GLOBALS['system']->getservicesize($name, $s['service_type'], $s['service_host']);
