@@ -54,7 +54,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET USER DATA
 	// =================================
-	$sql = "SELECT user_ldap, user_name FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+	$sql = "SELECT user_ldap, user_name, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 	$userdata = $GLOBALS['db']->query($sql);
 	if( $userdata == null || $userdata['user_ldap'] == null )
 		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -63,6 +63,7 @@ $a->setExecute(function() use ($a)
 	// GET REMOTE USER DN
 	// =================================	
 	$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
+	$userinfo = $GLOBALS['ldap']->read($user_dn);
 	
 	// =================================
 	// GET APP DN
@@ -84,15 +85,14 @@ $a->setExecute(function() use ($a)
 	
 	// =================================
 	// CHECK OWNER
-	// =================================
-	$ownerdn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
-	
+	// =================================	
 	if( is_array($data['owner']) )
 		$data['owner'] = $data['owner'][0];
 			
-	if( $ownerdn != $data['owner'] )
+	if( $user_dn != $data['owner'] )
 		throw new ApiException("Forbidden", 403, "User {$user} does not match owner of the app {$app}");
 
+	
 	// =================================
 	// DELETE OTHERS
 	// =================================
@@ -102,8 +102,8 @@ $a->setExecute(function() use ($a)
 	{
 		$branches = '';
 		foreach( $extra['branches'] as $k => $v )
-		{	
-			$branches = $branches . " {$k}";
+		{
+			$branches = $branches . "{$k} ";
 			if( count($v['urls']) > 0 )
 			{
 				foreach( $v['urls'] as $u )
@@ -111,6 +111,20 @@ $a->setExecute(function() use ($a)
 					$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
 					$data2 = $GLOBALS['ldap']->read($dn2);
 					$commands[] = "rm {$data2['homeDirectory']}";
+				}
+			}
+			if( count($v['instances']) > 0 )
+			{
+				foreach( $v['instances'] as $i )
+				{
+					$command = "sv stop {$data['uid']}-{$k}-{$i['id']} && rm /etc/service/{$data['uid']}-{$k}-{$i['id']}";
+					$GLOBALS['gearman']->sendAsync($command, $i['host']);
+			
+					$command = "docker rmi registry:5000/".strtolower($data['uid'])."-{$k}";
+					$GLOBALS['gearman']->sendAsync($command, $i['host']);
+					
+					$sql = "UPDATE ports SET used = 0 WHERE port = {$i['port']}";
+					$GLOBALS['db']->query($sql, mysql::NO_ROW);				
 				}
 			}
 		}
@@ -131,13 +145,27 @@ $a->setExecute(function() use ($a)
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
 	$commands[] = "/dns/tm/sys/usr/local/bin/app-delete {$data['uid']} {$data['homeDirectory']} ".strtolower($data['uid'])." \"{$branches}\"";
-	$GLOBALS['system']->exec($commands);
+	$GLOBALS['gearman']->sendAsync($commands);
 	
 	// =================================
 	// UPDATE REMOTE USER
 	// =================================
 	$mod['member'] = $dn;
 	$GLOBALS['ldap']->replace($user_dn, $mod, ldap::DELETE);
+
+	// =================================
+	// DELETEE SYMLINK
+	// =================================
+	$command = "rm {$userinfo['homeDirectory']}/{$data['uid']}.git";
+	$GLOBALS['gearman']->sendAsync($command);
+	
+	// =================================
+	// DELETE PIWIK APP
+	// =================================
+	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.getSitesIdFromSiteUrl&url=http://{$data['uid']}.anotherservice.net&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+	$json = json_decode(@file_get_contents($url), true);
+	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.deleteSite&idSite={$json[0]['idsite']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+	@file_get_contents($url);
 	
 	// =================================
 	// SYNC QUOTA
@@ -146,6 +174,11 @@ $a->setExecute(function() use ($a)
 	request::forward('/quota/user/internal');
 	syncQuota('APPS', $user);
 	syncQuota('MEMORY', $user);
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('app/delete', $a->getParams(), $userdata['user_id']);
 	
 	responder::send("OK");
 });

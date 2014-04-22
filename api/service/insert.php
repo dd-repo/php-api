@@ -100,13 +100,14 @@ $a->setExecute(function() use ($a)
 			$number = mt_rand(0,($number-1));
 			$service .= $chars[$number];
 		}
-		$service = $vendor . '-' . $service;
+		$username = $vendor . '-' . $service;
+		$service = $username . '-master';
 		
 		// check if that service name already exists
 		$sql = "SELECT service_name FROM services WHERE service_name='{$service}'";
 		$exists = $GLOBALS['db']->query($sql);
 		if( $exists == null || $exists['service_name'] == null )
-			break;			
+			break;
 	}
 
 	// =================================
@@ -115,24 +116,30 @@ $a->setExecute(function() use ($a)
 	switch( $vendor )
 	{
 		case 'mysql':
-			$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-			mysql_query("CREATE USER '{$service}'@'%' IDENTIFIED BY '{$pass}'", $link);
-			mysql_query("CREATE DATABASE `{$service}` CHARACTER SET utf8 COLLATE utf8_unicode_ci", $link);
-			mysql_query("GRANT USAGE ON * . * TO '{$service}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0", $link);
-			mysql_query("GRANT ALL PRIVILEGES ON `{$service}` . * TO '{$service}'@'%'", $link);
-			mysql_query("FLUSH PRIVILEGES", $link);
-			mysql_close($link);
+			$server = 'mysql.anotherservice.com';
+			$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
+			$link->query("CREATE USER '{$username}'@'%' IDENTIFIED BY '".security::encode($pass)."'");
+			$link->query("CREATE DATABASE `{$service}` CHARACTER SET utf8 COLLATE utf8_unicode_ci");
+			$link->query("GRANT USAGE ON * . * TO '{$username}'@'%' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0");
+			$link->query("GRANT ALL PRIVILEGES ON `{$service}` . * TO '{$username}'@'%'");
+			$link->query("FLUSH PRIVILEGES");
 		break;
-		case 'postgresql':
-		
+		case 'pgsql':
+			$server = 'pgsql.anotherservice.com';
+			$command = "/dns/tm/sys/usr/local/bin/create-db-pgsql {$username} {$service} ".security::encode($pass)." {$server}";
+			$GLOBALS['gearman']->sendAsync($command);
 		break;
-		
+		case 'mongodb':
+			$server = 'mongo.anotherservice.com';
+			$command = "/dns/tm/sys/usr/local/bin/create-db-mongodb {$username} {$service} ".security::encode($pass)." {$server}";
+			$GLOBALS['gearman']->sendAsync($command);
+		break;
 	}
 	
 	// =================================
 	// INSERT LOCAL SERVICE
 	// =================================
-	$sql = "INSERT INTO `services` (service_name, service_description, service_type, service_user, service_desc) VALUE ('{$service}', '".security::escape($desc)."', '{$vendor}', {$userdata['user_id']}, '{$version}')";
+	$sql = "INSERT INTO services (service_name, service_description, service_type, service_user, service_desc, service_host) VALUE ('{$username}', '".security::escape($desc)."', '{$vendor}', {$userdata['user_id']}, '{$version}', '{$server}')";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 
 	// =================================
@@ -140,6 +147,11 @@ $a->setExecute(function() use ($a)
 	// =================================
 	syncQuota('SERVICES', $user);
 
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('service/insert', $a->getParams(), $userdata['user_id']);
+	
 	responder::send(array("name"=>$service));
 });
 

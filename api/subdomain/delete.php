@@ -96,9 +96,13 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "rm -Rf {$data['homeDirectory']}";
+	$command = "rm -Rf {$data['homeDirectory']}";	
+	$GLOBALS['gearman']->sendAsync($command);
 	
-	$GLOBALS['system']->exec($commands);
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('subdomain/delete', $a->getParams(), $userdata['user_id']);
 	
 	responder::send("OK");
 });

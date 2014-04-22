@@ -87,6 +87,14 @@ $a->addParam(array(
 	'match'=>request::NUMBER
 	));
 $a->addParam(array(
+	'name'=>array('key', 'ssh'),
+	'description'=>'The SSH key',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>1000,
+	'match'=>request::ALL
+	));
+$a->addParam(array(
 	'name'=>array('join'),
 	'description'=>'Mode team join (can be add/delete).',
 	'optional'=>true,
@@ -124,6 +132,7 @@ $a->setExecute(function() use ($a)
 	$mode = $a->getParam('mode');
 	$team = $a->getParam('team');
 	$join = $a->getParam('join');
+	$key = $a->getParam('key');
 	$user = $a->getParam('user');
 	
 	// =================================
@@ -144,7 +153,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $user !== null )
 	{
-		$sql = "SELECT user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 		$userdata = $GLOBALS['db']->query($sql);
 		
 		if( $userdata == null || $userdata['user_ldap'] == null )
@@ -173,18 +182,38 @@ $a->setExecute(function() use ($a)
 		$params['givenName'] = $firstname;
 	if( $lastname !== null )
 		$params['sn'] = $lastname;
+	if( $key !== null && $mode == 'add'  )
+		$params2['sshPublicKey'] = $key;
 	if( $redirection !== null )
 		$params2['mailForwardingAddress'] = $redirection;
 	if( $alternate !== null )
-		$params2['mailAlternateAddress'] = $alternate;			
-	
+		$params2['mailAlternateAddress'] = $alternate;
+		
 	if( $mode == 'add' )
 		$GLOBALS['ldap']->replace($dn, $params2, ldap::ADD);
 	elseif( $mode == 'delete' )
 		$GLOBALS['ldap']->replace($dn, $params2, ldap::DELETE);	
-
+	
 	$GLOBALS['ldap']->replace($dn, $params);
 
+	if( $key !== null && $mode == 'delete')
+	{
+		$newkeys = array();
+		if( is_array($result['sshPublicKey']) )
+		{
+			$i = 0;
+			foreach( $result['sshPublicKey'] as $k )
+			{
+				if( $i != $key )
+					$newkeys[] = $k;
+				$i++;
+			}
+		}
+		
+		$params3['sshPublicKey'] = $newkeys;
+		$GLOBALS['ldap']->replace($dn, $params3);
+	}
+	
 	// =================================
 	// TEAM JOIN
 	// =================================
@@ -200,6 +229,11 @@ $a->setExecute(function() use ($a)
 		$mod['member'] = $dn;
 		$GLOBALS['ldap']->replace($group_dn, $mod, ldap::DELETE);		
 	}
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('account/update', $a->getParams(), $userdata['user_id']);
 	
 	responder::send("OK");
 });

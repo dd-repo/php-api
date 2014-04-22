@@ -150,9 +150,11 @@ $a->setExecute(function() use ($a)
 		$ac['firstname'] = $result['givenName'];
 		$ac['lastname'] = $result['sn'];
 		$ac['redirection'] = $result['mailForwardingAddress'];
+		$ac['homeDirectory'] = $result['homeDirectory'];
 		$ac['alternate'] = $result['mailAlternateAddress'];
 		$ac['mail'] = $result['mail'];
 		$ac['user'] = array('id'=>$info['user_id'], 'name'=>$info['user_name']);
+		$ac['keys'] = $result['sshPublicKey'];
 		
 		$groups = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $domain), ldap::buildFilter(ldap::GROUP, "(member={$dn})"));
 		
@@ -199,10 +201,12 @@ $a->setExecute(function() use ($a)
 			$ac['firstname'] = $r['givenName'];
 			$ac['lastname'] = $r['sn'];
 			$ac['redirection'] = $r['mailForwardingAddress'];
+			$ac['homeDirectory'] = $r['homeDirectory'];
 			$ac['size'] = $storage['storage_size'];
 			$ac['mail'] = $r['mail'];
 			$ac['user'] = array('id'=>'', 'name'=>'');
-	
+			$ac['keys'] = $r['sshPublicKey'];
+			
 			$groups = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $domain), ldap::buildFilter(ldap::GROUP, "(member={$r['dn']})"));
 
 			if( $groups['uid'] )

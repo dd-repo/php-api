@@ -21,62 +21,6 @@ $a->addParam(array(
 	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
 	));
 $a->addParam(array(
-	'name'=>array('instances', 'number'),
-	'description'=>'The number of instances',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>30,
-	'match'=>request::NUMBER
-	));	
-$a->addParam(array(
-	'name'=>array('memory'),
-	'description'=>'The app memory (in MB)',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>30,
-	'match'=>request::NUMBER
-	));
-$a->addParam(array(
-	'name'=>array('start'),
-	'description'=>'Start the application',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>5,
-	'match'=>"(1|yes|true)"
-	));	
-$a->addParam(array(
-	'name'=>array('stop'),
-	'description'=>'Stop the application',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>5,
-	'match'=>"(1|yes|true)"
-	));
-$a->addParam(array(
-	'name'=>array('restart'),
-	'description'=>'Restart the application',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>5,
-	'match'=>"(1|yes|true)"
-	));
-$a->addParam(array(
-	'name'=>array('rebuild'),
-	'description'=>'Rebuild the application',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>5,
-	'match'=>"(1|yes|true)"
-	));
-$a->addParam(array(
-	'name'=>array('reassign'),
-	'description'=>'Reassign all ports of the app',
-	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>5,
-	'match'=>"(1|yes|true)"
-	));
-$a->addParam(array(
 	'name'=>array('url', 'uri'),
 	'description'=>'The url of the app',
 	'optional'=>true,
@@ -85,21 +29,13 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));	
 $a->addParam(array(
-	'name'=>array('service'),
-	'description'=>'The service of the app',
-	'optional'=>true,
-	'minlength'=>3,
-	'maxlength'=>100,
-	'match'=>request::UPPER|request::LOWER|request::NUMBER|request::PUNCT
-	));		
-$a->addParam(array(
 	'name'=>array('branch', 'env', 'environment'),
 	'description'=>'The environement of the app',
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>150,
 	'match'=>request::LOWER,
-	));	
+	));
 $a->addParam(array(
 	'name'=>array('host', 'hostname'),
 	'description'=>'The host of the instance',
@@ -118,7 +54,7 @@ $a->addParam(array(
 	));	
 $a->addParam(array(
 	'name'=>array('mode'),
-	'description'=>'Mode for application address, services and environment (can be add/delete).',
+	'description'=>'Mode for application and environment (can be add/delete).',
 	'optional'=>true,
 	'minlength'=>2,
 	'maxlength'=>6,
@@ -148,6 +84,94 @@ $a->addParam(array(
 	'match'=>"(1|0|yes|no|true|false)"
 	));
 $a->addParam(array(
+	'name'=>array('certificate'),
+	'description'=>'Path to the certificate',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>200,
+	'match'=>request::ALL
+	));
+$a->addParam(array(
+	'name'=>array('member', 'member_id'),
+	'description'=>'The id of the member.',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>100,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
+	'name'=>array('member', 'member_id'),
+	'description'=>'The id of the member.',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>100,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
+	'name'=>array('join'),
+	'description'=>'Mode team join (can be add/delete).',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>6,
+	'match'=>"(add|delete)"
+	));
+$a->addParam(array(
+	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
+	'description'=>'The emails of the user.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>800,
+	'match'=>request::ALL
+	));
+$a->addParam(array(
+	'name'=>array('permission', 'permissions', 'rights'),
+	'description'=>'Permission for joining.',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>3,
+	'match'=>"(rx|rwx)"
+	));
+$a->addParam(array(
+	'name'=>array('monitor', 'monitors'),
+	'description'=>'Monitor?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
+	'name'=>array('alert', 'alerts'),
+	'description'=>'Receive alerts?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
+	'name'=>array('regex', 'phrase'),
+	'description'=>'The regex for monitoring.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>50,
+	'match'=>request::PHRASE|request::SPECIAL
+	));
+$a->addParam(array(
+	'name'=>array('key', 'ssh'),
+	'description'=>'The SSH key',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>1000,
+	'match'=>request::ALL
+	));
+$a->addParam(array(
+	'name'=>array('backup', 'backup_status'),
+	'description'=>'Do backups?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -167,14 +191,6 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$app = $a->getParam('app');
-	$instances = $a->getParam('instances');
-	$memory = $a->getParam('memory');
-	$start = $a->getParam('start');
-	$stop = $a->getParam('stop');
-	$restart = $a->getParam('restart');
-	$rebuild = $a->getParam('rebuild');
-	$reassign = $a->getParam('reassign');
-	$service = $a->getParam('service');
 	$url = $a->getParam('url');
 	$mode = $a->getParam('mode');
 	$branch = $a->getParam('branch');
@@ -183,10 +199,22 @@ $a->setExecute(function() use ($a)
 	$pass = $a->getParam('pass');
 	$tag = $a->getParam('tag');
 	$cache = $a->getParam('cache');
+	$member = $a->getParam('member');
+	$join = $a->getParam('join');
+	$permission = $a->getParam('permission');
+	$email = $a->getParam('email');
+	$certificate = $a->getParam('certificate');
+	$alert = $a->getParam('alert');
+	$monitor = $a->getParam('monitor');
+	$regex = $a->getParam('regex');
+	$key = $a->getParam('key');
+	$backup = $a->getParam('backup');
 	$user = $a->getParam('user');
 
 	if( $cache == '1' || $cache == 'yes' || $cache == 'true' || $cache === true || $cache === 1 ) $cache = 1;
 	else if( $cache !== null ) $cache = 0;
+	if( $monitor == '1' || $monitor == 'yes' || $monitor == 'true' || $monitor === true || $monitor === 1 ) $monitor = 1;
+	else if( $monitor !== null ) $monitor = 0;
 	
 	// =================================
 	// GET APP DN
@@ -217,7 +245,7 @@ $a->setExecute(function() use ($a)
 		// =================================
 		// GET USERS
 		// =================================
-		$sql = "SELECT user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 		$userdata = $GLOBALS['db']->query($sql);
 		if( $userdata == null || $userdata['user_ldap'] == null )
 			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -240,7 +268,7 @@ $a->setExecute(function() use ($a)
 				
 		$ownerdata = $GLOBALS['ldap']->read($data['owner']);
 		
-		$sql = "SELECT user_ldap FROM users u WHERE u.user_ldap = '{$ownerdata['uidNumber']}'";
+		$sql = "SELECT user_ldap, user_id FROM users u WHERE u.user_ldap = '{$ownerdata['uidNumber']}'";
 		$userdata = $GLOBALS['db']->query($sql);
 	}
 	
@@ -253,8 +281,6 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// UPDATE REMOTE APP
 	// =================================
-	$params = array();
-	$docker = false;
 	if( $tag !== null )
 	{
 		if( !$appresult['app_id'] )
@@ -268,49 +294,82 @@ $a->setExecute(function() use ($a)
 			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		}
 	}
-	if( $pass !== null )
+	
+	if( $key !== null && $mode == 'add'  )
 	{
-		$params['userPassword'] = $pass;
-		$GLOBALS['ldap']->replace($dn, $params);
+		$params['sshPublicKey'] = $key;
+		$GLOBALS['ldap']->replace($dn, $params, ldap::ADD);
 	}
-	if( $reassign !== null )
+	
+	if( $key !== null && $mode == 'delete')
 	{
-		$extra = json_decode($data['description'], true);
-		
-		$newinstances = array();
-		if( is_array($extra['branches']) )
+		$newkeys = array();
+		if( is_array($data['sshPublicKey']) )
 		{
-			foreach( $extra['branches'] as $k => $v )
+			$i = 0;
+			foreach( $data['sshPublicKey'] as $k )
 			{
-				$sql = "SELECT port, used FROM ports WHERE used = 0";
-				$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
-				if( !$portresult['port'] )
-				{
-					$sql = "INSERT INTO ports (used) VALUES (1)";
-					$GLOBALS['db']->query($sql, mysql::NO_ROW);
-					$port = $GLOBALS['db']->last_id();
-				}
-				else
-				{
-					$port = $portresult['port'];
-					$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
-					$GLOBALS['db']->query($sql, mysql::NO_ROW);
-				}
-				
-				if( is_array($v['instances']) )
-				{
-					foreach( $v['instances'] as $key => $value )
-						$newinstances[] = array('host' => $value['host'], 'port' => $port, 'memory' => $value['memory'], 'cpu' => $value['cpu']);
-						
-					$extra['branches'][$k]['instances'] = $newinstances;
-				}
+				if( $i != $key )
+					$newkeys[] = $k;
+				$i++;
 			}
 		}
 		
-		$params = array('description'=>json_encode($extra));
+		$params3['sshPublicKey'] = $newkeys;
+		$GLOBALS['ldap']->replace($dn, $params3);
+	}	
+		
+	if( $pass !== null )
+	{
+		$params = array('userPassword' => $pass);
 		$GLOBALS['ldap']->replace($dn, $params);
 	}
+
+	if( $email !== null )
+	{
+		if( strpos($email, ',') !== false )
+		{
+			$emails = explode(',', $email);
+			$params['mailForwardingAddress'] = array();
+			foreach( $emails as $e )
+				$params['mailForwardingAddress'][] = $e;
+		}
+		else
+			$params['mailForwardingAddress'] = $email;
+		
+		$GLOBALS['ldap']->replace($dn, $params);
+	}
+
+	if( $certificate !== null )
+	{
+		$params = array('gecos' => security::escape($certificate));
+		$GLOBALS['ldap']->replace($dn, $params);
+		
+		$command = "/dns/tm/sys/usr/local/bin/move-certificate {$data['uid']} ".security::escape($certificate)."";
+		$GLOBALS['gearman']->sendSync($command);
+	}
 	
+	if( ($alert !== null || $monitor !== null || $regex !== null || $backup !== null) && $branch !== null )
+	{
+		$extra = json_decode($data['description'], true);
+		if( $backup !== null )
+			$extra['branches'][$branch]['backup'] = $backup;
+		if( $monitor !== null )
+			$extra['branches'][$branch]['monitor'] = $monitor;
+		if( $alert !== null )
+			$extra['branches'][$branch]['alert'] = $alert;
+		if( $regex !== null && $regex != "0" )
+			$extra['branches'][$branch]['regex'] = $regex;
+		else if( $regex !== null )
+			unset($extra['branches'][$branch]['regex']);
+			
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);
+		
+		$command = "/dns/tm/sys/usr/local/bin/php/zabbix-sync";
+		$GLOBALS['gearman']->sendAsync($command);
+	}
+
 	if( $hostname !== null && $instance !== null && $branch !== null )
 	{
 		$extra = json_decode($data['description'], true);
@@ -327,11 +386,11 @@ $a->setExecute(function() use ($a)
 			}
 		
 			$extra['branches'][$branch]['instances'] = $newinstances;
-		
 			$params = array('description'=>json_encode($extra));
 			$GLOBALS['ldap']->replace($dn, $params);
 		}
 	}
+
 	if( $cache !== null )
 	{
 		$extra = json_decode($data['description'], true);
@@ -339,124 +398,6 @@ $a->setExecute(function() use ($a)
 		
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
-	}
-	if( $memory !== null && $branch !== null )
-	{
-		checkQuota('MEMORY', $user);
-
-		$extra = json_decode($data['description'], true);
-		
-		$newinstances = array();
-		if( $extra['branches'][$branch]['instances'] )
-		{
-			foreach( $extra['branches'][$branch]['instances'] as $i )
-				$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $memory, 'cpu' => $i['cpu']);	
-
-			$extra['branches'][$branch]['instances'] = $newinstances;
-		
-			$params = array('description'=>json_encode($extra));
-			$GLOBALS['ldap']->replace($dn, $params);
-		}
-	
-		syncQuota('MEMORY', $user);
-		
-		$docker = true;
-	}
-	
-	if( $instances !== null && $branch !== null )
-	{
-		checkQuota('MEMORY', $user);
-		
-		$extra = json_decode($data['description'], true);
-		
-		$newinstances = array();
-		$count = 0;
-		if( $extra['branches'][$branch]['instances'] )
-		{
-			foreach( $extra['branches'][$branch]['instances'] as $i )
-			{
-				if( $count < $instances )
-					$newinstances[] = array('host' => $i['host'], 'port' => $i['port'], 'memory' => $i['memory'], 'cpu' => $i['cpu']);	
-				
-				$count++;
-			}
-		}
-		else
-		{
-			$sql = "SELECT port, used FROM ports WHERE used = 0";
-			$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
-			if( !$portresult['port'] )
-			{
-				$sql = "INSERT INTO ports (used) VALUES (1)";
-				$GLOBALS['db']->query($sql, mysql::NO_ROW);
-				$i['port'] = $GLOBALS['db']->last_id();
-			}
-			else
-			{
-				$i['port'] = $portresult['port'];
-				$sql = "UPDATE ports SET used = 1 WHERE port = {$port}";
-				$GLOBALS['db']->query($sql, mysql::NO_ROW);
-			}
-			$i['memory'] = 128;
-			$i['cpu'] = 1;
-		}
-		
-		for( $j = $count; $j < $instances; $j++ )
-			$newinstances[] = array('port' => $i['port'], 'memory' => $i['memory'], 'cpu' => $i['cpu']);	
-		
-		$extra['branches'][$branch]['instances'] = $newinstances;
-	
-		$params = array('description'=>json_encode($extra));
-		$GLOBALS['ldap']->replace($dn, $params);
-
-		syncQuota('MEMORY', $user);
-		
-		$docker = true;
-	}
-	
-	if( $start !== null && $branch !== null )
-	{
-		$commands = array();
-		$extra = json_decode($data['description'], true);
-		if( $extra['branches'][$branch]['instances'] )
-		{
-			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
-				$commands[] = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} start";
-		}
-		
-		$GLOBALS['system']->exec($commands);
-	}
-	else if( $stop !== null && $branch !== null )
-	{
-		$commands = array();
-		$extra = json_decode($data['description'], true);
-		if( $extra['branches'][$branch]['instances'] )
-		{
-			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
-				$commands[] = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} stop ".strtolower($data['uid'])." {$branch}";
-		}
-		
-		$GLOBALS['system']->exec($commands);
-	}
-	else if( $restart !== null && $branch !== null )
-	{
-		$extra = json_decode($data['description'], true);
-		if( $extra['branches'][$branch]['instances'] )
-		{
-			foreach( $extra['branches'][$branch]['instances'] as $key => $value )
-			{
-				$commands = array();
-				$commands[] = "/dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} stop ".strtolower($data['uid'])." {$branch}";
-				$commands[] = "sleep 2 && /dns/tm/sys/usr/local/bin/runit-manage {$value['host']} {$data['uid']}-{$branch}-{$key} start";
-				$GLOBALS['system']->exec($commands);
-			}
-		}
-	}
-	if( $rebuild !== null && $branch !== null )
-	{
-		$commands = array();
-		$commands[] = "/dns/tm/sys/usr/local/bin/app-rebuild {$data['uid']} {$data['homeDirectory']} {$branch} ".strtolower($data['uid'])." {$file}";
-		$GLOBALS['system']->exec($commands);
 	}
 	
 	if( $url !== null && $branch != null && $mode == 'add' )
@@ -469,14 +410,10 @@ $a->setExecute(function() use ($a)
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);
 		
-		$texturls = '';
-		foreach( $extra['branches'][$branch]['urls'] as $uri )
-			$texturls .= ' ' . $key;
-
 		$commands = array();
 		$commands[] = "ln -s {$data['homeDirectory']}/{$branch} {$data['data2']['homeDirectory']}";
-		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']} \"{$texturls}\"";
-		$GLOBALS['system']->exec($commands);
+		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']}";
+		$GLOBALS['gearman']->sendAsync($commands);
 	}
 	else if( $url !== null && $mode == 'delete' && $branch != null )
 	{
@@ -496,22 +433,17 @@ $a->setExecute(function() use ($a)
 		
 		$params = array('description'=>json_encode($extra));
 		$GLOBALS['ldap']->replace($dn, $params);		
-		
-		$texturls = '';
-		foreach( $extra['branches'][$branch]['urls'] as $key => $value )
-			$texturls .= ' ' . $key;
 
 		$commands = array();
 		$commands[] = "rm {$data['data2']['homeDirectory']}";			
-		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']} \"{$texturls}\"";
-		$GLOBALS['system']->exec($commands);
+		$commands[] = "/dns/tm/sys/usr/local/bin/app-update {$data['uid']}";
+		$GLOBALS['gearman']->sendAsync($commands);
 	}
 	else if( $branch !== null && $mode == 'add' )
 	{
 		$extra = json_decode($data['description'], true);
-		$commands = array();
-		$commands[] = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language} \"{$appresult['app_binary']}\"";
-		$GLOBALS['system']->exec($commands);
+		$command = "/dns/tm/sys/usr/local/bin/create-branch {$data['uid']} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$branch} ".strtolower($data['uid'])." {$language} \"{$appresult['app_binary']}\"";
+		$GLOBALS['gearman']->sendAsync($command);
 	
 		$sql = "SELECT port, used FROM ports WHERE used = 0";
 		$portresult = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
@@ -535,18 +467,89 @@ $a->setExecute(function() use ($a)
 	}
 	else if( $branch !== null && $mode == 'delete' )
 	{
-		// todo
+		$extra = json_decode($data['description'], true);
+
+		// FREE PORT AND STOP DOCKER
+		if( count($extra['branches'][$branch]['instances']) > 0 )
+		{
+			foreach( $extra['branches'][$branch]['instances'] as $i )
+			{
+				$command = "sv stop {$data['uid']}-".security::escape($branch)."-{$i['id']}; rm /etc/service/{$data['uid']}-".security::escape($branch)."-{$i['id']}; docker rmi registry:5000/".strtolower($data['uid'])."-".security::escape($branch);
+				$GLOBALS['gearman']->sendSync($command, $i['host']);
+			
+				if( $i['port'] )
+				{
+					$sql = "UPDATE ports SET used = 0 WHERE port = {$i['port']}";
+					$GLOBALS['db']->query($sql, mysql::NO_ROW);		
+				}
+			}
+		}
+			
+		// DELETE SYMLINKS
+		if( count($extra['branches'][$branch]['urls']) > 0 )
+		{
+			foreach( $extra['branches'][$branch]['urls'] as $u )
+			{
+				$dn2 = $GLOBALS['ldap']->getDNfromHostname($u);
+				$data2 = $GLOBALS['ldap']->read($dn2);
+				$commands[] = "rm {$data2['homeDirectory']}";
+			}
+		}
+		$GLOBALS['gearman']->sendAsync($commands);
+		
+		unset($extra['branches'][$branch]);
+		$params = array('description'=>json_encode($extra));
+		$GLOBALS['ldap']->replace($dn, $params);		
+		
+		$command = "rm -Rf {$data['homeDirectory']}/".security::escape($branch);
+		$GLOBALS['gearman']->sendAsync($command);
 	}
 	
-	if( $user !== null )
-		syncQuota('MEMORY', $user);
-	
-	if( $docker === true )
+	// =================================
+	// MEMBERSHIP
+	// =================================
+	if( $join == 'add' && $member !== null )
 	{
-		$commands = array();
-		$commands[] = "/dns/tm/sys/usr/local/bin/app-reload {$data['uid']}";
-		$GLOBALS['system']->exec($commands);
+		$memberdn = $GLOBALS['ldap']->getDNfromUID($member);
+		$memberinfo = $GLOBALS['ldap']->read($memberdn);
+		
+		if( $permission === null )
+			$permission = 'rwx';
+			
+		$sql = "INSERT INTO permissions (permission_object, permission_directory, permission_right) VALUES ({$memberinfo['uidNumber']}, '{$data['homeDirectory']}', '{$permission}')";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		
+		if( strpos($memberdn, 'ou=Groups') !== false )
+			$command = "setfacl -Rm g:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}";
+		else
+			$command = "setfacl -Rm u:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}";
+		$GLOBALS['gearman']->sendAsync($command);
+		
+		$mod['member'] = $memberdn;
+		$GLOBALS['ldap']->replace($dn, $mod, ldap::ADD);
 	}
+	elseif( $join == 'delete' && $member !== null )
+	{
+		$memberdn = $GLOBALS['ldap']->getDNfromUID($member);
+		$memberinfo = $GLOBALS['ldap']->read($memberdn);
+		
+		$sql = "DELETE FROM permissions  WHERE permission_object = {$memberinfo['uidNumber']} AND permission_directory = '{$data['homeDirectory']}'";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		
+		if( strpos($memberdn, 'ou=Groups') !== false )
+			$command = "setfacl -Rx g:{$memberinfo['gidNumber']} {$data['homeDirectory']}";
+		else
+			$command = "setfacl -Rx u:{$memberinfo['uidNumber']} {$data['homeDirectory']}";
+		$GLOBALS['gearman']->sendAsync($command);
+		
+		$mod['member'] = $memberdn;
+		$GLOBALS['ldap']->replace($dn, $mod, ldap::DELETE);		
+	}
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('app/update', $a->getParams(), $userdata['user_id']);
 	
 	responder::send("OK");	
 });

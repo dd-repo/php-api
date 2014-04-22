@@ -129,23 +129,17 @@ $a->setExecute(function() use ($a)
 		$domains[] = $d;
 	}
 	else
-	{
-		$ldaps = '';			
-		foreach( $result as $r )
-		{
-			if( is_array($r['owner']) )
-				$r['owner'] = $r['owner'][0];
-			
-			$ldaps .= ','.$GLOBALS['ldap']->getUIDfromDN($r['owner']);
-		}
-		
-		$sql = "SELECT user_id, user_name, user_ldap FROM users WHERE user_ldap IN(-1{$ldaps})";
-		$info = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
-		
+	{		
 		foreach( $result as $r )
 		{
 			if( !$r['description'] )
 			{
+				if( is_array($r['owner']) )
+					$r['owner'] = $r['owner'][0];
+				
+				$sql = "SELECT user_id, user_name FROM users WHERE user_ldap = ".$GLOBALS['ldap']->getUIDfromDN($r['owner']);
+				$info = $GLOBALS['db']->query($sql);
+		
 				$d['hostname'] = $r['associatedDomain'];
 				$d['id'] = $r['uidNumber'];
 				$d['homeDirectory'] = $r['homeDirectory'];
@@ -153,17 +147,7 @@ $a->setExecute(function() use ($a)
 				$d['mxRecord'] = $r['mxRecord'];
 				$d['nSRecord'] = $r['nSRecord'];
 				$d['mailHost'] = $r['mailHost'];
-				$d['user'] = array('id'=>'', 'name'=>'');
-				
-				foreach( $info as $i )
-				{
-					if( $i['user_ldap'] == $r['gidNumber'] )
-					{
-						$d['user']['id'] = $i['user_id'];
-						$d['user']['name'] = $i['user_name'];
-						break;
-					}
-				}
+				$d['user'] = array('id'=>$info['user_id'], 'name'=>$info['user_name']);
 				
 				$domains[] = $d;
 			}

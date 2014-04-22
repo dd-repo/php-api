@@ -62,6 +62,14 @@ $a->addParam(array(
 	'match'=>request::NUMBER
 	));
 $a->addParam(array(
+	'name'=>array('zabbix'),
+	'description'=>'The user zabbix id.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
 	'name'=>array('plan_type'),
 	'description'=>'The user plan type (storage || memory).',
 	'optional'=>true,
@@ -91,7 +99,15 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>2,
 	'maxlength'=>500,
-	'match'=>request::PHRASE|request::SPECIAL|request::PUNCT
+	'match'=>request::ALL
+	));
+$a->addParam(array(
+	'name'=>array('language', 'lang'),
+	'description'=>'The user language.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>2,
+	'match'=>request::UPPER
 	));
 $a->addParam(array(
 	'name'=>array('status', 'user_status'),
@@ -100,6 +116,30 @@ $a->addParam(array(
 	'minlength'=>1,
 	'maxlength'=>5,
 	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
+	'name'=>array('report'),
+	'description'=>'Receive reports?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
+	'name'=>array('key', 'ssh'),
+	'description'=>'The SSH key',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>1000,
+	'match'=>request::ALL
+	));
+$a->addParam(array(
+	'name'=>array('mode'),
+	'description'=>'Mode for alternate or redirection email (can be add/delete).',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>6,
+	'match'=>"(add|delete)"
 	));
 	
 $a->setExecute(function() use ($a)
@@ -123,6 +163,11 @@ $a->setExecute(function() use ($a)
 	$bic = $a->getParam('bic');
 	$address = $a->getParam('address');
 	$status = $a->getParam('status');
+	$report = $a->getParam('report');
+	$zabbix = $a->getParam('zabbix');
+	$language = $a->getParam('language');
+	$key = $a->getParam('key');
+	$mode = $a->getParam('mode');
 	
 	if( $status == '0' || $status == 'no' || $status == 'false' || $status === false || $status === 0 ) $status = 0;
 	else if( $status !== null ) $status = 1;
@@ -139,7 +184,7 @@ $a->setExecute(function() use ($a)
 	else
 		$where = "u.user_name = '".security::escape($user)."'";
 
-	$sql = "SELECT u.user_id, u.user_name, u.user_ldap, u.user_cf_token FROM users u WHERE {$where}";
+	$sql = "SELECT u.user_id, u.user_name, u.user_ldap FROM users u WHERE {$where}";
 	$result = $GLOBALS['db']->query($sql);
 	if( $result == null || $result['user_id'] == null )
 		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -167,7 +212,7 @@ $a->setExecute(function() use ($a)
 	else
 		$last = 'user_last';
 		
-	$sql = "UPDATE users SET user_iban = ".($iban?"'{$iban}'":"user_iban").", user_bic = ".($bic?"'{$bic}'":"user_bic").", user_status = {$status}, user_last = {$last} WHERE user_id = {$result['user_id']}";
+	$sql = "UPDATE users SET user_iban = ".($iban!=null?"'{$iban}'":"user_iban").", user_bic = ".($bic!==null?"'{$bic}'":"user_bic").", user_report = ".($report!==null?"'{$report}'":"user_bic").", user_zabbix = ".($zabbix!=null?"'{$zabbix}'":"user_zabbix").", user_status = {$status}, user_last = {$last} WHERE user_id = {$result['user_id']}";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	// =================================
@@ -212,7 +257,7 @@ $a->setExecute(function() use ($a)
 	// UPDATE REMOTE USER
 	// =================================
 	$params = array();
-
+	$params2 = array();
 	if( $pass !== null )
 		$params['userPassword'] = $pass;
 	if( $firstname !== null )
@@ -223,9 +268,35 @@ $a->setExecute(function() use ($a)
 		$params['mailForwardingAddress'] = $mail;
 	if( $address !== null )
 		$params['postalAddress'] = $address;	
-	
+	if( $language !== null )
+		$params['gecos'] = $language;	
+	if( $key !== null && $mode == 'add'  )
+		$params2['sshPublicKey'] = $key;
 	$GLOBALS['ldap']->replace($dn, $params);
+
+	if( $mode == 'add' )
+		$GLOBALS['ldap']->replace($dn, $params2, ldap::ADD);
+	elseif( $mode == 'delete' )
+		$GLOBALS['ldap']->replace($dn, $params2, ldap::DELETE);	
+	
+	if( $key !== null && $mode == 'delete')
+	{
+		$newkeys = array();
+		if( is_array($data['sshPublicKey']) )
+		{
+			$i = 0;
+			foreach( $data['sshPublicKey'] as $k )
+			{
+				if( $i != $key )
+					$newkeys[] = $k;
+				$i++;
+			}
+		}
 		
+		$params3['sshPublicKey'] = $newkeys;
+		$GLOBALS['ldap']->replace($dn, $params3);
+	}
+	
 	try
 	{
 		if( $pass !== null )
@@ -241,6 +312,11 @@ $a->setExecute(function() use ($a)
 	{
 	
 	}
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('user/update', $a->getParams(), $result['user_id']);
 	
 	responder::send("OK");
 });

@@ -110,8 +110,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "mkdir -p {$data['homeDirectory']} && chown root:{$data['gidNumber']} {$data['homeDirectory']} && chmod 751 {$data['homeDirectory']} && cd {$data['homeDirectory']} && echo \"RewriteEngine On\" > .htaccess  && echo \"RewriteCond %{HTTP_HOST} ^".str_replace(".", "\\.", $data['associatedDomain'])."\$\" [NC]  >> .htaccess && echo \"RewriteRule ^(.*)$ http://www.{$data['associatedDomain']}/\\\$1 [QSA,L,R=301]\" >> .htaccess";
-	$GLOBALS['system']->exec($commands);
+	$command = "mkdir -p {$data['homeDirectory']} && chown root:{$data['gidNumber']} {$data['homeDirectory']} && chmod 751 {$data['homeDirectory']} && cd {$data['homeDirectory']} && echo \"RewriteEngine On\" > .htaccess  && echo \"RewriteCond %{HTTP_HOST} ^".str_replace(".", "\\.", $data['associatedDomain'])."\$\" [NC]  >> .htaccess && echo \"RewriteRule ^(.*)$ http://www.{$data['associatedDomain']}/\\\$1 [QSA,L,R=301]\" >> .htaccess";
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	// =================================
 	// INSERT REMOTE CONTAINERS
@@ -150,14 +150,11 @@ $a->setExecute(function() use ($a)
 	$handler = new subdomain();
 	$data = $handler->build($params);
 	$GLOBALS['ldap']->create($dn, $data);
-
+	
 	// =================================
-	// INSERT PIWIK SITE
-	// =================================
-	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.addSite&siteName={$domain}&urls=http://{$domain}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
-	$json = json_decode(@file_get_contents($url), true);
-	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=UsersManager.setUserAccess&userLogin={$userdata['user_name']}&access=admin&idSites={$json['value']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
-	@file_get_contents($url);
+	// LOG ACTION
+	// =================================	
+	logger::insert('domain/insert', $a->getParams(), $userdata['user_id']);
 	
 	responder::send(array("domain"=>$domain, "id"=>$result['uidNumber']));
 });

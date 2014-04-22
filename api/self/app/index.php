@@ -43,6 +43,65 @@ switch($action)
 		request::addParam('user', security::getUser());
 		grantStore::add('APP_DELETE');
 		request::forward('/app/delete'); break;
+	case 'start':
+	case 'boot':
+		security::requireGrants(array('ACCESS', 'SELF_APP_UPDATE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('APP_UPDATE');
+		request::forward('/app/start'); break;
+	case 'stop':
+	case 'end':
+		security::requireGrants(array('ACCESS', 'SELF_APP_UPDATE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('APP_UPDATE');
+		request::forward('/app/stop'); break;
+	case 'restart':
+	case 'reboot':
+		security::requireGrants(array('ACCESS', 'SELF_APP_UPDATE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('APP_UPDATE');
+		request::forward('/app/restart'); break;
+	case 'rebuild':
+		security::requireGrants(array('ACCESS', 'SELF_APP_UPDATE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('APP_UPDATE');
+		request::forward('/app/rebuild'); break;
+	case 'grow':
+		security::requireGrants(array('ACCESS', 'SELF_APP_UPDATE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('APP_UPDATE');
+		request::forward('/app/grow'); break;
+	case 'shrink':
+		security::requireGrants(array('ACCESS', 'SELF_APP_UPDATE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('APP_UPDATE');
+		request::forward('/app/shrink'); break;
+	case 'link':
+		security::requireGrants(array('ACCESS', 'SELF_SERVICE_INSERT'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('SERVICE_INSERT');
+		request::forward('/app/link'); break;
+	case 'unlink':
+		security::requireGrants(array('ACCESS', 'SELF_SERVICE_DELETE'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('SERVICE_DELETE');
+		request::forward('/app/unlink'); break;
+	case 'graph':
+	case 'value':
+	case 'values':
+		security::requireGrants(array('ACCESS', 'SELF_APP_SELECT'));
+		request::clearParam(array('user_name', 'username', 'login', 'user', 'user_id', 'uid'));
+		request::addParam('user', security::getUser());
+		grantStore::add('APP_SELECT');
+		request::forward('/app/graph'); break;
 	case 'help':
 	case 'doc':
 		$body = "

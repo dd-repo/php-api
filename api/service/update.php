@@ -29,6 +29,14 @@ $a->addParam(array(
 	'match'=>request::PHRASE|request::SPECIAL,
 	));
 $a->addParam(array(
+	'name'=>array('branch', 'env', 'environment'),
+	'description'=>'The environement of the app',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>150,
+	'match'=>request::LOWER,
+	));	
+$a->addParam(array(
 	'name'=>array('pass', 'password'),
 	'description'=>'The password of the service.',
 	'optional'=>true,
@@ -59,6 +67,7 @@ $a->setExecute(function() use ($a)
 	$service = $a->getParam('service');
 	$pass = $a->getParam('pass');
 	$desc = $a->getParam('desc');
+	$branch = $a->getParam('branch');
 	$user = $a->getParam('user');
 	
 	// =================================
@@ -66,7 +75,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $user !== null )
 	{
-		$sql = "SELECT s.service_type
+		$sql = "SELECT s.service_type, s.service_user
 				FROM users u
 				LEFT JOIN `services` s ON(s.service_user = u.user_id)
 				WHERE service_name = '".security::escape($service)."'
@@ -74,7 +83,7 @@ $a->setExecute(function() use ($a)
 	}
 	else
 	{
-		$sql = "SELECT s.service_type
+		$sql = "SELECT s.service_type, s.service_user
 				FROM `services` s
 				WHERE service_name = '".security::escape($service)."'";
 	}
@@ -92,6 +101,9 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	}
 	
+	if( $branch !== null )
+		$service = $service . '-' . $branch;
+	
 	// =================================
 	// UPDATE REMOTE SERVICE
 	// =================================
@@ -100,13 +112,25 @@ $a->setExecute(function() use ($a)
 		switch( $result['service_type'] )
 		{
 			case 'mysql':
-				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
-				mysql_query("SET PASSWORD FOR '{$service}'@'%' = PASSWORD('".security::escape($pass)."')", $link);
-				mysql_close($link);
+				$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
+				$link->query("SET PASSWORD FOR '{$service}'@'%' = PASSWORD('".security::escape($pass)."')");
 			break;	
+			case 'pgsql':
+				$command = "/dns/tm/sys/usr/local/bin/update-db-pgsql {$service} ".security::escape($pass)."";
+				$GLOBALS['gearman']->sendAsync($command);
+			break;
+			case 'mongodb':
+				$command = "/dns/tm/sys/usr/local/bin/update-db-mongodb {$service} ".security::escape($pass)."";
+				$GLOBALS['gearman']->sendAsync($command);
+			break;
 		}
 	}
 
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('service/update', $a->getParams(), $result['service_user']);
+	
 	responder::send("OK");
 });
 

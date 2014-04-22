@@ -57,6 +57,14 @@ $a->addParam(array(
 	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
 	));
 $a->addParam(array(
+	'name'=>array('language', 'lang'),
+	'description'=>'The user language.',
+	'optional'=>false,
+	'minlength'=>1,
+	'maxlength'=>2,
+	'match'=>request::UPPER
+	));
+$a->addParam(array(
 	'name'=>array('ip'),
 	'description'=>'IP address of the user.',
 	'optional'=>true,
@@ -81,7 +89,8 @@ $a->setExecute(function() use ($a)
 	$lastname = $a->getParam('lastname');
 	$mail = $a->getParam('mail');
 	$ip = $a->getParam('ip');
-	
+	$language = $a->getParam('language');
+		
 	if( is_numeric($user) )
 		throw new ApiException("Parameter validation failed", 412, "Parameter user may not be numeric : " . $user);
 
@@ -126,7 +135,9 @@ $a->setExecute(function() use ($a)
 		$params['mailForwardingAddress'] = $mail;
 	if( $ip !== null )
 		$params['ipHostNumber'] = security::escape($ip);
-	
+	if( $language !== null )
+		$params['gecos'] = $language;
+		
 	$handler = new user();
 	$data = $handler->build($params);
 	
@@ -154,8 +165,13 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:{$data['gidNumber']} {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']}";
-	$GLOBALS['system']->exec($commands);
+	$command = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:{$data['gidNumber']} {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']}";
+	$GLOBALS['gearman']->sendAsync($command);
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('usert/insert', $a->getParams(), $uid);
 	
 	responder::send(array("name"=>$user, "id"=>$uid));
 });

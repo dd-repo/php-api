@@ -40,14 +40,6 @@ $a->addParam(array(
 	'action'=>true
 	));
 $a->addParam(array(
-	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
-	'description'=>'The name or id of the target user.',
-	'optional'=>false,
-	'minlength'=>0,
-	'maxlength'=>30,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
-	));
-$a->addParam(array(
 	'name'=>array('binary', 'app_binary'),
 	'description'=>'The binary to execute.',
 	'optional'=>true,
@@ -70,6 +62,22 @@ $a->addParam(array(
 	'maxlength'=>5,
 	'match'=>"(1|yes|true)"
 	));
+$a->addParam(array(
+	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
+	'description'=>'The email of the user.',
+	'optional'=>false,
+	'minlength'=>0,
+	'maxlength'=>150,
+	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
+	));
+$a->addParam(array(
+	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
+	'description'=>'The name or id of the target user.',
+	'optional'=>false,
+	'minlength'=>0,
+	'maxlength'=>30,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -87,12 +95,13 @@ $a->setExecute(function() use ($a)
 	$binary = $a->getParam('binary');
 	$tag = $a->getParam('tag');
 	$nodocker = $a->getParam('nodocker');
+	$email = $a->getParam('email');
 	$user = $a->getParam('user');
 	
 	// =================================
 	// GET USER DATA
 	// =================================
-	$sql = "SELECT user_ldap, user_name FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+	$sql = "SELECT user_ldap, user_name, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 	$userdata = $GLOBALS['db']->query($sql);
 	if( $userdata == null || $userdata['user_ldap'] == null )
 		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -146,7 +155,7 @@ $a->setExecute(function() use ($a)
 		$extra['branches'] = array('master' => array('instances'=>array(array('port'=>$port, 'memory' => '128', 'cpu' => 1))));
 	
 	$dn = ldap::buildDN(ldap::APP, $domain, $app);
-	$params = array('dn' => $dn, 'uid' => $app, 'userPassword' => $pass, 'domain' => $domain, 'description' => json_encode($extra), 'owner' => $user_dn);
+	$params = array('dn' => $dn, 'uid' => $app, 'userPassword' => $pass, 'domain' => $domain, 'description' => json_encode($extra), 'mailForwardingAddress'=>$email, 'owner' => $user_dn);
 	
 	$handler = new app();
 	$data = $handler->build($params);
@@ -165,9 +174,10 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "/dns/tm/sys/usr/local/bin/app-create {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime} ".strtolower($app)." \"".security::encode($binary)."\"";
+	$commands[] = "/dns/tm/sys/usr/local/bin/app-create {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime} ".strtolower($app)." ".security::encode($domain)." \"".security::encode($binary)."\"";
 	$commands[] = "cd {$userinfo['homeDirectory']} && ln -s ".str_replace("Apps/{$app}", "var/git/{$app}", $data['homeDirectory'])." {$app}.git";
-	$GLOBALS['system']->exec($commands);
+	$commands[] = "cd {$userinfo['homeDirectory']} && ln -s {$data['homeDirectory']} {$app}";
+	$GLOBALS['gearman']->sendAsync($commands);
 	
 	// =================================
 	// SYNC QUOTA
@@ -175,6 +185,22 @@ $a->setExecute(function() use ($a)
 	syncQuota('MEMORY', $user);
 	syncQuota('APPS', $user);
 
+	// =================================
+	// INSERT PIWIK APP
+	// =================================
+	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.addSite&siteName={$app}&urls=http://{$app}.anotherservice.net&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+	$json = json_decode(@file_get_contents($url), true);
+	$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=UsersManager.setUserAccess&userLogin={$userdata['user_name']}&access=admin&idSites={$json['value']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+	@file_get_contents($url);
+	
+	$sql = "UPDATE apps SET app_piwik = '{$json['value']}' WHERE app_id = {$data['uidNumber']}";
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('app/insert', $a->getParams(), $userdata['user_id']);
+	
 	responder::send(array("name"=>$app, "id"=>$data['uidNumber']));
 });
 

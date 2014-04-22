@@ -53,7 +53,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET USER DATA
 	// =================================
-	$sql = "SELECT user_ldap, user_name FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+	$sql = "SELECT user_ldap, user_name, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 	$userdata = $GLOBALS['db']->query($sql);
 	if( $userdata == null || $userdata['user_ldap'] == null )
 		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -62,6 +62,7 @@ $a->setExecute(function() use ($a)
 	// GET REMOTE USER DN
 	// =================================	
 	$user_dn = $GLOBALS['ldap']->getDNfromUID($userdata['user_ldap']);
+	$userinfo = $GLOBALS['ldap']->read($user_dn);
 	
 	// =================================
 	// GET REPO DN
@@ -96,14 +97,25 @@ $a->setExecute(function() use ($a)
 	// DELETE REMOTE REPO
 	// =================================
 	$GLOBALS['ldap']->delete($dn);
-	$commands[] = "rm -Rf {$data['homeDirectory']}";
-	$GLOBALS['system']->exec($commands);
+	$command = "rm -Rf {$data['homeDirectory']}";
+	$GLOBALS['gearman']->sendAsync($command);
+
+	// =================================
+	// DELETEE SYMLINK
+	// =================================
+	$command = "rm {$userinfo['homeDirectory']}/{$data['uid']}.{$data['gecos']}";
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	// =================================
 	// UPDATE REMOTE USER
 	// =================================
 	$mod['member'] = $dn;
 	$GLOBALS['ldap']->replace($user_dn, $mod, ldap::DELETE);
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('repo/delete', $a->getParams(), $userdata['user_id']);
 	
 	responder::send("OK");
 });

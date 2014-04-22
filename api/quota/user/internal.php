@@ -92,7 +92,7 @@ function syncQuota($type, $user)
 			$count = $result['count'];
 		break;
 		case 'DISK':
-			$sql = "SELECT user_ldap, user_id FROM users u WHERE {$where}";
+			$sql = "SELECT user_ldap, user_id, user_name FROM users u WHERE {$where}";
 			$userdata = $GLOBALS['db']->query($sql);
 			if( $userdata == null || $userdata['user_ldap'] == null )
 				throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -100,6 +100,14 @@ function syncQuota($type, $user)
 			$usage = 0;
 			$usage = $GLOBALS['system']->getquota($userdata['user_ldap']);
 			$usage = round($usage/1024);
+			
+			$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/dns/com/anotherservice/Users/{$userdata['user_name']}'";
+			$store = $GLOBALS['db']->query($sql);
+			if( $store['storage_id'] )
+				$sql = "UPDATE storages SET storage_size = {$usage} WHERE storage_id = {$store['storage_id']}";
+			else
+				$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/dns/com/anotherservice/Users/{$userdata['user_name']}', {$usage})";
+			$GLOBALS['db']->query($sql, mysql::NO_ROW);
 			
 			$apps = $GLOBALS['ldap']->search($GLOBALS['CONFIG']['LDAP_BASE'], ldap::buildFilter(ldap::APP, "(owner={$user_dn})"));
 			foreach( $apps as $a )
@@ -155,6 +163,68 @@ function syncQuota($type, $user)
 				$usage = $usage+$u;
 			}
 			
+			$sql = "SELECT * FROM services WHERE service_user = {$userdata['user_id']}";
+			$services = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+			foreach( $services as $s )
+			{
+				if( $s['service_type'] == 'mysql' )
+				{
+					$name = str_replace('-', '@002d', $s['service_name'] . '-master');
+					$name2 = str_replace('-', '@002d', $s['service_name']);
+				}
+				else
+				{
+					$name = $s['service_name'] . '-master';
+					$name2 = $s['service_name'];
+				}
+					
+				$u = 0;
+				$u = $GLOBALS['system']->getservicesize($name, $s['service_type'], $s['service_host']);
+				if( !$u || $u == 0 )
+					$u = $GLOBALS['system']->getservicesize($name2, $s['service_type'], $s['service_host']);
+	
+				$u = round($u/1024);
+				if( $s['service_type'] == 'pgsql' )
+					$u = round($u/1024);
+
+				$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/services/{$s['service_name']}-master'";
+				$store = $GLOBALS['db']->query($sql);
+				if( $store['storage_id'] )
+					$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
+				else
+					$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/services/{$s['service_name']}-master', {$u})";
+				$GLOBALS['db']->query($sql, mysql::NO_ROW);
+				
+				$usage = $usage+$u;
+				
+				$sql = "SELECT b.branch_name, b.app_id, b.app_name, a.app_tag FROM service_branch b LEFT JOIN apps a ON(a.app_id = b.app_id) WHERE service_name = '{$s['service_name']}'";
+				$branches = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+				
+				foreach( $branches as $b )
+				{
+					if( $s['service_type'] == 'mysql' )
+						$name = str_replace('-', '@002d', $s['service_name'] . '-' . $b['branch_name']);
+					else
+						$name = $s['service_name'] . '-' . $b['branch_name'];
+						
+					$u = 0;
+					$u = $GLOBALS['system']->getservicesize($name, $s['service_type'], $s['service_host']);
+					$u = round($u/1024);
+					if( $s['service_type'] == 'pgsql' )
+						$u = round($u/1024);
+
+					$sql = "SELECT storage_size, storage_id FROM storages WHERE storage_path = '/services/{$s['service_name']}-{$b['branch_name']}'";
+					$store = $GLOBALS['db']->query($sql);
+					if( $store['storage_id'] )
+						$sql = "UPDATE storages SET storage_size = {$u} WHERE storage_id = {$store['storage_id']}";
+					else
+						$sql = "INSERT INTO storages (storage_path, storage_size) VALUES ('/services/{$s['service_name']}-{$b['branch_name']}', {$u})";
+					$GLOBALS['db']->query($sql, mysql::NO_ROW);
+					
+					$usage = $usage+$u;
+				}
+			}
+
 			$count = $usage;
 		break;
 		default:

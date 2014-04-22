@@ -28,7 +28,7 @@ $a->addParam(array(
 	'optional'=>false,
 	'minlength'=>1,
 	'maxlength'=>200,
-	'match'=>request::LOWER|request::UPPER|request::NUMBER|request::PUNCT
+	'match'=>request::ALL
 	));
 $a->addParam(array(
 	'name'=>array('type', 'repo_type'),
@@ -37,6 +37,14 @@ $a->addParam(array(
 	'minlength'=>2,
 	'maxlength'=>20,
 	'match'=>"(git|svn|hg)"
+	));
+$a->addParam(array(
+	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
+	'description'=>'The email of the user.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>150,
+	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
 	));
 $a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
@@ -60,6 +68,7 @@ $a->setExecute(function() use ($a)
 	$domain = $a->getParam('domain');
 	$desc = $a->getParam('desc');
 	$type = $a->getParam('type');
+	$mail = $a->getParam('mail');
 	$user = $a->getParam('user');
 	
 	// =================================
@@ -103,7 +112,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	$dir = $result['homeDirectory'] . '/var/' . $type . '/' . $repo;
 	$dn = ldap::buildDN(ldap::REPO, $domain, $repo);
-	$params = array('dn' => $dn, 'uid' => $repo, 'domain' => $domain, 'owner' => $user_dn, 'homeDirectory' => $dir, 'description' => $desc, 'gecos' => $type);
+	$params = array('dn' => $dn, 'uid' => $repo, 'domain' => $domain, 'owner' => $user_dn, 'homeDirectory' => $dir, 'description' => security::encode($desc), 'gecos' => $type, 'mailForwardingAddress' => $mail);
 	
 	$handler = new repo();
 	$data = $handler->build($params);
@@ -123,6 +132,7 @@ $a->setExecute(function() use ($a)
 		case 'git':
 			$commands[] = "mkdir -p {$data['homeDirectory']} && cd {$data['homeDirectory']} && cp -a {$GLOBALS['CONFIG']['GIT_TEMPLATE']}/* {$data['homeDirectory']}/ && chown -R {$data['uidNumber']}:{$data['uidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod -R g+w {$data['homeDirectory']} && find {$data['homeDirectory']} -type d -exec chmod g+s {} \;";
 			$commands[] = "cd {$userinfo['homeDirectory']} && ln -s {$data['homeDirectory']} {$data['uid']}.git";
+			$commands[] = "cd {$data['homeDirectory']} && sed \"s/template@anotherservice.com/{$repo}@".security::escape($domain)."/g;s#SYS/TPL#{$repo}#g;\" config > config2 && mv config2 config && chown {$data['uidNumber']}:{$data['uidNumber']} config";
 		break;
 		case 'svn':
 			$commands[] = "mkdir -p {$data['homeDirectory']} && rmdir {$data['homeDirectory']} && svnadmin create {$data['homeDirectory']} && chown -R {$data['uidNumber']}:{$data['uidNumber']} {$data['homeDirectory']} && chmod 770 {$data['homeDirectory']} && chmod -R g+w {$data['homeDirectory']} && find {$data['homeDirectory']} -type d -exec chmod g+s {} \; && cd {$data['homeDirectory']}";
@@ -133,8 +143,13 @@ $a->setExecute(function() use ($a)
 			$commands[] = "cd {$userinfo['homeDirectory']} && ln -s {$data['homeDirectory']} {$data['uid']}.hg";
 		break;
 	}
-	$GLOBALS['system']->exec($commands);
+	$GLOBALS['gearman']->sendAsync($commands);
 
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('repo/insert', $a->getParams(), $userdata['user_id']);
+	
 	responder::send(array("name"=>$repo));
 });
 

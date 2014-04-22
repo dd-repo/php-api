@@ -75,9 +75,16 @@ $a->setExecute(function() use ($a)
 				
 				$GLOBALS['ldap']->delete($a['dn']);
 				
-				$commands = array();
-				$commands[] = "/dns/tm/sys/usr/local/bin/app-delete {$data['uid']} {$data['homeDirectory']} ".strtolower($data['uid'])." \"{$branches}\"";
-				$GLOBALS['system']->exec($commands);
+				$command = "/dns/tm/sys/usr/local/bin/app-delete {$a['uid']} {$a['homeDirectory']} ".strtolower($a['uid'])." \"{$branches}\"";
+				$GLOBALS['gearman']->sendAsync($command);
+				
+				// =================================
+				// DELETE PIWIK APP
+				// =================================
+				$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.getSitesIdFromSiteUrl&url=http://{$a['uid']}.anotherservice.net&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+				$json = json_decode(@file_get_contents($url), true);
+				$url = "https://{$GLOBALS['CONFIG']['PIWIK_URL']}/index.php?module=API&method=SitesManager.deleteSite&idSite={$json[0]['idsite']}&format=JSON&token_auth={$GLOBALS['CONFIG']['PIWIK_TOKEN']}";
+				@file_get_contents($url);
 			}
 		}
 		
@@ -92,9 +99,61 @@ $a->setExecute(function() use ($a)
 			if( $d['dn'] ) 
 			{
 				$GLOBALS['ldap']->delete($d['dn']);
-				$commands = array();
-				$commands[] = "rm -Rf {$data['homeDirectory']}";
-				$GLOBALS['system']->exec($commands);
+				$command = "rm -Rf {$data['homeDirectory']}";
+				$GLOBALS['gearman']->sendAsync($command);
+			}
+		}
+		
+		// =================================
+		// SERVICES
+		// =================================
+		$sql = "SELECT * FROM services WHERE service_user = {$result['user_id']}";
+		$services = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+
+		foreach( $services as $s )
+		{
+			switch( $s['service_type'] )
+			{
+				case 'mysql':
+					$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
+					$link->query("DROP USER '{$s['service_name']}'");
+					$link->query("DROP DATABASE `{$s['service_name']}-master`");
+				break;
+				case 'pgsql':
+					$command = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$s['service_name']} {$s['service_name']}-master";
+					$GLOBALS['gearman']->sendAsync($command);
+				break;
+				case 'mongodb':
+					$command = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$s['service_name']} {$s['service_name']}-master";
+					$GLOBALS['gearman']->sendAsync($command);
+				break;
+			}
+
+			// =================================
+			// DELETE SUBSERVICES
+			// =================================
+			$sql = "SELECT * FROM service_branch WHERE service_name = '".security::escape($s['service_name'])."'";
+			$subservices = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+
+			foreach( $subservices as $sub )
+			{
+				$subservice = $service . '-' . $sub['branch_name'];
+				switch( $s['service_type'] )
+				{
+					case 'mysql':
+						$link = new mysqli($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD'], 'mysql', $GLOBALS['CONFIG']['MYSQL_ROOT_PORT']);
+						$link->query("DROP USER '{$subservice}'");
+						$link->query("DROP DATABASE `{$subservice}`");
+					break;
+					case 'pgsql':
+						$command = "/dns/tm/sys/usr/local/bin/drop-db-pgsql {$subservice}";
+						$GLOBALS['gearman']->sendAsync($command);
+					break;
+					case 'mongodb':
+						$command = "/dns/tm/sys/usr/local/bin/drop-db-mongodb {$subservice}";
+						$GLOBALS['gearman']->sendAsync($command);
+					break;
+				}
 			}
 		}
 		
@@ -119,10 +178,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
-	$commands = array();
-	$commands[] = "rm -Rf {$data['homeDirectory']}";
-	
-	$GLOBALS['system']->exec($commands);
+	$command = "rm -Rf {$data['homeDirectory']}";
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	responder::send("OK");
 });

@@ -96,6 +96,8 @@ $i->addEntry('bill', array('bill', 'bills'));
 $i->addEntry('service', array('service', 'services'));
 $i->addEntry('repo', array('repo', 'repos'));
 $i->addEntry('news', array('news'));
+$i->addEntry('backup', array('backup', 'backups'));
+$i->addEntry('log', array('log', 'logs'));
 $i->addEntry('test', array('test', 'hello'));
 
 return $i;

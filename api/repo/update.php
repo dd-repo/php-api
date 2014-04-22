@@ -53,6 +53,22 @@ $a->addParam(array(
 	'match'=>"(add|delete)"
 	));
 $a->addParam(array(
+	'name'=>array('permission', 'permissions', 'rights'),
+	'description'=>'Permission for joining.',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>3,
+	'match'=>"(rx|rwx)"
+	));
+$a->addParam(array(
+	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
+	'description'=>'The email of the user.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>800,
+	'match'=>request::ALL
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>false,
@@ -68,6 +84,8 @@ $a->setExecute(function() use ($a)
 	$desc = $a->getParam('desc');
 	$member = $a->getParam('member');
 	$join = $a->getParam('join');
+	$email = $a->getParam('email');
+	$permission = $a->getParam('permission');
 	$user = $a->getParam('user');
 
 	// =================================
@@ -88,7 +106,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $user !== null )
 	{
-		$sql = "SELECT user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 		$userdata = $GLOBALS['db']->query($sql);
 		
 		if( $userdata == null || $userdata['user_ldap'] == null )
@@ -112,6 +130,20 @@ $a->setExecute(function() use ($a)
 	$params = array();
 	if( $desc !== null )
 		$params['description'] = $desc;
+	if( $email !== null )
+	{
+		if( strpos($email, ',') !== false )
+		{
+			$emails = explode(',', $email);
+			$params['mailForwardingAddress'] = array();
+			foreach( $emails as $e )
+				$params['mailForwardingAddress'][] = $e;
+		}
+		else
+			$params['mailForwardingAddress'] = $email;
+		
+		$GLOBALS['ldap']->replace($dn, $params);
+	}
 	
 	$GLOBALS['ldap']->replace($dn, $params);
 
@@ -120,16 +152,46 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $join == 'add' )
 	{
-		$group_dn = $GLOBALS['ldap']->getDNfromUID($member);
-		$mod['member'] = $group_dn;
+		$memberdn = $GLOBALS['ldap']->getDNfromUID($member);
+		$memberinfo = $GLOBALS['ldap']->read($memberdn);
+		
+		if( $permission === null )
+			$permission = 'rwx';
+			
+		$sql = "INSERT INTO permissions (permission_object, permission_directory, permission_right) VALUES ({$memberinfo['uidNumber']}, '{$result['homeDirectory']}', '{$permission}')";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		
+		if( strpos($memberdn, 'ou=Groups') !== false )
+			$command = "setfacl -Rm g:{$memberinfo['uidNumber']}:{$permission} {$result['homeDirectory']}";
+		else
+			$command = "setfacl -Rm u:{$memberinfo['uidNumber']}:{$permission} {$result['homeDirectory']}";
+		$GLOBALS['gearman']->sendAsync($command);
+		
+		$mod['member'] = $memberdn;
 		$GLOBALS['ldap']->replace($dn, $mod, ldap::ADD);
 	}
 	elseif( $join == 'delete' )
 	{
-		$group_dn = $GLOBALS['ldap']->getDNfromUID($member);
-		$mod['member'] = $group_dn;
+		$memberdn = $GLOBALS['ldap']->getDNfromUID($member);
+		$memberinfo = $GLOBALS['ldap']->read($memberdn);
+		
+		$sql = "DELETE FROM permissions WHERE permission_object = {$memberinfo['uidNumber']} AND permission_directory = '{$result['homeDirectory']}'";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		
+		if( strpos($memberdn, 'ou=Groups') !== false )
+			$command = "setfacl -Rx g:{$memberinfo['gidNumber']} {$result['homeDirectory']}";
+		else
+			$command = "setfacl -Rx u:{$memberinfo['uidNumber']} {$result['homeDirectory']}";
+		$GLOBALS['gearman']->sendAsync($command);
+		
+		$mod['member'] = $memberdn;
 		$GLOBALS['ldap']->replace($dn, $mod, ldap::DELETE);		
 	}
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('repo/update', $a->getParams(), $userdata['user_id']);
 	
 	responder::send("OK");
 });

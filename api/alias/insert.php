@@ -141,10 +141,10 @@ $a->setExecute(function() use ($a)
 	$data['type'] = $type;
 	
 	if( $data['type'] == 'permanent' )
-		$commands[] = "mkdir -p {$data['homeDirectory']} && chmod 751 {$data['homeDirectory']} && cd {$data['homeDirectory']} && echo \"RewriteEngine On\" > .htaccess && echo \"RewriteCond %{HTTP_HOST} ^".str_replace(".", "\\.", $data['associatedDomain'])."\$\" [NC]  >> .htaccess && echo \"RewriteRule ^(.*)$ http://www.{$data['associatedDomain']}/\\\$1 [R=302,L]\" >> .htaccess && echo \"RewriteCond %{HTTP_HOST} ^(.+)\\.".str_replace(".", "\\.", $data['associatedDomain'])."\$\" >> .htaccess && echo \"RewriteRule ^(.*)$ http://%1.{$data['source']['associatedDomain']} [QSA,L,R=301]\" >> .htaccess";
+		$command = "mkdir -p {$data['homeDirectory']} && chmod 751 {$data['homeDirectory']} && cd {$data['homeDirectory']} && echo \"RewriteEngine On\" > .htaccess && echo \"RewriteCond %{HTTP_HOST} ^".str_replace(".", "\\.", $data['associatedDomain'])."\$\" [NC]  >> .htaccess && echo \"RewriteRule ^(.*)$ http://www.{$data['associatedDomain']}/\\\$1 [R=302,L]\" >> .htaccess && echo \"RewriteCond %{HTTP_HOST} ^(.+)\\.".str_replace(".", "\\.", $data['associatedDomain'])."\$\" >> .htaccess && echo \"RewriteRule ^(.*)$ http://%1.{$data['source']['associatedDomain']} [QSA,L,R=301]\" >> .htaccess";
 	else
-		$commands[] = "ln -s {$data['source']['homeDirectory']} {$data['homeDirectory']}";
-	$GLOBALS['system']->exec($commands);
+		$command = "ln -s {$data['source']['homeDirectory']} {$data['homeDirectory']}";
+	$GLOBALS['gearman']->sendAsync($command);
 	
 	// =================================
 	// INSERT DEFAULT SUBDOMAINS
@@ -154,6 +154,11 @@ $a->setExecute(function() use ($a)
 	$handler = new subdomain();
 	$data = $handler->build($params);
 	$GLOBALS['ldap']->create($dn, $data);
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('alias/insert', $a->getParams(), $userdata['user_id']);
 	
 	responder::send(array("domain"=>$domain, "id"=>$data['uidNumber']));
 });
