@@ -6,85 +6,110 @@ if( !defined('PROPER_START') )
 	exit;
 }
 
-$help = request::getAction(false, false);
-if( $help == 'help' || $help == 'doc' )
-{
-	$body = "
-<h1><a href=\"/help\">API Help</a> :: <a href=\"/database/help\">database</a> :: update</h1>
-<ul>
-	<li><h2>Alias :</h2> modify, change</li>
-	<li><h2>Description :</h2> changes the password of a database</li>
-	<li><h2>Parameters :</h2>
-		<ul>
-			<li>database : The name of the database. <span class=\"required\">required</span>. <span class=\"urlizable\">urlizable</span>. (alias : name, database_name)</li>
-			<li>pass : The new password of the database. <span class=\"optional\">optional</span>. (alias : password, database_pass, database_password)</li>
-			<li>user : The name or id of the target user. <span class=\"optional\">optional</span>. (alias : user_name, username, login, user_id, uid)</li>
-		</ul>
-	</li>
-	<li><h2>Returns :</h2> OK</li>
-	<li><h2>Required grants :</h2> ACCESS, DATABASE_UPDATE</li>
-</ul>";
-	responder::help($body);
-}
+$a = new action();
+$a->addAlias(array('modify', 'change'));
+$a->setDescription("Modify a service");
+$a->addGrant(array('ACCESS', 'SERVICE_UPDATE'));
+$a->setReturn("OK");
 
-// =================================
-// CHECK AUTH
-// =================================
-security::requireGrants(array('ACCESS', 'DATABASE_UPDATE'));
-
-// =================================
-// GET PARAMETERS
-// =================================
-$database = request::getCheckParam(array(
-	'name'=>array('database', 'name', 'database_name'),
+$a->addParam(array(
+	'name'=>array('service', 'name', 'service_name'),
+	'description'=>'The name of the service to remove.',
 	'optional'=>false,
-	'minlength'=>2,
-	'maxlength'=>50,
-	'match'=>request::LOWER|request::UPPER|request::NUMBER,
-	'action'=>true
+	'minlength'=>1,
+	'maxlength'=>60,
+	'match'=>request::LOWER|request::UPPER|request::NUMBER|request::PUNCT
 	));
-$pass = request::getCheckParam(array(
-	'name'=>array('pass', 'password', 'site_pass', 'site_password'),
-	'optional'=>false,
-	'minlength'=>3,
-	'maxlength'=>30,
-	'match'=>request::PHRASE|request::SPECIAL
-	));
-$user = request::getCheckParam(array(
-	'name'=>array('user_name', 'username', 'login', 'user', 'user_id', 'uid'),
+$a->addParam(array(
+	'name'=>array('desc', 'service_desc', 'description'),
+	'description'=>'The service description.',
 	'optional'=>true,
 	'minlength'=>1,
-	'maxlength'=>30,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT
+	'maxlength'=>200,
+	'match'=>request::PHRASE|request::SPECIAL,
 	));
-
-// =================================
-// GET LOCAL DATABASE INFO
-// =================================
-if( $user !== null )
+$a->addParam(array(
+	'name'=>array('pass', 'password'),
+	'description'=>'The password of the service.',
+	'optional'=>true,
+	'minlength'=>3,
+	'maxlength'=>50,
+	'match'=>request::PHRASE|request::SPECIAL,
+	'action'=>true
+	));
+$a->addParam(array(
+	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
+	'description'=>'The name or id of the target user.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>30,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	));
+	
+$a->setExecute(function() use ($a)
 {
-	$sql = "SELECT d.database_type
-			FROM users u
-			LEFT JOIN `databases` d ON(d.database_user = u.user_id)
-			WHERE database_name = '".security::escape($database)."'
-			AND ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
-}
-else
-{
-	$sql = "SELECT d.database_type
-			FROM `databases` d
-			WHERE database_name = '".security::escape($database)."'";
-}
-$result = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
-if( $result == null || $result['database_type'] == null )
-	throw new ApiException("Forbidden", 403, "Database {$database} not found (for user {$user} ?)");
+	// =================================
+	// CHECK AUTH
+	// =================================
+	$a->checkAuth();
 
-// =================================
-// UPDATE REMOTE DATABASE
-// =================================
-$params = array('userPassword'=>base64_encode($pass), 'type'=>$result['database_type']);
-asapi::send('/databases/'.$database, 'PUT', $params);
+	// =================================
+	// GET PARAMETERS
+	// =================================
+	$service = $a->getParam('service');
+	$pass = $a->getParam('pass');
+	$desc = $a->getParam('desc');
+	$user = $a->getParam('user');
+	
+	// =================================
+	// GET LOCAL DATABASE INFO
+	// =================================
+	if( $user !== null )
+	{
+		$sql = "SELECT s.service_type
+				FROM users u
+				LEFT JOIN `services` s ON(s.service_user = u.user_id)
+				WHERE service_name = '".security::escape($service)."'
+				AND ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+	}
+	else
+	{
+		$sql = "SELECT s.service_type
+				FROM `services` s
+				WHERE service_name = '".security::escape($service)."'";
+	}
+	
+	$result = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+	if( $result == null || $result['service_type'] == null )
+		throw new ApiException("Forbidden", 403, "Service {$service} not found (for user {$user} ?)");
 
-responder::send("OK");
+	// =================================
+	// UPDATE LOCAL SERVICE
+	// =================================
+	if( $desc !== null )
+	{
+		$sql = "UPDATE `services` SET service_description = '".security::escape($desc)."' WHERE service_name = '".security::escape($service)."'";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	}
+	
+	// =================================
+	// UPDATE REMOTE SERVICE
+	// =================================
+	if( $pass !== null )
+	{
+		switch( $result['service_type'] )
+		{
+			case 'mysql':
+				$link = mysql_connect($GLOBALS['CONFIG']['MYSQL_ROOT_HOST'] . ':' . $GLOBALS['CONFIG']['MYSQL_ROOT_PORT'], $GLOBALS['CONFIG']['MYSQL_ROOT_USER'], $GLOBALS['CONFIG']['MYSQL_ROOT_PASSWORD']);
+				mysql_query("SET PASSWORD FOR '{$service}'@'%' = PASSWORD('".security::escape($pass)."')", $link);
+				mysql_close($link);
+			break;	
+		}
+	}
+
+	responder::send("OK");
+});
+
+return $a;
 
 ?>

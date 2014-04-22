@@ -78,7 +78,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-DELETE SYSTEM ACTIONS
 	// =================================
-	$GLOBALS['system']->delete(system::DOMAIN, $data);
+	$commands[] = "rm -Rf {$data['homeDirectory']}";
+	$GLOBALS['system']->exec($commands);
 	
 	// =================================
 	// SYNC QUOTA

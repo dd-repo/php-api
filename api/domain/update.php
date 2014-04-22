@@ -26,8 +26,8 @@ $a->addParam(array(
 	'description'=>'The A Record of the domain.',
 	'optional'=>true,
 	'minlength'=>0,
-	'maxlength'=>20,
-	'match'=>request::NUMBER|request::PUNCT
+	'maxlength'=>100,
+	'match'=>request::NUMBER|request::PUNCT|request::SPECIAL
 	));
 $a->addParam(array(
 	'name'=>array('mx1'),
@@ -136,7 +136,14 @@ $a->setExecute(function() use ($a)
 		$params['mXRecord'][1] = '20 ' . $mx2;	
 	}
 	
-	if( $arecord !== null )
+	if( $arecord !== null && strpos($arecord, ',') !== false )
+	{
+		$records = explode(',', $arecord);
+		$params['aRecord'] = array();
+		foreach( $records as $r )
+			$params['aRecord'][] = $r;
+	}
+	else if( $arecord !== null )
 		$params['aRecord'] = $arecord;
 	
 	if( $mailer !== null )

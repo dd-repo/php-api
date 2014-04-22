@@ -151,7 +151,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$GLOBALS['system']->create(system::USER, $data);
+	$commands[] = "mkdir -p {$data['homeDirectory']} && chown {$data['uidNumber']}:{$data['gidNumber']} {$data['homeDirectory']} && chmod 750 {$data['homeDirectory']}";
+	$GLOBALS['system']->exec($commands);
 	
 	responder::send(array("name"=>$team));
 });
