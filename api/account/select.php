@@ -156,6 +156,11 @@ $a->setExecute(function() use ($a)
 		$ac['user'] = array('id'=>$info['user_id'], 'name'=>$info['user_name']);
 		$ac['keys'] = $result['sshPublicKey'];
 		
+		if( in_array('sshd', $result['inetAuthorizedServices']) )
+			$ac['ssh'] = 1;
+		else
+			$ac['ssh'] = 0;
+		
 		$groups = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $domain), ldap::buildFilter(ldap::GROUP, "(member={$dn})"));
 		
 		if( $groups['uid'] )
@@ -206,6 +211,11 @@ $a->setExecute(function() use ($a)
 			$ac['mail'] = $r['mail'];
 			$ac['user'] = array('id'=>'', 'name'=>'');
 			$ac['keys'] = $r['sshPublicKey'];
+			
+			if( in_array('sshd', $r['inetAuthorizedServices']) )
+				$ac['ssh'] = 1;
+			else
+				$ac['ssh'] = 0;
 			
 			$groups = $GLOBALS['ldap']->search(ldap::buildDN(ldap::DOMAIN, $domain), ldap::buildFilter(ldap::GROUP, "(member={$r['dn']})"));
 
