@@ -206,20 +206,6 @@ $a->setExecute(function() use ($a)
 	else if( $mode == 'delete' )
 		$GLOBALS['ldap']->replace($dn, $params2, ldap::DELETE);	
 	
-	if( $ssh !== null )
-	{
-		$params3['inetAuthorizedServices'] = 'sshd';
-		$params3['host'][] = 'proxy-001';
-		$params3['host'][] = 'proxy-002';
-		$params3['host'][] = 'proxy-003';
-		$params3['host'][] = 'proxy-004';
-		
-		if( $ssh === true )
-			$GLOBALS['ldap']->replace($dn, $params3, ldap::ADD);
-		else
-			$GLOBALS['ldap']->replace($dn, $params3, ldap::DELETE);
-	}
-	
 	$GLOBALS['ldap']->replace($dn, $params);
 
 	if( $key !== null && $mode == 'delete')
@@ -238,6 +224,20 @@ $a->setExecute(function() use ($a)
 		
 		$params3['sshPublicKey'] = $newkeys;
 		$GLOBALS['ldap']->replace($dn, $params3);
+	}
+
+	if( $ssh !== null )
+	{
+		$params4['inetAuthorizedServices'] = 'sshd';
+		$params4['host'][] = 'proxy-001';
+		$params4['host'][] = 'proxy-002';
+		$params4['host'][] = 'proxy-003';
+		$params4['host'][] = 'proxy-004';
+		
+		if( $ssh === true )
+			$GLOBALS['ldap']->replace($dn, $params4, ldap::ADD);
+		else
+			$GLOBALS['ldap']->replace($dn, $params4, ldap::DELETE);
 	}
 	
 	// =================================
