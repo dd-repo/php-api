@@ -103,6 +103,14 @@ $a->addParam(array(
 	'match'=>"(add|delete)"
 	));
 $a->addParam(array(
+	'name'=>array('ssh'),
+	'description'=>'Whether or not authorize SSH access.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
@@ -133,7 +141,11 @@ $a->setExecute(function() use ($a)
 	$team = $a->getParam('team');
 	$join = $a->getParam('join');
 	$key = $a->getParam('key');
+	$ssh = $a->getParam('ssh');
 	$user = $a->getParam('user');
+	
+	if( $ssh == '1' || $ssh == 'yes' || $ssh == 'true' || $ssh === true || $ssh === 1 ) $ssh = true;
+	else if( $ssh !== null ) $ssh = false;
 	
 	// =================================
 	// GET REMOTE INFO
@@ -191,8 +203,22 @@ $a->setExecute(function() use ($a)
 		
 	if( $mode == 'add' )
 		$GLOBALS['ldap']->replace($dn, $params2, ldap::ADD);
-	elseif( $mode == 'delete' )
+	else if( $mode == 'delete' )
 		$GLOBALS['ldap']->replace($dn, $params2, ldap::DELETE);	
+	
+	if( $ssh !== null )
+	{
+		$params3['inetAuthorizedServices'] = 'sshd';
+		$params3['host'][] = 'proxy-001';
+		$params3['host'][] = 'proxy-002';
+		$params3['host'][] = 'proxy-003';
+		$params3['host'][] = 'proxy-004';
+		
+		if( $ssh === true )
+			$GLOBALS['ldap']->replace($dn, $params3, ldap::ADD);
+		else
+			$GLOBALS['ldap']->replace($dn, $params3, ldap::DELETE);
+	}
 	
 	$GLOBALS['ldap']->replace($dn, $params);
 
