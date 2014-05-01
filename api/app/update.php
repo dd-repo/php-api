@@ -522,13 +522,13 @@ $a->setExecute(function() use ($a)
 		$command = array();
 		if( strpos($memberdn, 'ou=Groups') !== false )
 		{
-			$command[] = "setfacl -Rm d:g:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}";
-			$command[] = "setfacl -Rm d:g:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}.git/";
+			$command[] = "setfacl -Rm d:g:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']},g:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}";
+			$command[] = "setfacl -Rm d:g:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}.git/,g:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}.git/";
 		}
 		else
 		{		
-			$command[] = "setfacl -Rm d:u:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}";
-			$command[] = "setfacl -Rm d:u:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}.git/";
+			$command[] = "setfacl -Rm d:u:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']},u:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}";
+			$command[] = "setfacl -Rm d:u:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}.git/,u:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}.git/";
 		}
 		$GLOBALS['gearman']->sendAsync($command);
 		
@@ -546,13 +546,13 @@ $a->setExecute(function() use ($a)
 		$command = array();
 		if( strpos($memberdn, 'ou=Groups') !== false )
 		{
-			$command[] = "setfacl -Rx d:g:{$memberinfo['gidNumber']} {$data['homeDirectory']}";
-			$command[] = "setfacl -Rx d:g:{$memberinfo['gidNumber']} {$data['homeDirectory']}.git/";
+			$command[] = "setfacl -Rx d:g:{$memberinfo['gidNumber']} {$data['homeDirectory']},g:{$memberinfo['gidNumber']} {$data['homeDirectory']}";
+			$command[] = "setfacl -Rx d:g:{$memberinfo['gidNumber']} {$data['homeDirectory']}.git/,g:{$memberinfo['gidNumber']} {$data['homeDirectory']}.git/";
 		}
 		else
 		{
-			$command[] = "setfacl -Rx d:u:{$memberinfo['uidNumber']} {$data['homeDirectory']}";
-			$command[] = "setfacl -Rx d:u:{$memberinfo['uidNumber']} {$data['homeDirectory']}.git/";
+			$command[] = "setfacl -Rx d:u:{$memberinfo['uidNumber']} {$data['homeDirectory']},u:{$memberinfo['uidNumber']} {$data['homeDirectory']}";
+			$command[] = "setfacl -Rx d:u:{$memberinfo['uidNumber']} {$data['homeDirectory']}.git/,u:{$memberinfo['uidNumber']} {$data['homeDirectory']}.git/";
 		}
 		$GLOBALS['gearman']->sendAsync($command);
 		

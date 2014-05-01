@@ -162,9 +162,9 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		
 		if( strpos($memberdn, 'ou=Groups') !== false )
-			$command = "setfacl -Rm d:g:{$memberinfo['uidNumber']}:{$permission} {$result['homeDirectory']}";
+			$command = "setfacl -Rm d:g:{$memberinfo['uidNumber']}:{$permission} {$result['homeDirectory']},g:{$memberinfo['uidNumber']}:{$permission} {$result['homeDirectory']}";
 		else
-			$command = "setfacl -Rm d:u:{$memberinfo['uidNumber']}:{$permission} {$result['homeDirectory']}";
+			$command = "setfacl -Rm d:u:{$memberinfo['uidNumber']}:{$permission} {$result['homeDirectory']},u:{$memberinfo['uidNumber']}:{$permission} {$result['homeDirectory']}";
 		$GLOBALS['gearman']->sendAsync($command);
 		
 		$mod['member'] = $memberdn;
@@ -179,9 +179,9 @@ $a->setExecute(function() use ($a)
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		
 		if( strpos($memberdn, 'ou=Groups') !== false )
-			$command = "setfacl -Rx d:g:{$memberinfo['gidNumber']} {$result['homeDirectory']}";
+			$command = "setfacl -Rx d:g:{$memberinfo['gidNumber']} {$result['homeDirectory']},g:{$memberinfo['gidNumber']} {$result['homeDirectory']}";
 		else
-			$command = "setfacl -Rx d:u:{$memberinfo['uidNumber']} {$result['homeDirectory']}";
+			$command = "setfacl -Rx d:u:{$memberinfo['uidNumber']} {$result['homeDirectory']},u:{$memberinfo['uidNumber']} {$result['homeDirectory']}";
 		$GLOBALS['gearman']->sendAsync($command);
 		
 		$mod['member'] = $memberdn;
