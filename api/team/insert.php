@@ -19,7 +19,7 @@ $a->addParam(array(
 	'optional'=>false,
 	'minlength'=>1,
 	'maxlength'=>50,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT|request::UPPER,
 	'action'=>true
 	));
 $a->addParam(array(
