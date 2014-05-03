@@ -212,7 +212,7 @@ $a->setExecute(function() use ($a)
 			$ac['user'] = array('id'=>'', 'name'=>'');
 			$ac['keys'] = $r['sshPublicKey'];
 			
-			if( in_array('sshd', $r['inetAuthorizedServices']) )
+			if( ( is_string($r['inetAuthorizedServices']) && $r['inetAuthorizedServices'] == 'sshd' ) || ( is_array($r['inetAuthorizedServices']) && in_array('sshd', $r['inetAuthorizedServices']) ) )
 				$ac['ssh'] = 1;
 			else
 				$ac['ssh'] = 0;
