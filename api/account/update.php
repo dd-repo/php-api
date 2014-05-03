@@ -248,12 +248,18 @@ $a->setExecute(function() use ($a)
 		$group_dn = $GLOBALS['ldap']->getDNfromUID($team);
 		$mod['member'] = $dn;
 		$GLOBALS['ldap']->replace($group_dn, $mod, ldap::ADD);
+		
+		$command = "date +%s > /proc/net/rpc/auth.unix.gid/flush";
+		$GLOBALS['gearman']->sendAsync($command, 'as-filer');
 	}
 	elseif( $join == 'delete' )
 	{
 		$group_dn = $GLOBALS['ldap']->getDNfromUID($team);
 		$mod['member'] = $dn;
-		$GLOBALS['ldap']->replace($group_dn, $mod, ldap::DELETE);		
+		$GLOBALS['ldap']->replace($group_dn, $mod, ldap::DELETE);
+		
+		$command = "date +%s > /proc/net/rpc/auth.unix.gid/flush";
+		$GLOBALS['gearman']->sendAsync($command, 'as-filer');
 	}
 	
 	// =================================
