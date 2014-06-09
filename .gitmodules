@@ -1,3 +1,7 @@
 [submodule "_LIB"]
 	path = _LIB
+<<<<<<< HEAD
 	url = https://github.com/anotherservice/php-libapi.git
+=======
+	url = ssh://git.as/dns/com/anotherservice/var/git/git-U2TIHYB2
+>>>>>>> 919b5dff9e5f3d180eb646b91b529d912843b24c
