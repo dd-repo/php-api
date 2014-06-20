@@ -13,6 +13,8 @@ $i->addEntry('insert', array('insert', 'create', 'add'));
 $i->addEntry('select', array('select', 'list', 'view', 'search'));
 $i->addEntry('update', array('update', 'change', 'rename', 'modify'));
 $i->addEntry('delete', array('delete', 'remove', 'del', 'destroy'));
+$i->addEntry('insertline', array('insertline', 'addline'));
+$i->addEntry('deleteline', array('deleteline', 'delline'));
 
 return $i;
 
