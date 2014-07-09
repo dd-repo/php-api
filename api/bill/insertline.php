@@ -51,7 +51,7 @@ $a->addParam(array(
 	'optional'=>false,
 	'minlength'=>1,
 	'maxlength'=>11,
-	'match'=>request::NUMBER,
+	'match'=>request::NUMBER|request::PUNCT,
 	));
 $a->addParam(array(
 	'name'=>array('vat', 'tva'),
