@@ -60,7 +60,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// LOG ACTION
 	// =================================	
-	logger::insert('usert/insert', $a->getParams(), $uid);
+	logger::insert('bill/insert', $a->getParams(), $userdata['user_id']);
 	
 	responder::send(array("id"=>$uid));
 });

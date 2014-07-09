@@ -171,7 +171,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// LOG ACTION
 	// =================================	
-	logger::insert('usert/insert', $a->getParams(), $uid);
+	logger::insert('user/insert', $a->getParams(), $uid);
 	
 	responder::send(array("name"=>$user, "id"=>$uid));
 });
