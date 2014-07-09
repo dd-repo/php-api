@@ -109,6 +109,7 @@ $a->setExecute(function() use ($a)
 			'name' => $r['bill_name'],
 			'reference' => $r['bill_ref'],
 			'status' => $r['bill_status'],
+			'date' => $r['bill_date'],
 			'amount_et' => $r['bill_amount_et'],
 			'amount_ati' => $r['bill_amount_ati'],
 			'user' => array('name'=> $r['user_name'], 'id'=>$r['user_id']),
