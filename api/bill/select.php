@@ -85,7 +85,8 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT REMOTE ENTRIES
 	// =================================
-	$sql = "SELECT b.bill_id, b.bill_real_id, b.bill_name, b.bill_ref, b.bill_user, b.bill_date, b.bill_status, b.bill_amount_et, b.bill_amount_ati, u.user_name, u.user_id FROM bills
+	$sql = "SELECT b.bill_id, b.bill_real_id, b.bill_name, b.bill_ref, b.bill_user, b.bill_date, b.bill_status, b.bill_amount_et, b.bill_amount_ati, u.user_name, u.user_id 
+			FROM bills b
 			LEFT JOIN users u ON(u.user_id = b.bill_user)
 			WHERE true {$where}";
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
