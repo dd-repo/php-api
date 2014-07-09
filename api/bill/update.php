@@ -75,7 +75,7 @@ $a->setExecute(function() use ($a)
 
 	if( $status > 0 )
 	{
-		$sql = "SELECT bill_real_id FROM bills WHERE WHERE bill_id = {$bill} {$where}";
+		$sql = "SELECT bill_real_id FROM bills WHERE bill_id = {$bill} {$where}";
 		$check = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 		
 		if( $check['bill_real_id'] == 0 )
