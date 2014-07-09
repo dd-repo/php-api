@@ -73,7 +73,7 @@ $a->setExecute(function() use ($a)
 	$sql = "UPDATE bills SET bill_status = '{$status}' WHERE bill_id = {$bill} {$where}";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 
-	if( $status != 0 )
+	if( $status > 0 )
 	{
 		$sql = "SELECT bill_real_id FROM bills WHERE 1 ORDER BY bill_real_id DESC";
 		$info = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
