@@ -74,4 +74,6 @@ $a->setExecute(function() use ($a)
 	responder::send("OK");
 });
 
+return $a;
+
 ?>
