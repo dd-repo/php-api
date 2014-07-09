@@ -100,8 +100,9 @@ $a->setExecute(function() use ($a)
 		$sql = "SELECT line_id, line_bill, line_name, line_description, line_vat, line_amount_et, line_amount_ati, line_plan FROM bill_line WHERE line_bill = {$r['bill_id']}";
 		$lines = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 		
+		$bill_lines = array();
 		foreach( $lines as $l )
-			$bill_lines = array('id'=>$l['line_id'], 'name'=>$l['line_name'], 'description'=>$l['line_description'], 'vat'=>$l['line_vat'], 'amount_et'=>$l['line_amount_et'], 'amount_ati'=>$l['line_amount_ati'], 'plan'=>$l['line_plan']);
+			$bill_lines[] = array('id'=>$l['line_id'], 'name'=>$l['line_name'], 'description'=>$l['line_description'], 'vat'=>$l['line_vat'], 'amount_et'=>$l['line_amount_et'], 'amount_ati'=>$l['line_amount_ati'], 'plan'=>$l['line_plan']);
 		
 		$bills[] = array(
 			'id' => $r['bill_id'],
