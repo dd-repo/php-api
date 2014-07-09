@@ -24,7 +24,7 @@ $a->addParam(array(
 $a->addParam(array(
 	'name'=>array('user', 'name', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
-	'optional'=>false,
+	'optional'=>true,
 	'minlength'=>1,
 	'maxlength'=>30,
 	'match'=>request::LOWER|request::NUMBER|request::PUNCT

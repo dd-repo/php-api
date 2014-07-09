@@ -14,7 +14,7 @@ $a->setReturn("OK");
 
 $a->addParam(array(
 	'name'=>array('bill', 'bill_id', 'id', 'bid'),
-	'description'=>'The id of the bill to update.',
+	'description'=>'The id of the bill to remove.',
 	'optional'=>false,
 	'minlength'=>1,
 	'maxlength'=>200,
@@ -53,24 +53,9 @@ $a->setExecute(function() use ($a)
 	$user = $a->getParam('user');
 	
 	// =================================
-	// GET USER DATA
-	// =================================
-	if( $user !== null )
-	{ 
-		$sql = "SELECT user_id,user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
-		$userdata = $GLOBALS['db']->query($sql);
-		if( $userdata == null || $userdata['user_ldap'] == null )
-			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
-	}
-	
-	// =================================
 	// UPDATE BILL
 	// =================================
-	$where = '';
-	if( $user !== null )
-		$where .= " AND bill_user = {$userdata['user_id']}";
-		
-	$sql = "UPDATE bills SET bill_status = '{$status}' WHERE bill_id = {$bill} {$where}";
+	$sql = "UPDATE bills SET bill_status = '{$status}' WHERE bill_id = {$bill}";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 
 	if( $status == 2 )
@@ -82,7 +67,7 @@ $a->setExecute(function() use ($a)
 		$formatuid = str_pad($uid, 4, '0', STR_PAD_LEFT);
 		$year = date('Y');
 		
-		$sql = "UPDATE bills SET bill_real_id = {$uid}, bill_name = 'BI{$year}-{$formatuid}' WHERE bill_id = {$uid} {$where}";
+		$sql = "UPDATE bills SET bill_real_id = {$uid}, bill_name = 'BI{$year}-{$formatuid}' WHERE bill_id = {$uid}";
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	}
 	
