@@ -75,15 +75,21 @@ $a->setExecute(function() use ($a)
 
 	if( $status > 0 )
 	{
-		$sql = "SELECT bill_real_id FROM bills WHERE 1 ORDER BY bill_real_id DESC";
-		$info = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
+		$sql = "SELECT bill_real_id FROM bills WHERE WHERE bill_id = {$bill} {$where}";
+		$check = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 		
-		$uid = $info['bill_real_id']+1;
-		$formatuid = str_pad($uid, 4, '0', STR_PAD_LEFT);
-		$year = date('Y');
+		if( $check['bill_real_id'] == 0 )
+		{
+			$sql = "SELECT bill_real_id FROM bills WHERE 1 ORDER BY bill_real_id DESC";
+			$info = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 		
-		$sql = "UPDATE bills SET bill_real_id = {$uid}, bill_name = 'AS{$year}-{$formatuid}' WHERE bill_id = {$bill} {$where}";
-		$GLOBALS['db']->query($sql, mysql::NO_ROW);
+			$uid = $info['bill_real_id']+1;
+			$formatuid = str_pad($uid, 5, '0', STR_PAD_LEFT);
+			$year = date('Y');
+		
+			$sql = "UPDATE bills SET bill_real_id = {$uid}, bill_name = 'AS{$year}-{$formatuid}' WHERE bill_id = {$bill} {$where}";
+			$GLOBALS['db']->query($sql, mysql::NO_ROW);
+		}
 	}
 	
 	responder::send("OK");
