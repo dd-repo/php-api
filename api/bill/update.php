@@ -7,7 +7,7 @@ if( !defined('PROPER_START') )
 }
 
 $a = new action();
-$a->addAlias(array('modify', 'change'));
+$a->addAlias(array('update', 'modify', 'change'));
 $a->setDescription("Modify a bill");
 $a->addGrant(array('ACCESS', 'BILL_UPDATE'));
 $a->setReturn("OK");
