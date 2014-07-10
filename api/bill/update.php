@@ -84,7 +84,7 @@ $a->setExecute(function() use ($a)
 			$info = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
 		
 			$uid = $info['bill_real_id']+1;
-			$formatuid = str_pad($uid, 5, '0', STR_PAD_LEFT);
+			$formatuid = str_pad($uid, 6, '0', STR_PAD_LEFT);
 			$year = date('Y');
 		
 			$sql = "UPDATE bills SET bill_real_id = {$uid}, bill_name = 'AS{$year}-{$formatuid}' WHERE bill_id = {$bill} {$where}";
