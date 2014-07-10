@@ -46,7 +46,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// INSERT BILL
 	// =================================
-	$time = strtotime("last day of the last month");
+	$time = strtotime("last day of previous month");
 	$sql = "INSERT INTO bills (bill_user, bill_date) VALUES ({$userdata['user_id']}, '{$time}')";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	$uid = $GLOBALS['db']->last_id();
