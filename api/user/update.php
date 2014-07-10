@@ -141,6 +141,14 @@ $a->addParam(array(
 	'maxlength'=>6,
 	'match'=>"(add|delete)"
 	));
+$a->addParam(array(
+	'name'=>array('billing'),
+	'description'=>'Billing?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
 	
 $a->setExecute(function() use ($a)
 {
@@ -168,6 +176,7 @@ $a->setExecute(function() use ($a)
 	$language = $a->getParam('language');
 	$key = $a->getParam('key');
 	$mode = $a->getParam('mode');
+	$billing = $a->getParam('billing');
 	
 	if( $status == '0' || $status == 'no' || $status == 'false' || $status === false || $status === 0 ) $status = 0;
 	else if( $status !== null ) $status = 1;
@@ -212,7 +221,7 @@ $a->setExecute(function() use ($a)
 	else
 		$last = 'user_last';
 		
-	$sql = "UPDATE users SET user_iban = ".($iban!=null?"'{$iban}'":"user_iban").", user_bic = ".($bic!==null?"'{$bic}'":"user_bic").", user_report = ".($report!==null?"'{$report}'":"user_bic").", user_zabbix = ".($zabbix!=null?"'{$zabbix}'":"user_zabbix").", user_status = {$status}, user_last = {$last} WHERE user_id = {$result['user_id']}";
+	$sql = "UPDATE users SET user_iban = ".($iban!=null?"'{$iban}'":"user_iban").", user_bic = ".($bic!==null?"'{$bic}'":"user_bic").", user_report = ".($report!==null?"'{$report}'":"user_bic").", user_zabbix = ".($zabbix!=null?"'{$zabbix}'":"user_zabbix").", user_billing = ".($billing!=null?"'{$billing}'":"user_billing").", user_status = {$status}, user_last = {$last} WHERE user_id = {$result['user_id']}";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	// =================================
