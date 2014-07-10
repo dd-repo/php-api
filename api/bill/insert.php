@@ -45,10 +45,9 @@ $a->setExecute(function() use ($a)
 
 	// =================================
 	// INSERT BILL
-	// =================================	
-	$time = strtotime(date("t/m/Y", strtotime("last month")));
-	
-	$sql = "INSERT INTO bills (bill_user, bill_date) VALUES ({$userdata['user_id']}, '{$time}')";
+	// =================================
+	$time = strtotime("last day of the last month");
+	$sql = "INSERT INTO bills (bill_user, bill_date) VALUES ({$userdata['user_id']}, {$time})";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	$uid = $GLOBALS['db']->last_id();
 	$formatuid = str_pad($uid, 6, '0', STR_PAD_LEFT);
