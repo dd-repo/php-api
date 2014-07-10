@@ -46,15 +46,16 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// INSERT BILL
 	// =================================	
-	$sql = "INSERT INTO bills (bill_user, bill_date) VALUES ({$userdata['user_id']},UNIX_TIMESTAMP())";
+	$time = strtotime(date("t/m/Y", strtotime("last month")));
+	$sql = "INSERT INTO bills (bill_user, bill_date) VALUES ({$userdata['user_id']}, {$time})";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	$uid = $GLOBALS['db']->last_id();
 	$formatuid = str_pad($uid, 6, '0', STR_PAD_LEFT);
 	
-	$year = date('Y');
-	$month = date('m');
+	$year = date('Y', $time);
+	$month = date('m', $time);
 	
-	$sql = "UPDATE bills SET bill_name = 'CO-AS{$year}-{$formatuid}', bill_ref = '{$userdata['user_name']}/{$year}/{$month}/{$uid}' WHERE bill_id = {$uid}";
+	$sql = "UPDATE bills SET bill_name = 'CO-AS{$year}-{$formatuid}', bill_ref = '{$userdata['user_name']} ({$month} {$year})' WHERE bill_id = {$uid}";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	// =================================
