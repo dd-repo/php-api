@@ -98,7 +98,7 @@ $a->setExecute(function() use ($a)
 		foreach( $extra['branches'][$branch]['instances'] as $key => $value )
 		{
 			$command = "sv start {$data['uid']}-{$branch}-{$key}";
-			$GLOBALS['gearman']->sendSync($command, $value['host']);
+			$GLOBALS['gearman']->sendAsync($command, $value['host']);
 		}
 	}
 	

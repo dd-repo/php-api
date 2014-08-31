@@ -87,7 +87,7 @@ $a->addParam(array(
 	'match'=>request::NUMBER
 	));
 $a->addParam(array(
-	'name'=>array('key', 'ssh'),
+	'name'=>array('key'),
 	'description'=>'The SSH key',
 	'optional'=>true,
 	'minlength'=>0,
@@ -101,6 +101,14 @@ $a->addParam(array(
 	'minlength'=>2,
 	'maxlength'=>6,
 	'match'=>"(add|delete)"
+	));
+$a->addParam(array(
+	'name'=>array('ssh'),
+	'description'=>'Whether or not authorize SSH access.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
 	));
 $a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
@@ -133,7 +141,11 @@ $a->setExecute(function() use ($a)
 	$team = $a->getParam('team');
 	$join = $a->getParam('join');
 	$key = $a->getParam('key');
+	$ssh = $a->getParam('ssh');
 	$user = $a->getParam('user');
+	
+	if( $ssh == '1' || $ssh == 'yes' || $ssh == 'true' || $ssh === true || $ssh === 1 ) $ssh = true;
+	else if( $ssh !== null ) $ssh = false;
 	
 	// =================================
 	// GET REMOTE INFO
@@ -191,7 +203,7 @@ $a->setExecute(function() use ($a)
 		
 	if( $mode == 'add' )
 		$GLOBALS['ldap']->replace($dn, $params2, ldap::ADD);
-	elseif( $mode == 'delete' )
+	else if( $mode == 'delete' )
 		$GLOBALS['ldap']->replace($dn, $params2, ldap::DELETE);	
 	
 	$GLOBALS['ldap']->replace($dn, $params);
@@ -213,6 +225,20 @@ $a->setExecute(function() use ($a)
 		$params3['sshPublicKey'] = $newkeys;
 		$GLOBALS['ldap']->replace($dn, $params3);
 	}
+
+	if( $ssh !== null )
+	{
+		$params4['inetAuthorizedServices'] = 'sshd';
+		$params4['host'][] = 'proxy-001';
+		$params4['host'][] = 'proxy-002';
+		$params4['host'][] = 'proxy-003';
+		$params4['host'][] = 'proxy-004';
+		
+		if( $ssh === true )
+			$GLOBALS['ldap']->replace($dn, $params4, ldap::ADD);
+		else
+			$GLOBALS['ldap']->replace($dn, $params4, ldap::DELETE);
+	}
 	
 	// =================================
 	// TEAM JOIN
@@ -222,12 +248,18 @@ $a->setExecute(function() use ($a)
 		$group_dn = $GLOBALS['ldap']->getDNfromUID($team);
 		$mod['member'] = $dn;
 		$GLOBALS['ldap']->replace($group_dn, $mod, ldap::ADD);
+		
+		$command = "date +%s > /proc/net/rpc/auth.unix.gid/flush";
+		$GLOBALS['gearman']->sendAsync($command, 'as-filer');
 	}
 	elseif( $join == 'delete' )
 	{
 		$group_dn = $GLOBALS['ldap']->getDNfromUID($team);
 		$mod['member'] = $dn;
-		$GLOBALS['ldap']->replace($group_dn, $mod, ldap::DELETE);		
+		$GLOBALS['ldap']->replace($group_dn, $mod, ldap::DELETE);
+		
+		$command = "date +%s > /proc/net/rpc/auth.unix.gid/flush";
+		$GLOBALS['gearman']->sendAsync($command, 'as-filer');
 	}
 	
 	// =================================

@@ -54,16 +54,24 @@ $a->addParam(array(
 	'match'=>"^[_\\w\\.-]+@[a-zA-Z0-9\\.-]{1,100}\\.[a-zA-Z0-9]{2,6}$"
 	));
 $a->addParam(array(
-	'name'=>array('plan'),
-	'description'=>'The user plan.',
+	'name'=>array('language', 'lang'),
+	'description'=>'The user language.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>2,
+	'match'=>request::UPPER
+	));
+$a->addParam(array(
+	'name'=>array('ip'),
+	'description'=>'IP address of the user.',
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>50,
-	'match'=>request::NUMBER
+	'match'=>request::ALL
 	));
 $a->addParam(array(
-	'name'=>array('zabbix'),
-	'description'=>'The user zabbix id.',
+	'name'=>array('plan'),
+	'description'=>'The user plan.',
 	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>50,
@@ -94,7 +102,7 @@ $a->addParam(array(
 	'match'=>request::LOWER|request::UPPER|request::NUMBER
 	));
 $a->addParam(array(
-	'name'=>array('address', 'postal', 'postal_address', 'user_address'),
+	'name'=>array('postal_address', 'address', 'user_address'),
 	'description'=>'The postal address of the user (JSON encoded).',
 	'optional'=>true,
 	'minlength'=>2,
@@ -102,12 +110,28 @@ $a->addParam(array(
 	'match'=>request::ALL
 	));
 $a->addParam(array(
-	'name'=>array('language', 'lang'),
-	'description'=>'The user language.',
+	'name'=>array('postal_code', 'code'),
+	'description'=>'The postal code of the user.',
 	'optional'=>true,
-	'minlength'=>1,
-	'maxlength'=>2,
-	'match'=>request::UPPER
+	'minlength'=>2,
+	'maxlength'=>5,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
+	'name'=>array('organisation', 'o'),
+	'description'=>'The organisation of the user.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::PHRASE
+	));
+$a->addParam(array(
+	'name'=>array('locality', 'l', 'city'),
+	'description'=>'The city of the user.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::PHRASE
 	));
 $a->addParam(array(
 	'name'=>array('status', 'user_status'),
@@ -126,6 +150,14 @@ $a->addParam(array(
 	'match'=>"(1|0|yes|no|true|false)"
 	));
 $a->addParam(array(
+	'name'=>array('zabbix'),
+	'description'=>'The user zabbix id.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
 	'name'=>array('key', 'ssh'),
 	'description'=>'The SSH key',
 	'optional'=>true,
@@ -140,6 +172,14 @@ $a->addParam(array(
 	'minlength'=>2,
 	'maxlength'=>6,
 	'match'=>"(add|delete)"
+	));
+$a->addParam(array(
+	'name'=>array('billing'),
+	'description'=>'Billing?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
 	));
 	
 $a->setExecute(function() use ($a)
@@ -161,13 +201,17 @@ $a->setExecute(function() use ($a)
 	$plan_type = $a->getParam('plan_type');
 	$iban = $a->getParam('iban');
 	$bic = $a->getParam('bic');
-	$address = $a->getParam('address');
+	$address = $a->getParam('postal_address');
+	$code = $a->getParam('postal_code');
+	$organisation = $a->getParam('organisation');
+	$locality = $a->getParam('locality');
 	$status = $a->getParam('status');
 	$report = $a->getParam('report');
 	$zabbix = $a->getParam('zabbix');
 	$language = $a->getParam('language');
 	$key = $a->getParam('key');
 	$mode = $a->getParam('mode');
+	$billing = $a->getParam('billing');
 	
 	if( $status == '0' || $status == 'no' || $status == 'false' || $status === false || $status === 0 ) $status = 0;
 	else if( $status !== null ) $status = 1;
@@ -212,7 +256,7 @@ $a->setExecute(function() use ($a)
 	else
 		$last = 'user_last';
 		
-	$sql = "UPDATE users SET user_iban = ".($iban!=null?"'{$iban}'":"user_iban").", user_bic = ".($bic!==null?"'{$bic}'":"user_bic").", user_report = ".($report!==null?"'{$report}'":"user_bic").", user_zabbix = ".($zabbix!=null?"'{$zabbix}'":"user_zabbix").", user_status = {$status}, user_last = {$last} WHERE user_id = {$result['user_id']}";
+	$sql = "UPDATE users SET user_iban = ".($iban!=null?"'{$iban}'":"user_iban").", user_bic = ".($bic!==null?"'{$bic}'":"user_bic").", user_report = ".($report!==null?"'{$report}'":"user_bic").", user_zabbix = ".($zabbix!=null?"'{$zabbix}'":"user_zabbix").", user_billing = ".($billing!=null?"'{$billing}'":"user_billing").", user_status = {$status}, user_last = {$last} WHERE user_id = {$result['user_id']}";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	// =================================
@@ -268,6 +312,12 @@ $a->setExecute(function() use ($a)
 		$params['mailForwardingAddress'] = $mail;
 	if( $address !== null )
 		$params['postalAddress'] = $address;	
+	if( $code !== null )
+		$params['postalCode'] = $code;	
+	if( $organisation !== null )
+		$params['o'] = $organisation;	
+	if( $locality !== null )
+		$params['l'] = $locality;	
 	if( $language !== null )
 		$params['gecos'] = $language;	
 	if( $key !== null && $mode == 'add'  )

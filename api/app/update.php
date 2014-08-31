@@ -519,10 +519,17 @@ $a->setExecute(function() use ($a)
 		$sql = "INSERT INTO permissions (permission_object, permission_directory, permission_right) VALUES ({$memberinfo['uidNumber']}, '{$data['homeDirectory']}', '{$permission}')";
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		
+		$command = array();
 		if( strpos($memberdn, 'ou=Groups') !== false )
-			$command = "setfacl -Rm g:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}";
+		{
+			$command[] = "setfacl -Rm d:g:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']},g:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}";
+			$command[] = "setfacl -Rm d:g:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}.git/,g:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}.git/";
+		}
 		else
-			$command = "setfacl -Rm u:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}";
+		{		
+			$command[] = "setfacl -Rm d:u:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']},u:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}";
+			$command[] = "setfacl -Rm d:u:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}.git/,u:{$memberinfo['uidNumber']}:{$permission} {$data['homeDirectory']}.git/";
+		}
 		$GLOBALS['gearman']->sendAsync($command);
 		
 		$mod['member'] = $memberdn;
@@ -536,10 +543,17 @@ $a->setExecute(function() use ($a)
 		$sql = "DELETE FROM permissions  WHERE permission_object = {$memberinfo['uidNumber']} AND permission_directory = '{$data['homeDirectory']}'";
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 		
+		$command = array();
 		if( strpos($memberdn, 'ou=Groups') !== false )
-			$command = "setfacl -Rx g:{$memberinfo['gidNumber']} {$data['homeDirectory']}";
+		{
+			$command[] = "setfacl -Rx d:g:{$memberinfo['gidNumber']} {$data['homeDirectory']},g:{$memberinfo['gidNumber']} {$data['homeDirectory']}";
+			$command[] = "setfacl -Rx d:g:{$memberinfo['gidNumber']} {$data['homeDirectory']}.git/,g:{$memberinfo['gidNumber']} {$data['homeDirectory']}.git/";
+		}
 		else
-			$command = "setfacl -Rx u:{$memberinfo['uidNumber']} {$data['homeDirectory']}";
+		{
+			$command[] = "setfacl -Rx d:u:{$memberinfo['uidNumber']} {$data['homeDirectory']},u:{$memberinfo['uidNumber']} {$data['homeDirectory']}";
+			$command[] = "setfacl -Rx d:u:{$memberinfo['uidNumber']} {$data['homeDirectory']}.git/,u:{$memberinfo['uidNumber']} {$data['homeDirectory']}.git/";
+		}
 		$GLOBALS['gearman']->sendAsync($command);
 		
 		$mod['member'] = $memberdn;

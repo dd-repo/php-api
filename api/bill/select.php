@@ -6,53 +6,121 @@ if( !defined('PROPER_START') )
 	exit;
 }
 
-$help = request::getAction(false, false);
-if( $help == 'help' || $help == 'doc' )
-{
-	$body = "
-<h1><a href=\"/help\">API Help</a> :: <a href=\"/object/help\">bill</a> :: select</h1>
-<ul>
-	<li><h2>Alias :</h2> list, view, search</li>
-	<li><h2>Description :</h2> searches for a bill</li>
-	<li><h2>Parameters :</h2>
-		<ul>
-			<li>id : The id of the bill to search for. <span class=\"optional\">optional</span>. (alias : bill)</li>
-			<li>user : The name or id of the target user. <span class=\"optional\">optional</span>. (alias : user_name, username, login, user_id, uid)</li>
-			<li>from : From date. <span class=\"optional\">optional</span>.</li>
-			<li>to : To date. <span class=\"optional\">optional</span>.</li>
-		</ul>
-	</li>
-	<li><h2>Returns :</h2> the matching bills [{'id', 'date', 'total_ic', 'total_ec', 'services'},...]</li>
-	<li><h2>Required grants :</h2> ACCESS, BILL_SELECT</li>
-</ul>";
-	responder::help($body);
-}
-
-// =================================
-// CHECK AUTH
-// =================================
-security::requireGrants(array('ACCESS', 'BILL_SELECT'));
-
-// =================================
-// GET PARAMETERS
-// =================================
-$bill = request::getCheckParam(array(
-	'name'=>array('bill', 'id'),
-	'optional'=>true,
-	'minlength'=>0,
-	'maxlength'=>200,
-	'match'=>request::NUMBER
-	));
-$user = request::getCheckParam(array(
-	'name'=>array('user_name', 'username', 'login', 'user', 'user_id', 'uid'),
+$a = new action();
+$a->addAlias(array('list', 'view', 'search'));
+$a->setDescription("Searches for a bill");
+$a->addGrant(array('ACCESS', 'BILL_SELECT'));
+$a->setReturn(array(array(
+	'id'=>'the id of the bill', 
+	'name'=>'the name of the bill', 
+	'reference'=>'reference of the bill',
+	'data'=>'date of the bill',
+	'lines'=>array(
+		'id'=>'id of the line',
+		'title'=>'title of the line'
+	),
+	'user'=>array(
+		'id'=>'the user id', 
+		'name'=>'the username'
+	)
+	)));
+	
+$a->addParam(array(
+	'name'=>array('bill', 'bill_id', 'id', 'bid'),
+	'description'=>'The id of the bill to select.',
 	'optional'=>true,
 	'minlength'=>1,
+	'maxlength'=>200,
+	'match'=>request::NUMBER,
+	'action'=>true
+	));
+$a->addParam(array(
+	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
+	'description'=>'The name or id of the target user.',
+	'optional'=>true,
+	'minlength'=>0,
 	'maxlength'=>30,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
+	'action'=>false
 	));
 	
-$bills = array();
+$a->setExecute(function() use ($a)
+{
+	// =================================
+	// CHECK AUTH
+	// =================================
+	$a->checkAuth();
+
+	// =================================
+	// GET PARAMETERS
+	// =================================
+	$bill = $a->getParam('bill');
+	$user = $a->getParam('user');
+
+	// =================================
+	// GET USER DATA
+	// =================================
+	if( $user !== null )
+	{ 
+		$sql = "SELECT user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$userdata = $GLOBALS['db']->query($sql);
+		if( $userdata == null || $userdata['user_ldap'] == null )
+			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
+	}
 	
-responder::send($bills);
+	// =================================
+	// PREPARE WHERE CLAUSE
+	// =================================
+	$where = '';
+	if( $bill !== null )
+		$where .= " AND b.bill_id = '{$bill}'";
+	if( $user !== null )
+	{
+		if( is_numeric($user) )
+			$where .= " AND u.user_id = " . $user;
+		else
+			$where .= " AND u.user_name = '".security::escape($user)."'";
+	}
+	
+	// =================================
+	// SELECT REMOTE ENTRIES
+	// =================================
+	$sql = "SELECT b.bill_id, b.bill_real_id, b.bill_name, b.bill_ref, b.bill_user, b.bill_date, b.bill_status, b.bill_amount_et, b.bill_amount_ati, u.user_name, u.user_id 
+			FROM bills b
+			LEFT JOIN users u ON(u.user_id = b.bill_user)
+			WHERE true {$where}";
+	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+
+	// =================================
+	// FORMAT RESULT
+	// =================================
+	$bills = array();
+	foreach( $result as $r )
+	{
+		$sql = "SELECT line_id, line_bill, line_name, line_description, line_vat, line_amount_et, line_amount_ati, line_plan FROM bill_line WHERE line_bill = {$r['bill_id']}";
+		$lines = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+		
+		$bill_lines = array();
+		foreach( $lines as $l )
+			$bill_lines[] = array('id'=>$l['line_id'], 'name'=>$l['line_name'], 'description'=>$l['line_description'], 'vat'=>$l['line_vat'], 'amount_et'=>$l['line_amount_et'], 'amount_ati'=>$l['line_amount_ati'], 'plan'=>$l['line_plan']);
+		
+		$bills[] = array(
+			'id' => $r['bill_id'],
+			'rid' => $r['bill_real_id'],
+			'name' => $r['bill_name'],
+			'reference' => $r['bill_ref'],
+			'status' => $r['bill_status'],
+			'date' => $r['bill_date'],
+			'amount_et' => $r['bill_amount_et'],
+			'amount_ati' => $r['bill_amount_ati'],
+			'user' => array('name'=> $r['user_name'], 'id'=>$r['user_id']),
+			'lines' => $bill_lines
+		);
+	}
+	
+	responder::send($bills);
+});
+
+return $a;
 
 ?>

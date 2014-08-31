@@ -221,21 +221,16 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// DELETE OLD BACKUPS
 	// =================================
-	$weekago = mktime(date('H'), 0, 0, date('n'), date('j')+1, date('Y'))-(3600*24*7);
-	$sql = "SELECT backup_identifier FROM backups WHERE backup_date < {$weekago}";
+	$monthago = mktime(date('H'), 0, 0, date('n'), date('j')+1, date('Y'))-(3600*24*30);
+	$sql = "SELECT backup_identifier FROM backups WHERE backup_date < {$monthago}";
 	$bas = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 	foreach( $bas as $b )
 	{
 		$command = "rm /dns/com/anotherservice/download/{$b['backup_identifier']}.gz";
 		$GLOBALS['gearman']->sendAsync($command);
-	}
-	
-	$sql = "SELECT user_name FROM users WHERE 1";
-	$users = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
-	foreach( $users as $u )
-	{
-		$command = "/dns/tm/sys/usr/local/bin/delete-old /dns/com/anotherservice/Users/{$u['user_name']}/Backups";
-		$GLOBALS['gearman']->sendAsync($command);
+		
+		$sql = "DELETE FROM backups WHERE backup_identifier = {$b['backup_identifier']}";
+		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	}
 	
 	// =================================

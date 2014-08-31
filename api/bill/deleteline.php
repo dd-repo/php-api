@@ -7,14 +7,14 @@ if( !defined('PROPER_START') )
 }
 
 $a = new action();
-$a->addAlias(array('update', 'modify', 'change'));
-$a->setDescription("Modify a bill");
+$a->addAlias(array('insertline', 'addline'));
+$a->setDescription("Add a line to a bill");
 $a->addGrant(array('ACCESS', 'BILL_UPDATE'));
 $a->setReturn("OK");
 
 $a->addParam(array(
 	'name'=>array('bill', 'bill_id', 'id', 'bid'),
-	'description'=>'The id of the bill to update.',
+	'description'=>'The id of the bill to modify.',
 	'optional'=>false,
 	'minlength'=>1,
 	'maxlength'=>200,
@@ -22,15 +22,16 @@ $a->addParam(array(
 	'action'=>true
 	));
 $a->addParam(array(
-	'name'=>array('status', 'bill_status'),
-	'description'=>'The status of the bill',
+	'name'=>array('line', 'line_id', 'lid'),
+	'description'=>'The id of the line to delete.',
 	'optional'=>false,
 	'minlength'=>1,
-	'maxlength'=>1,
+	'maxlength'=>200,
 	'match'=>request::NUMBER,
+	'action'=>true
 	));
 $a->addParam(array(
-	'name'=>array('user', 'name', 'user_name', 'username', 'login', 'user_id', 'uid'),
+	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>true,
 	'minlength'=>1,
@@ -49,7 +50,7 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$bill = $a->getParam('bill');
-	$status = $a->getParam('status');
+	$line = $a->getParam('line');
 	$user = $a->getParam('user');
 	
 	// =================================
@@ -57,7 +58,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	if( $user !== null )
 	{ 
-		$sql = "SELECT user_id,user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+		$sql = "SELECT user_ldap FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
 		$userdata = $GLOBALS['db']->query($sql);
 		if( $userdata == null || $userdata['user_ldap'] == null )
 			throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
@@ -70,27 +71,29 @@ $a->setExecute(function() use ($a)
 	if( $user !== null )
 		$where .= " AND bill_user = {$userdata['user_id']}";
 		
-	$sql = "UPDATE bills SET bill_status = '{$status}' WHERE bill_id = {$bill} {$where}";
+	$amount_ati = $amount+($amount*($vat/100));
+	$amount_ati = round($amount_ati, 2);
+	
+	if( $plan === null )
+		$plan = 0;
+	
+	$sql = "DELETE FROM bill_line WHERE line_id = {$line}";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
-
-	if( $status > 0 )
+	
+	$sql = "SELECT line_amount_ati, line_amount_et FROM bill_line WHERE line_bill = {$bill}";
+	$lines = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
+	
+	$total_ati = 0;
+	$total_et = 0;
+	
+	foreach( $lines as $l )
 	{
-		$sql = "SELECT bill_real_id FROM bills WHERE bill_id = {$bill} {$where}";
-		$check = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
-		
-		if( $check['bill_real_id'] == 0 )
-		{
-			$sql = "SELECT bill_real_id FROM bills WHERE 1 ORDER BY bill_real_id DESC";
-			$info = $GLOBALS['db']->query($sql, mysql::ONE_ROW);
-		
-			$uid = $info['bill_real_id']+1;
-			$formatuid = str_pad($uid, 6, '0', STR_PAD_LEFT);
-			$year = date('Y');
-		
-			$sql = "UPDATE bills SET bill_real_id = {$uid}, bill_name = 'AS{$year}-{$formatuid}' WHERE bill_id = {$bill} {$where}";
-			$GLOBALS['db']->query($sql, mysql::NO_ROW);
-		}
+		$total_ati = $total_ati+$l['line_amount_ati'];
+		$total_et = $total_et+$l['line_amount_et'];
 	}
+	
+	$sql = "UPDATE bills SET bill_amount_et = '{$total_et}', bill_amount_ati = '{$total_ati}' WHERE bill_id = {$bill}";
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	responder::send("OK");
 });

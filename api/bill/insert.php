@@ -6,111 +6,66 @@ if( !defined('PROPER_START') )
 	exit;
 }
 
-$help = request::getAction(false, false);
-if( $help == 'help' || $help == 'doc' )
-{
-	$body = "
-<h1><a href=\"/help\">API Help</a> :: <a href=\"/bill/help\">bill</a> :: insert</h1>
-<ul>
-	<li><h2>Alias :</h2> create, add</li>
-	<li><h2>Description :</h2> creates a new bill</li>
-	<li><h2>Parameters :</h2>
-		<ul>
-			<li>user : The name or id of the target user. <span class=\"required\">required</span>. (alias : user_name, username, login, user_id, uid)</li>
-			<li>service : The service ID of the bill. <span class=\"optional\">optional</span>. (alias : bill_service)</li>
-			<li>number : Services number. <span class=\"optional\">optional</span>.</li>
-			<li>from : From date. <span class=\"optional\">optional</span>.</li>
-			<li>to : To date. <span class=\"optional\">optional</span>.</li>
-			<li>vat :  Bill vat (default 19.6). <span class=\"optional\">optional</span>.</li>
-		</ul>
-	</li>
-	<li><h2>Returns :</h2> the newly created bill {'id'}</li>
-	<li><h2>Required grants :</h2> ACCESS, BILL_INSERT</li>
-</ul>";
-	responder::help($body);
-}
+$a = new action();
+$a->addAlias(array('create', 'add'));
+$a->setDescription("Creates a new bill");
+$a->addGrant(array('ACCESS', 'BILL_INSERT'));
+$a->setReturn(array(array(
+	'id'=>'the id of the bill'
+	)));
 
-// =================================
-// CHECK AUTH
-// =================================
-security::requireGrants(array('ACCESS', 'BILL_INSERT'));
-
-// =================================
-// GET PARAMETERS
-// =================================
-$user = request::getCheckParam(array(
-	'name'=>array('user_name', 'username', 'login', 'user', 'user_id', 'uid'),
+$a->addParam(array(
+	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
+	'description'=>'The name or id of the target user.',
 	'optional'=>false,
-	'minlength'=>1,
-	'maxlength'=>30,
-	'match'=>request::LOWER|request::NUMBER|request::PUNCT
-	));
-$service = request::getCheckParam(array(
-	'name'=>array('service', 'bill_service'),
-	'optional'=>true,
 	'minlength'=>0,
 	'maxlength'=>30,
-	'match'=>request::NUMBER
+	'match'=>request::LOWER|request::NUMBER|request::PUNCT,
 	));
-$number = request::getCheckParam(array(
-	'name'=>array('number'),
-	'optional'=>true,
-	'minlength'=>0,
-	'maxlength'=>10,
-	'match'=>request::NUMBER
-	));
-$vat = request::getCheckParam(array(
-	'name'=>array('vat'),
-	'optional'=>true,
-	'minlength'=>0,
-	'maxlength'=>10,
-	'match'=>request::NUMBER|request::PUNCT
-	));
-$from = request::getCheckParam(array(
-	'name'=>array('from'),
-	'optional'=>true,
-	'minlength'=>0,
-	'maxlength'=>30,
-	'match'=>request::NUMBER
-	));
-$to = request::getCheckParam(array(
-	'name'=>array('to'),
-	'optional'=>true,
-	'minlength'=>0,
-	'maxlength'=>30,
-	'match'=>request::NUMBER
-	));	
-	
-if( $number == null )
-	$number = 1;
-if( $vat == null )
-	$vat = 19.6;
-	
-// =================================
-// GET USER DATA
-// =================================
-$sql = "SELECT user_ldap, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
-$userdata = $GLOBALS['db']->query($sql);
-if( $userdata == null || $userdata['user_ldap'] == null )
-	throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
 
-// =================================
-// INSERT BILL
-// =================================
-$sql = "INSERT INTO bills (bill_user,bill_date,bill_vat,bill_from,bill_to) VALUES ({$userdata['user_id']},".time().",'{$vat}','{$from}','{$to}')";
-$GLOBALS['db']->query($sql, mysql::NO_ROW);
-
-$id = $GLOBALS['db']->last_id();
-
-// =================================
-// INSERT SERVICES
-// =================================
-if( $service !== null )
+$a->setExecute(function() use ($a)
 {
-	$sql = "INSERT INTO bill_service (bill_id,service_id,service_count) VALUES({$id},{$service},{$number})";
-	$GLOBALS['db']->query($sql, mysql::NO_ROW);
-}
+	// =================================
+	// CHECK AUTH
+	// =================================
+	$a->checkAuth();
 
-responder::send(array("id"=>$id));
+	// =================================
+	// GET PARAMETERS
+	// =================================
+	$user = $a->getParam('user');
+	
+	// =================================
+	// GET USER DATA
+	// =================================
+	$sql = "SELECT user_ldap, user_name, user_id FROM users u WHERE ".(is_numeric($user)?"u.user_id=".$user:"u.user_name = '".security::escape($user)."'");
+	$userdata = $GLOBALS['db']->query($sql);
+	if( $userdata == null || $userdata['user_ldap'] == null )
+		throw new ApiException("Unknown user", 412, "Unknown user : {$user}");
+
+	// =================================
+	// INSERT BILL
+	// =================================
+	$time = strtotime("last day of previous month");
+	$sql = "INSERT INTO bills (bill_user, bill_date) VALUES ({$userdata['user_id']}, '{$time}')";
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	$uid = $GLOBALS['db']->last_id();
+	$formatuid = str_pad($uid, 6, '0', STR_PAD_LEFT);
+	
+	$year = date('Y', $time);
+	$month = date('F', $time);
+	
+	$sql = "UPDATE bills SET bill_name = 'CO-AS{$year}-{$formatuid}', bill_ref = '{$userdata['user_name']} ({$month} {$year})' WHERE bill_id = {$uid}";
+	$GLOBALS['db']->query($sql, mysql::NO_ROW);
+	
+	// =================================
+	// LOG ACTION
+	// =================================	
+	logger::insert('bill/insert', $a->getParams(), $userdata['user_id']);
+	
+	responder::send(array("id"=>$uid));
+});
+
+return $a;
 
 ?>
