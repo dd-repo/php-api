@@ -49,7 +49,7 @@ $a->addParam(array(
 	'match'=>request::PHRASE
 	));
 $a->addParam(array(
-	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
+	'name'=>array('mail', 'email', 'user_email', 'user_mail'),
 	'description'=>'The email of the user.',
 	'optional'=>true,
 	'minlength'=>0,
@@ -72,7 +72,119 @@ $a->addParam(array(
 	'maxlength'=>50,
 	'match'=>request::ALL
 	));
-
+$a->addParam(array(
+	'name'=>array('plan'),
+	'description'=>'The user plan.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
+	'name'=>array('plan_type'),
+	'description'=>'The user plan type (storage || memory).',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::LOWER
+	));
+$a->addParam(array(
+	'name'=>array('iban'),
+	'description'=>'The user plan.',
+	'optional'=>true,
+	'minlength'=>10,
+	'maxlength'=>150,
+	'match'=>request::LOWER|request::UPPER|request::NUMBER
+	));
+$a->addParam(array(
+	'name'=>array('bic'),
+	'description'=>'The user BIC.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>50,
+	'match'=>request::LOWER|request::UPPER|request::NUMBER
+	));
+$a->addParam(array(
+	'name'=>array('postal_address', 'address', 'user_address'),
+	'description'=>'The postal address of the user (JSON encoded).',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>500,
+	'match'=>request::ALL
+	));
+$a->addParam(array(
+	'name'=>array('postal_code', 'code'),
+	'description'=>'The postal code of the user.',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>5,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
+	'name'=>array('organisation', 'o'),
+	'description'=>'The organisation of the user.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::PHRASE
+	));
+$a->addParam(array(
+	'name'=>array('locality', 'l', 'city'),
+	'description'=>'The city of the user.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::PHRASE
+	));
+$a->addParam(array(
+	'name'=>array('status', 'user_status'),
+	'description'=>'The user status.',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
+	'name'=>array('report'),
+	'description'=>'Receive reports?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+$a->addParam(array(
+	'name'=>array('zabbix'),
+	'description'=>'The user zabbix id.',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::NUMBER
+	));
+$a->addParam(array(
+	'name'=>array('key', 'ssh'),
+	'description'=>'The SSH key',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>1000,
+	'match'=>request::ALL
+	));
+$a->addParam(array(
+	'name'=>array('mode'),
+	'description'=>'Mode for alternate or redirection email (can be add/delete).',
+	'optional'=>true,
+	'minlength'=>2,
+	'maxlength'=>6,
+	'match'=>"(add|delete)"
+	));
+$a->addParam(array(
+	'name'=>array('billing'),
+	'description'=>'Billing?',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>5,
+	'match'=>"(1|0|yes|no|true|false)"
+	));
+	
 $a->setExecute(function() use ($a)
 {
 	// =================================
