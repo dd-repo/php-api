@@ -33,7 +33,7 @@ $a->addParam(array(
 	'action'=>true
 	));
 $a->addParam(array(
-	'name'=>array('mail', 'email', 'address', 'user_email', 'user_mail', 'user_address'),
+	'name'=>array('mail', 'email', 'user_email', 'user_mail'),
 	'description'=>'The email of the user.',
 	'optional'=>true,
 	'minlength'=>0,
@@ -314,7 +314,10 @@ $a->setExecute(function() use ($a)
 				$users[$i]['lastname'] = $result['sn'];
 				$users[$i]['language'] = $result['gecos'];
 				$users[$i]['ip'] = $result['ipHostNumber'];
-				$users[$i]['address'] = $result['postalAddress'];
+				$users[$i]['postal_address'] = $result['postalAddress'];
+				$users[$i]['postal_code'] = $result['postalCode'];
+				$users[$i]['organisation'] = $result['o'];
+				$users[$i]['locality'] = $result['l'];
 				$users[$i]['description'] = $result['description'];
 				$users[$i]['keys'] = $result['sshPublicKey'];
 				$users[$i]['email'] = (isset($result['mailForwardingAddress'])?$result['mailForwardingAddress']:$result['mail']);
