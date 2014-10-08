@@ -117,7 +117,10 @@ $a->setExecute(function() use ($a)
 	// =================================
 	grantStore::add('QUOTA_USER_INTERNAL');
 	request::forward('/quota/user/internal');
-	checkQuota('MEMORY', $user);
+	
+	if( $nodocker == null )
+		checkQuota('MEMORY', $user);
+	
 	checkQuota('APPS', $user);
 	
 	// =================================
