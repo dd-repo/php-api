@@ -177,11 +177,14 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
-	$commands[] = "/dns/tm/sys/usr/local/bin/app-create {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime} ".strtolower($app)." ".security::encode($domain)." \"".security::encode($binary)."\"";
+	if( $nodocker != null )
+		$postcommand = "chmod -s {$data['homeDirectory']} && chgrp 33 {$data['homeDirectory']} && chmod +x {$data['homeDirectory']}/master;";
+	else
+		$postcommand = "";
+		
+	$commands[] = "/dns/tm/sys/usr/local/bin/app-create {$app} {$data['homeDirectory']} {$data['uidNumber']} {$data['gidNumber']} {$runtime} ".strtolower($app)." ".security::encode($domain)." \"".security::encode($binary)."\"; {$postcommand}";
 	$commands[] = "cd {$userinfo['homeDirectory']} && ln -s ".str_replace("Apps/{$app}", "var/git/{$app}", $data['homeDirectory'])." {$app}.git";
 	$commands[] = "cd {$userinfo['homeDirectory']} && ln -s {$data['homeDirectory']} {$app}";
-	if( $nodocker != null )
-		$commands[] = "chmod -s {$data['homeDirectory']} && chgrp 33 {$data['homeDirectory']} && chmod +x {$data['homeDirectory']}/master";
 	
 	$GLOBALS['gearman']->sendAsync($commands);
 	
