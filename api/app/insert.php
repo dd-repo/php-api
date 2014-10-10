@@ -178,7 +178,7 @@ $a->setExecute(function() use ($a)
 	// POST-CREATE SYSTEM ACTIONS
 	// =================================
 	if( $nodocker != null )
-		$postcommand = "chmod -s {$data['homeDirectory']} && chgrp 33 {$data['homeDirectory']} && chmod +x {$data['homeDirectory']}/master;";
+		$postcommand = "chgrp -R 33 {$data['homeDirectory']};";
 	else
 		$postcommand = "";
 		
