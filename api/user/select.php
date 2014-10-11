@@ -237,7 +237,7 @@ $a->setExecute(function() use ($a)
 	
 	if( $quota === true )
 	{
-		$sql = "SELECT u.user_id, u.user_report, u.user_name, u.user_ldap, u.user_status, u.user_zabbix, u.user_billing, u.user_vat u.user_date, u.user_last_update, q.quota_id, q.quota_name, uq.quota_max, uq.quota_used
+		$sql = "SELECT u.user_id, u.user_report, u.user_name, u.user_ldap, u.user_status, u.user_zabbix, u.user_billing, u.user_vat, u.user_date, u.user_last_update, q.quota_id, q.quota_name, uq.quota_max, uq.quota_used
 				FROM users u
 				LEFT JOIN user_quota uq ON(u.user_id = uq.user_id)
 				LEFT JOIN quotas q ON(uq.quota_id = q.quota_id)
