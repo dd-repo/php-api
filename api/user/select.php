@@ -213,7 +213,7 @@ $a->setExecute(function() use ($a)
 	if( $order !== null )
 		$order = 'u.' . $order;
 	else
-		$order = 'u.user_name';
+		$order = 'u.user_date';
 	
 	$where = '';
 	if( $from !== null )
@@ -222,7 +222,7 @@ $a->setExecute(function() use ($a)
 		$where .= " AND user_date < {$to}";
 	
 	if( $order_type === null )
-		$order_type = 'ASC';
+		$order_type = 'DESC';
 	
 	// =================================
 	// SELECT RECORDS
