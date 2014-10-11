@@ -13,7 +13,15 @@ $a->addGrant(array('ACCESS', 'BILL_INSERT'));
 $a->setReturn(array(array(
 	'id'=>'the id of the bill'
 	)));
-
+	
+$a->addParam(array(
+	'name'=>array('date', 'bill_date'),
+	'description'=>'Timestamp of the bill',
+	'optional'=>true,
+	'minlength'=>0,
+	'maxlength'=>50,
+	'match'=>request::NUMBER,
+	));
 $a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
@@ -33,6 +41,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// GET PARAMETERS
 	// =================================
+	$date = $a->getParam('date');
 	$user = $a->getParam('user');
 	
 	// =================================
@@ -46,7 +55,11 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// INSERT BILL
 	// =================================
-	$time = strtotime("last day of current month");
+	if( $date != null )
+		$time = $date;
+	else
+		$time = time();
+		
 	$sql = "INSERT INTO bills (bill_user, bill_date) VALUES ({$userdata['user_id']}, '{$time}')";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	$uid = $GLOBALS['db']->last_id();
