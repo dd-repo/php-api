@@ -179,9 +179,9 @@ $a->addParam(array(
 	'optional'=>true,
 	'minlength'=>1,
 	'maxlength'=>5,
-	'match'=>"(1|0|yes|no|true|false)"
+	'match'=>request::NUMBER
 	));
-	
+
 $a->setExecute(function() use ($a)
 {
 	// =================================
