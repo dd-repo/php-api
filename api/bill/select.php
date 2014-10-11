@@ -89,7 +89,7 @@ $a->setExecute(function() use ($a)
 			FROM bills b
 			LEFT JOIN users u ON(u.user_id = b.bill_user)
 			WHERE true {$where}
-			ORDER BY b.bill_date DESC";
+			ORDER BY b.bill_id DESC";
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 
 	// =================================
