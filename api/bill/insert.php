@@ -23,6 +23,14 @@ $a->addParam(array(
 	'match'=>request::NUMBER,
 	));
 $a->addParam(array(
+	'name'=>array('type', 'bill_type'),
+	'description'=>'The type of the bill',
+	'optional'=>true,
+	'minlength'=>1,
+	'maxlength'=>1,
+	'match'=>request::NUMBER,
+	));
+$a->addParam(array(
 	'name'=>array('user', 'user_name', 'username', 'login', 'user_id', 'uid'),
 	'description'=>'The name or id of the target user.',
 	'optional'=>false,
@@ -42,6 +50,7 @@ $a->setExecute(function() use ($a)
 	// GET PARAMETERS
 	// =================================
 	$date = $a->getParam('date');
+	$type = $a->getParam('type');
 	$user = $a->getParam('user');
 	
 	// =================================
@@ -59,16 +68,34 @@ $a->setExecute(function() use ($a)
 		$time = $date;
 	else
 		$time = time();
+	
+	$year = date('Y', $time);
+	$month = date('F', $time);
+	
+	if( $type != null )
+	{
+		switch( $type )
+		{
+			case 1:
+				$ref = "{$userdata['user_name']} ({$month} {$year})";
+			break;
+			case 2:
+				$ref = "{$userdata['user_name']} ({$month} {$year})";
+			break;
+			case 3:
+				$ref = "{$userdata['user_name']} ({$year})";
+			break;
+		}
+	}
+	else
+		$ref = "{$userdata['user_name']} ({$month} {$year})";
 		
 	$sql = "INSERT INTO bills (bill_user, bill_date) VALUES ({$userdata['user_id']}, '{$time}')";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	$uid = $GLOBALS['db']->last_id();
 	$formatuid = str_pad($uid, 6, '0', STR_PAD_LEFT);
 	
-	$year = date('Y', $time);
-	$month = date('F', $time);
-	
-	$sql = "UPDATE bills SET bill_name = 'CO-AS{$year}-{$formatuid}', bill_ref = '{$userdata['user_name']} ({$month} {$year})' WHERE bill_id = {$uid}";
+	$sql = "UPDATE bills SET bill_name = 'CO-AS{$year}-{$formatuid}', bill_ref = '{$ref}' WHERE bill_id = {$uid}";
 	$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	
 	// =================================
