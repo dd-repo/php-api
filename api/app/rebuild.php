@@ -92,7 +92,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// REBUILD APP
 	// =================================	
-	$command = "/dns/tm/sys/usr/local/bin/app-rebuild {$app} {$data['homeDirectory']} {$branch} {$runtime} ".strtolower($app)." \"".security::encode($binary)."\"";
+	$command = "/dns/tm/sys/usr/local/bin/app-rebuild {$data['uid']} {$data['homeDirectory']} {$branch} ".strtolower($data['uid'])." \"".security::encode($binary)."\";";
 	$GLOBALS['gearman']->sendSync($command, 'docker-master');
 	
 	// =================================
