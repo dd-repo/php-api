@@ -92,7 +92,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// REBUILD APP
 	// =================================	
-	$command = "cd {$data['homeDirectory']}/../../etc/dockers/{$data['uid']}-{$branch}; docker build -no-cache=true -t=\"registry:5000/".strtolower($data['uid'])."-{$branch}\" .; docker push registry:5000/".strtolower($data['uid'])."-{$branch}";
+	$command = "/dns/tm/sys/usr/local/bin/app-rebuild {$app} {$data['homeDirectory']} {$branch} {$runtime} ".strtolower($app)." \"".security::encode($binary)."\"";
 	$GLOBALS['gearman']->sendSync($command, 'docker-master');
 	
 	// =================================
