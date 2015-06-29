@@ -40,9 +40,7 @@ $a->setExecute(function() use ($a)
 	// =================================
 	// SELECT RECORDS
 	// =================================
-	$sql = "SELECT backup_identifier
-			FROM backups
-			WHERE {$where}";
+	$sql = "SELECT backup_identifier FROM backups WHERE {$where};";
 	$result = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 
 	foreach( $result as $backup )
