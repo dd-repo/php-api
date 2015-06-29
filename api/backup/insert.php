@@ -226,10 +226,10 @@ $a->setExecute(function() use ($a)
 	$bas = $GLOBALS['db']->query($sql, mysql::ANY_ROW);
 	foreach( $bas as $b )
 	{
-		$command = "rm /dns/com/anotherservice/download/{$b['backup_identifier']}.gz";
+		$command = "[ -f /dns/com/anotherservice/download/{$b['backup_identifier']}.gz ] && rm /dns/com/anotherservice/download/{$b['backup_identifier']}.gz";
 		$GLOBALS['gearman']->sendAsync($command);
 		
-		$sql = "DELETE FROM backups WHERE backup_identifier = {$b['backup_identifier']}";
+		$sql = "DELETE FROM backups WHERE backup_identifier = '{$b['backup_identifier']}'";
 		$GLOBALS['db']->query($sql, mysql::NO_ROW);
 	}
 	
