@@ -50,7 +50,7 @@ $a->setExecute(function() use ($a)
         $command = "[ -f /dns/com/anotherservice/download/{$backup['backup_identifier']}.gz ] && rm /dns/com/anotherservice/download/{$backup['backup_identifier']}.gz";
         $GLOBALS['gearman']->sendAsync($command);
 
-        $sql = "DELETE FROM backups WHERE backup_identifier = {$backup['backup_identifier']}";
+        $sql = "DELETE FROM backups WHERE backup_identifier = '{$backup['backup_identifier']}'";
         $GLOBALS['db']->query($sql, mysql::NO_ROW);
 	}
 	
