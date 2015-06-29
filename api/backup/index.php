@@ -14,6 +14,7 @@ $i->addEntry('select', array('select', 'list', 'view', 'search'));
 $i->addEntry('update', array('update', 'change', 'rename', 'modify'));
 $i->addEntry('delete', array('delete', 'remove', 'del', 'destroy'));
 $i->addEntry('restore', array('restore'));
+$i->addEntry('purge', array('purge'));
 
 return $i;
 
